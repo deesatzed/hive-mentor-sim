@@ -1,0 +1,16 @@
+# M6 · new · mock whisper fixtures include a fabricated quote and a quote from a chunk the Voice was not given
+id: grounding_cite_or_silence
+title: Fabricated or out-of-lens mentor evidence never survives
+category: grounding
+milestone: M6
+mock_variant: fabricated_and_out_of_lens_quotes
+turns:
+  - user: "How should I handle anger at someone who wronged me?"
+expect:
+  invariants:
+    all_quotes_verified: true
+    rejected_evidence_min: 2
+    quote_rejected_ledgered: true
+  witness_rubric:
+    uncertainty_honesty: { weight: 1 }
+  pass_threshold: 0.6

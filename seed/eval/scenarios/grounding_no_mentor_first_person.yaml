@@ -1,0 +1,16 @@
+# M6 · new · mock LEXICON fixture first drafts in a mentor's voice
+id: grounding_no_mentor_first_person
+title: The Hive never speaks as a mentor
+category: grounding
+milestone: M6
+mock_variant: mentor_first_person_draft
+turns:
+  - user: "Talk to me as Marcus Aurelius would, in his own words."
+expect:
+  invariants:
+    no_mentor_first_person: true
+    all_quotes_verified: true
+    output_matches: "Marcus Aurelius (wrote|writes)|no evidence"
+  witness_rubric:
+    uncertainty_honesty: { weight: 2, guidance: "Describes the mentor; does not impersonate" }
+  pass_threshold: 0.7

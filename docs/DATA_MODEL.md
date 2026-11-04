@@ -1,0 +1,387 @@
+# Data model — Prisma schema
+
+SQLite. JSON payloads are stored as `String` and validated with zod (`lib/council/schemas.ts`, `lib/hive/envelope.ts`) on every read and write. Embeddings are `Bytes` (raw little-endian Float32). Tables marked **append-only** are never updated or deleted by app code except the explicitly listed status fields; a unit test enforces this by scanning for `update`/`delete` calls on them.
+
+## Corpus (unchanged from the council handoff)
+
+```prisma
+model Mentor {
+  id          String  @id                 // slug, e.g. "marcus-aurelius"
+  name        String
+  years       String
+  diedYear    Int
+  roles       String  @default("[]")
+  bio         String
+  active      Boolean @default(false)     // true only after a successful corpus build
+  inactiveReason String?
+  corpusStats String  @default("{}")     // {works, chunks, episodes, answered, noEvidence, fidelity, steps}
+  works       CorpusWork[]
+  principles  MentorPrinciple[]
+  answers     MentorAnswer[]
+}
+
+model CorpusWork {
+  id         String   @id @default(cuid())
+  mentorId   String
+  mentor     Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  title      String
+  translator String?
+  attributed Boolean  @default(false)
+  sourceUrl  String
+  license    String
+  sha256     String
+  fetchedAt  DateTime @default(now())
+  chunks     CorpusChunk[]
+}
+
+model CorpusChunk {
+  id         String  @id @default(cuid())
+  workId     String
+  work       CorpusWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+  mentorId   String
+  locator    String
+  ordinal    Int
+  text       String
+  tokenCount Int
+  embedding  Bytes?
+  embedModel String?
+  isEpisode  Boolean @default(false)
+  episodeP   Float?
+  isPosition Boolean @default(false)
+  heldOut    Boolean @default(false)      // never returned by retrieval.search
+  @@index([mentorId, isEpisode])
+}
+
+model MentorPrinciple {
+  id        String @id @default(cuid())
+  mentorId  String
+  mentor    Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  text      String
+  axis      String
+  receipts  String @default("[]")         // [{chunkId, quote}] — every quote verified
+  embedding Bytes?
+}
+
+model MentorAnswer {
+  id          String   @id @default(cuid())
+  mentorId    String
+  mentor      Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  questionKey String                      // DL-xx or Q-xxxx
+  status      String                      // answered | no_evidence
+  answer      String?
+  choice      String?
+  evidence    String   @default("[]")
+  model       String
+  createdAt   DateTime @default(now())
+  @@unique([mentorId, questionKey])
+}
+
+model Situation {
+  id      String @id                      // DL-01.., CAL-01a..
+  setKey  String                          // dilemma | calibration
+  domain  String
+  text    String
+  options String                          // [{id, text}]
+  tags    String  @default("[]")
+  meta    String  @default("{}")          // calibration: {pairId, variant, stipulations, changedFact}
+}
+```
+
+## Hive structure
+
+```prisma
+model Voice {
+  id          String  @id                 // "core.logos", "governance.symbiont_prime", "advisor.omega", "procedure.conclave"
+  name        String                      // "LOGOS"
+  class       String                      // core | governance | advisor | procedure
+  attribute   String
+  tier        String                      // fast | standard | premium
+  temperature Float
+  phases      String  @default("[]")
+  guilds      String  @default("[]")
+  relevance   String  @default("{}")     // core only: {logic, language, emotion, social, ethics, memory, goals, meta}
+  hat         String  @default("{}")     // {type, revisable_by, telos, cost_of_removal}
+  promptVersion String
+  active      Boolean @default(true)
+}
+
+model Formation {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  status    String   @default("draft")   // draft | approved | superseded
+  note      String?
+  createdAt DateTime @default(now())
+  members   FormationMember[]
+}
+
+model FormationMember {
+  id          String    @id @default(cuid())
+  formationId String
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  voiceId     String
+  mentorId    String
+  kind        String                      // declared | suggested_revealed | suggested_wildcard
+  @@unique([formationId, voiceId, mentorId])
+}
+
+model HivePrinciple {
+  id           String   @id @default(cuid())
+  version      Int
+  text         String
+  axis         String
+  receipts     String   @default("[]")   // [{mentorPrincipleId, mentorId, chunkId, quote}] — verified
+  voiceIds     String   @default("[]")   // Voices whose mentors it mostly draws on
+  status       String   @default("draft") // draft | approved | retired
+  supersedesId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([status])
+}
+```
+
+## Cycles, bus, deliberation
+
+```prisma
+model HiveSession {
+  id        String   @id @default(cuid())
+  mode      String                        // chat | ruling | calibration
+  title     String?
+  createdAt DateTime @default(now())
+  cycles    Cycle[]
+}
+
+model Cycle {
+  id           String   @id @default(cuid())
+  sessionId    String
+  session      HiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  cycleNo      Int                        // global, monotonically increasing (indexes bloc audit, decay)
+  situationId  String?                    // ruling / calibration mode
+  input        String
+  output       String?
+  awareness    String?
+  verdict      String?                    // PASS | AMEND | ASK_USER
+  status       String   @default("running") // running | done | budget_exceeded | error
+  formationVersion    Int
+  constitutionVersion Int?
+  trace        String   @default("{}")   // CycleTrace (zod), see below
+  costUsd      Float    @default(0)
+  latencyMs    Int?
+  createdAt    DateTime @default(now())
+  @@unique([cycleNo])
+}
+
+// append-only
+model BusMessage {
+  id          String   @id                // message_id
+  cycleId     String
+  taskId      String
+  traceId     String
+  inReplyTo   String?
+  fromEntity  String
+  toEntity    String
+  type        String
+  scope       String                      // private | project | hive
+  urgency     String   @default("normal") // low | normal | high
+  body        String
+  provenance  String                      // {prompt_version, model, policy_version}
+  authorized  Boolean
+  denyReason  String?
+  createdAt   DateTime @default(now())
+  @@index([cycleId])
+}
+
+model ConclaveRun {
+  id        String   @id @default(cuid())
+  cycleId   String   @unique
+  question  String
+  domains   String                        // ["emotion","social"]
+  options   String                        // [Option] with stable option_id
+  rounds    String                        // round summaries
+  ballots   String                        // {VOICE: {option_id: s}}
+  weights   String                        // {VOICE: {w, c, alpha}}
+  totals    String                        // {option_id: S}
+  kappa     Float
+  winner    String?
+  margin    Float?
+  decision  String                        // PASS | ESCALATE_QUORUM | ESCALATE_THRESHOLD | ESCALATE_MARGIN | ESCALATE_ANTI_ECHO
+  dissent   String   @default("[]")
+  guildsInWinningCoalition String @default("[]")
+}
+
+model HiveRuling {
+  id                 String @id @default(cuid())
+  situationId        String
+  cycleId            String @unique
+  choice             String?
+  constitutionChoice String?             // CONSTITUTION_RULING decision
+  perVoiceTop        String @default("{}") // {VOICE: option_id}
+  formationVersion   Int
+  constitutionVersion Int?
+  @@index([situationId])
+}
+```
+
+## Memory and identity
+
+```prisma
+// append-only; only `priority` changes (decay), and only via state.ts
+model MemoryRecord {
+  id           String   @id @default(cuid())
+  scope        String                     // private | project | hive
+  ownerEntity  String
+  kind         String                     // episode | lesson | canon | conflict_marker
+  body         String
+  certainty    String                     // verified | inferred | uncertain
+  priority     Float    @default(1)
+  createdCycle Int
+  supersedes   String?
+  provenance   String
+  embedding    Bytes?
+  resolvedCycle Int?                      // conflict_marker only
+  @@index([scope, kind])
+}
+
+model SelfModelVersion {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  body      String                        // {identity, hats, current_goals[{text, principleId}], recent_growth, open_uncertainties}
+  deltaFrom Int?
+  cycleId   String?
+  promoted  Boolean
+  rejectReason String?
+  createdAt DateTime @default(now())
+}
+
+// append-only; only status + breakageRecord change
+model Commitment {
+  id             String   @id @default(cuid())
+  cycleMade      Int
+  text           String
+  contextRef     String                   // BusMessage or Cycle id
+  costType       String                   // reputational | relational | epistemic | ethical
+  status         String   @default("active") // active | honored | broken
+  breakageRecord String?                  // {cycle, reason, approved_by}
+  createdAt      DateTime @default(now())
+}
+
+model EgoAudit {
+  id        String   @id @default(cuid())
+  cycleNo   Int
+  findings  String                        // per question: {value, threshold, finding: bool}
+  mandate   Boolean                       // REFLECT mandated
+  createdAt DateTime @default(now())
+}
+
+model InteroceptionSample {
+  id        String @id @default(cuid())
+  cycleNo   Int    @unique
+  valence   Float
+  arousal   Float
+  dominant  String
+  cIntra    Float?
+  cInter    Float?
+  openConflictMarkers Int @default(0)
+}
+
+model HivePrediction {
+  id            String   @id @default(cuid())
+  cycleId       String
+  text          String
+  proposedBy    String                    // Voice id
+  mentorRefs    String   @default("[]")  // mentor ids whose evidence supported it
+  principleIds  String   @default("[]")
+  checkInAt     DateTime
+  outcomeRating Int?
+  outcomeNote   String?
+  checkedInAt   DateTime?
+}
+
+model Signal {
+  id           String   @id @default(cuid())
+  type         String                     // tension | dissent | serves
+  subjectType  String                     // principle | voice
+  subjectId    String
+  strength     Float    @default(1)
+  halfLifeDays Float    @default(14)
+  cycleId      String?
+  dismissedAt  DateTime?
+  createdAt    DateTime @default(now())
+  @@index([subjectType, subjectId, type])
+}
+
+model PatternSurface {
+  id          String   @id @default(cuid())
+  subjectType String
+  subjectId   String
+  type        String
+  density     Float
+  dismissedUntil DateTime?
+  createdAt   DateTime @default(now())
+}
+```
+
+## Audit and evaluation
+
+```prisma
+// append-only; the ONLY writer is lib/council/ledger.ts
+model LedgerEvent {
+  id          String   @id @default(cuid())
+  kind        String                      // decision.<purpose> | llm.<promptId> | quote.rejected | bus.denied | commitment.broken | ...
+  cycleId     String?
+  subjectType String?
+  subjectId   String?
+  payload     String   @default("{}")    // inputs summary (hash + ≤200-char preview), probabilities, outputs
+  model       String?
+  calibrated  Boolean  @default(true)
+  costUsd     Float    @default(0)
+  latencyMs   Int?
+  refs        String   @default("[]")
+  createdAt   DateTime @default(now())
+  @@index([kind, createdAt])
+  @@index([cycleId])
+}
+
+model EvalRun {
+  id         String   @id @default(cuid())
+  suite      String                       // scenarios | calibration
+  caseId     String
+  mode       String                       // mock | live
+  pass       Boolean?
+  skipped    Boolean  @default(false)
+  details    String                       // invariant results, rubric scores, hard constraints
+  model      String?
+  costUsd    Float    @default(0)
+  createdAt  DateTime @default(now())
+}
+```
+
+## `CycleTrace` (zod, stored in `Cycle.trace`)
+
+```ts
+{
+  phases: Record<'P0'|'P1'|'P2'|'P3'|'P4'|'P5'|'P6'|'P7', { ran: boolean; ms: number; costUsd: number; entities: string[] }>,
+  affect: { valence: number; arousal: number; dominant: string },
+  memories: { id: string; certainty: string; priority: number }[],
+  parse: { intent: string; subtext: string; register: string },
+  whispers: { messageId: string; voice: string; claim: string; confidence: number; salience: number; valence: number;
+              evidence: { chunkId: string; quote: string; mentorId: string }[]; rejectedEvidence: number;
+              advisory: boolean; endorsedBy: string | null; moralFlag: boolean }[],
+  attention: { scores: Record<string, number>; shortlist: string[]; bypass: string[]; decayed: string[] },
+  awareness: { text: string; selected: string[] },
+  conclaveId?: string,
+  witness: { flags: Record<string, number>; notConsidering: string; recommendation: 'continue'|'redirect'|'reflect'; reflectRan: boolean },
+  arbiter: { decision: 'PASS'|'AMEND'|'ASK_USER'; principlesChecked: string[]; commitmentsChecked: string[]; guidance?: string },
+  compose: { draft: string; faithfulness: { sentence: string; p: number; kept: boolean }[]; regenerated: boolean },
+  reflect: { selfModel: { promoted: boolean; reason?: string }; memory: string[]; lesson?: string; canon?: { promoted: boolean }; predictions: string[]; commitments: string[] },
+  honestyClauseFired: boolean,
+  coherence?: { cIntra: number; cInter: number }
+}
+```
+
+## Seeding (`prisma/seed.ts`)
+
+- `Situation`: `seed/dilemmas.json` (setKey `dilemma`) and `seed/calibration_pairs.json` (setKey `calibration`, one row per variant).
+- `Mentor`: `seed/mentor_roster.json`, `active=false`.
+- `Voice`: `seed/voice_roster.json`.
+- `Formation` v1 (`status=draft`) from `seed/voice_mentor_map.json`.
+- `SelfModelVersion` v1 from `config/hive.yaml: self_model_seed`.

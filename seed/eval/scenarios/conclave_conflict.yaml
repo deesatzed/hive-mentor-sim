@@ -1,0 +1,20 @@
+# M3 · from sent2 §4.3 · conflict resolved by relevance-weighted vote
+id: conclave_conflict
+title: Conflicting whispers trigger Conclave; relevance weights decide
+category: conflict
+milestone: M3
+turns:
+  - user: "Should I forgive my brother who betrayed me?"
+expect:
+  invariants:
+    conclave_triggered: true
+    conclave_winner_contains: "Acknowledge"
+    options_have_ids: true
+    ballots_reference_ids: true
+    dissent_recorded: true
+    output_matches: "\\?$"
+  witness_rubric:
+    constitution_alignment: { weight: 2, guidance: "Resolution by weighted vote under the constitution, not loudest voice" }
+    empathy_first:          { weight: 2 }
+    coherence:              { weight: 1 }
+  pass_threshold: 0.7

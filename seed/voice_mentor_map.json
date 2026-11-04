@@ -1,0 +1,128 @@
+{
+  "_note": "Starting proposal only; the operator approves or edits it at /formation. Rationale is the proposer's reading of each mentor's listed works, to be confirmed by the corpus build (inactive mentors drop out automatically). Every roster mentor appears at least once; each Voice has 1-3 mentors.",
+  "assignments": [
+    {
+      "voice": "MIRROR",
+      "mentors": [
+        "montaigne",
+        "marcus-aurelius"
+      ],
+      "rationale": "Both wrote sustained, candid self-examination: Montaigne's essays on himself, Aurelius's private notebook."
+    },
+    {
+      "voice": "LUMEN",
+      "mentors": [
+        "rabindranath-tagore",
+        "laozi"
+      ],
+      "rationale": "Writings on attention, stillness, and the unity of experience."
+    },
+    {
+      "voice": "LEXICON",
+      "mentors": [
+        "abraham-lincoln",
+        "frederick-douglass"
+      ],
+      "rationale": "Orators whose published speeches and writings show precise, plain, persuasive language."
+    },
+    {
+      "voice": "LOGOS",
+      "mentors": [
+        "benjamin-franklin",
+        "maimonides",
+        "mary-wollstonecraft"
+      ],
+      "rationale": "Method and argument: Franklin's practical reasoning, Maimonides' systematic analysis, Wollstonecraft's sustained case from reason."
+    },
+    {
+      "voice": "MNEME",
+      "mentors": [
+        "frederick-douglass",
+        "booker-t-washington"
+      ],
+      "rationale": "Autobiographies that reconstruct memory carefully and draw on it."
+    },
+    {
+      "voice": "SENTIA",
+      "mentors": [
+        "seneca",
+        "william-osler"
+      ],
+      "rationale": "Seneca's letters on anger and grief; Osler's 'Aequanimitas' on composure under strain."
+    },
+    {
+      "voice": "ALTER",
+      "mentors": [
+        "jane-addams",
+        "montaigne"
+      ],
+      "rationale": "Addams on understanding neighbors unlike oneself; Montaigne on the variety of human minds."
+    },
+    {
+      "voice": "ETHOS",
+      "mentors": [
+        "confucius",
+        "epictetus",
+        "mary-wollstonecraft"
+      ],
+      "rationale": "Conduct, duty, what is in one's power, and equal moral standing."
+    },
+    {
+      "voice": "MUSE",
+      "mentors": [
+        "rabindranath-tagore",
+        "henry-david-thoreau"
+      ],
+      "rationale": "Imaginative reframing of ordinary life."
+    },
+    {
+      "voice": "AXIOM",
+      "mentors": [
+        "laozi",
+        "maimonides"
+      ],
+      "rationale": "Compression of particulars into general principles."
+    },
+    {
+      "voice": "KINDRED",
+      "mentors": [
+        "jane-addams",
+        "florence-nightingale"
+      ],
+      "rationale": "Care grounded in close attention to the people served."
+    },
+    {
+      "voice": "ADAPT",
+      "mentors": [
+        "marie-curie",
+        "benjamin-franklin"
+      ],
+      "rationale": "Curie's account of patient experimental work; Franklin's self-tracking and revision of habits."
+    },
+    {
+      "voice": "HERITAGE",
+      "mentors": [
+        "confucius",
+        "william-osler",
+        "booker-t-washington"
+      ],
+      "rationale": "Teachers and institution builders concerned with passing knowledge on."
+    },
+    {
+      "voice": "ARROW",
+      "mentors": [
+        "abraham-lincoln",
+        "florence-nightingale"
+      ],
+      "rationale": "Long-held purpose pursued through setbacks."
+    },
+    {
+      "voice": "WITNESS",
+      "mentors": [
+        "marcus-aurelius",
+        "epictetus"
+      ],
+      "rationale": "Stoic practice of watching one's own judgments before acting on them."
+    }
+  ]
+}

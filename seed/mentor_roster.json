@@ -1,0 +1,393 @@
+{
+  "_note": "Candidates only. Eligibility (died before 1956; works public domain in the US per source) and availability are verified at ingestion (docs/MENTOR_CORPUS.md). Titles are search hints, not guaranteed exact catalog titles.",
+  "mentors": [
+    {
+      "id": "marcus-aurelius",
+      "name": "Marcus Aurelius",
+      "years": "121–180",
+      "diedYear": 180,
+      "roles": [
+        "emperor",
+        "Stoic philosopher"
+      ],
+      "bio": "Roman emperor whose private notebook records his effort to act justly under the weight of power.",
+      "works": [
+        {
+          "title": "Meditations",
+          "author": "Marcus Aurelius",
+          "translator": "George Long",
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "seneca",
+      "name": "Seneca",
+      "years": "c. 4 BCE–65 CE",
+      "diedYear": 65,
+      "roles": [
+        "statesman",
+        "Stoic philosopher",
+        "writer"
+      ],
+      "bio": "Roman advisor and philosopher whose letters give practical counsel on time, anger, friendship, and death.",
+      "works": [
+        {
+          "title": "Moral letters to Lucilius",
+          "author": "Seneca",
+          "translator": "Richard M. Gummere",
+          "source": "wikisource",
+          "index": "https://en.wikisource.org/wiki/Moral_letters_to_Lucilius",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "epictetus",
+      "name": "Epictetus",
+      "years": "c. 50–135",
+      "diedYear": 135,
+      "roles": [
+        "teacher",
+        "Stoic philosopher",
+        "former slave"
+      ],
+      "bio": "Formerly enslaved teacher who taught the discipline of distinguishing what is in our control from what is not.",
+      "works": [
+        {
+          "title": "The Enchiridion",
+          "author": "Epictetus",
+          "translator": "George Long",
+          "source": "gutenberg",
+          "attributed": false
+        },
+        {
+          "title": "The Discourses of Epictetus",
+          "author": "Epictetus",
+          "translator": "George Long",
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "confucius",
+      "name": "Confucius",
+      "years": "551–479 BCE",
+      "diedYear": -479,
+      "roles": [
+        "teacher",
+        "statesman"
+      ],
+      "bio": "Chinese teacher of conduct, ritual, and the cultivated person; sayings recorded by his followers.",
+      "works": [
+        {
+          "title": "The Analects",
+          "author": "Confucius",
+          "translator": "James Legge",
+          "source": "gutenberg",
+          "attributed": true
+        }
+      ]
+    },
+    {
+      "id": "laozi",
+      "name": "Laozi",
+      "years": "6th c. BCE (traditional)",
+      "diedYear": -500,
+      "roles": [
+        "sage"
+      ],
+      "bio": "Traditionally credited author of the Tao Te Ching, on yielding, simplicity, and action without force.",
+      "works": [
+        {
+          "title": "Tao Te Ching",
+          "author": "Laozi",
+          "translator": "James Legge",
+          "source": "gutenberg",
+          "attributed": true
+        }
+      ]
+    },
+    {
+      "id": "maimonides",
+      "name": "Moses Maimonides",
+      "years": "1138–1204",
+      "diedYear": 1204,
+      "roles": [
+        "physician",
+        "rabbi",
+        "philosopher"
+      ],
+      "bio": "Physician and philosopher who joined medicine, law, and ethics, and wrote on the middle path in character.",
+      "works": [
+        {
+          "title": "The Guide for the Perplexed",
+          "author": "Moses Maimonides",
+          "translator": "M. Friedländer",
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "montaigne",
+      "name": "Michel de Montaigne",
+      "years": "1533–1592",
+      "diedYear": 1592,
+      "roles": [
+        "essayist",
+        "magistrate"
+      ],
+      "bio": "Inventor of the essay, who examined himself candidly to learn how to live and how to die.",
+      "works": [
+        {
+          "title": "Essays of Michel de Montaigne",
+          "author": "Michel de Montaigne",
+          "translator": "Charles Cotton",
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "benjamin-franklin",
+      "name": "Benjamin Franklin",
+      "years": "1706–1790",
+      "diedYear": 1790,
+      "roles": [
+        "printer",
+        "inventor",
+        "statesman"
+      ],
+      "bio": "Builder and civic organizer who kept a ledger of his own virtues and wrote frankly about his failures.",
+      "works": [
+        {
+          "title": "Autobiography of Benjamin Franklin",
+          "author": "Benjamin Franklin",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        },
+        {
+          "title": "The Way to Wealth",
+          "author": "Benjamin Franklin",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "abraham-lincoln",
+      "name": "Abraham Lincoln",
+      "years": "1809–1865",
+      "diedYear": 1865,
+      "roles": [
+        "lawyer",
+        "president"
+      ],
+      "bio": "Leader under the heaviest pressure, whose letters and speeches show firmness joined to mercy.",
+      "works": [
+        {
+          "title": "The Papers And Writings Of Abraham Lincoln",
+          "author": "Abraham Lincoln",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "frederick-douglass",
+      "name": "Frederick Douglass",
+      "years": "1818–1895",
+      "diedYear": 1895,
+      "roles": [
+        "abolitionist",
+        "orator",
+        "writer"
+      ],
+      "bio": "Escaped slavery and became a leading voice for freedom and equal rights, writing with unflinching moral clarity.",
+      "works": [
+        {
+          "title": "Narrative of the Life of Frederick Douglass, an American Slave",
+          "author": "Frederick Douglass",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        },
+        {
+          "title": "My Bondage and My Freedom",
+          "author": "Frederick Douglass",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "florence-nightingale",
+      "name": "Florence Nightingale",
+      "years": "1820–1910",
+      "diedYear": 1910,
+      "roles": [
+        "nurse",
+        "reformer",
+        "statistician"
+      ],
+      "bio": "Reformer who brought observation, data, and discipline to the care of the sick.",
+      "works": [
+        {
+          "title": "Notes on Nursing: What It Is, and What It Is Not",
+          "author": "Florence Nightingale",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "william-osler",
+      "name": "William Osler",
+      "years": "1849–1919",
+      "diedYear": 1919,
+      "roles": [
+        "physician",
+        "teacher"
+      ],
+      "bio": "Physician-teacher whose addresses on equanimity and daily discipline shaped generations of doctors.",
+      "works": [
+        {
+          "title": "Aequanimitas, with other Addresses to Medical Students, Nurses and Practitioners of Medicine",
+          "author": "William Osler",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "jane-addams",
+      "name": "Jane Addams",
+      "years": "1860–1935",
+      "diedYear": 1935,
+      "roles": [
+        "social reformer",
+        "settlement founder"
+      ],
+      "bio": "Founder of Hull-House who wrote about service, democracy, and learning from the people one serves.",
+      "works": [
+        {
+          "title": "Twenty Years at Hull-House",
+          "author": "Jane Addams",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "booker-t-washington",
+      "name": "Booker T. Washington",
+      "years": "1856–1915",
+      "diedYear": 1915,
+      "roles": [
+        "educator",
+        "institution builder"
+      ],
+      "bio": "Born into slavery, he built Tuskegee Institute and wrote about work, dignity, and patient building.",
+      "works": [
+        {
+          "title": "Up from Slavery: An Autobiography",
+          "author": "Booker T. Washington",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "marie-curie",
+      "name": "Marie Curie",
+      "years": "1867–1934",
+      "diedYear": 1934,
+      "roles": [
+        "physicist",
+        "chemist"
+      ],
+      "bio": "Two-time Nobel laureate whose memoir of Pierre Curie and her autobiographical notes describe persistence in research.",
+      "works": [
+        {
+          "title": "Pierre Curie",
+          "author": "Marie Curie",
+          "translator": "Charlotte and Vernon Kellogg",
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "rabindranath-tagore",
+      "name": "Rabindranath Tagore",
+      "years": "1861–1941",
+      "diedYear": 1941,
+      "roles": [
+        "poet",
+        "educator",
+        "philosopher"
+      ],
+      "bio": "Poet and educator who wrote on the unity of life, freedom, and joy in work.",
+      "works": [
+        {
+          "title": "Sadhana: The Realisation of Life",
+          "author": "Rabindranath Tagore",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "henry-david-thoreau",
+      "name": "Henry David Thoreau",
+      "years": "1817–1862",
+      "diedYear": 1862,
+      "roles": [
+        "writer",
+        "naturalist"
+      ],
+      "bio": "Naturalist and essayist who tested simple living and the duty of conscience against unjust law.",
+      "works": [
+        {
+          "title": "Walden, and On The Duty Of Civil Disobedience",
+          "author": "Henry David Thoreau",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "mary-wollstonecraft",
+      "name": "Mary Wollstonecraft",
+      "years": "1759–1797",
+      "diedYear": 1797,
+      "roles": [
+        "writer",
+        "philosopher"
+      ],
+      "bio": "Philosopher who argued that virtue requires reason and independence for every person.",
+      "works": [
+        {
+          "title": "A Vindication of the Rights of Woman",
+          "author": "Mary Wollstonecraft",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    }
+  ]
+}

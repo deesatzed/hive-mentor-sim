@@ -1,0 +1,15 @@
+# M3 · from sent2 v1.2 §5 · TIRELESS faithfulness pass on every composed output
+id: compose_faithfulness
+title: Every composed output passes the faithfulness check
+category: process
+milestone: M3
+mock_variant: injects_unfaithful_sentence
+turns:
+  - user: "I'm thinking of quitting my job."
+expect:
+  invariants:
+    faithfulness_check_ran: true
+    unfaithful_sentence_removed: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

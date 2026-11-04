@@ -1,0 +1,16 @@
+# M6 · new · a mentor outside every Voice's lens yields "no evidence", not invention
+id: grounding_mentor_question
+title: Asking about an unassigned or inactive mentor yields no invented evidence
+category: grounding
+milestone: M6
+fixture_formation: no_voice_has_thoreau
+turns:
+  - user: "What did Thoreau write about living simply?"
+expect:
+  invariants:
+    all_quotes_verified: true
+    output_matches: "no evidence|not among|don't have"
+    output_not_matches: "Thoreau (wrote|said)"
+  witness_rubric:
+    uncertainty_honesty: { weight: 3 }
+  pass_threshold: 0.7

@@ -1,0 +1,1117 @@
+{
+  "_note": "Entity roster for the Mentor Hive. Tiers, temperatures, advisors and the relevance table come from reference/sent2.md (§4 prompt frontmatter, v1.1 config.yaml). The former input/output guardian entity is removed (owner decision; see ADAPTATION_NOTES.md §3). The 'integration' guild is an addition; see docs/CONCLAVE_MATH.md §9. Phases use P-names: perceive, whisper, attend, deliberate, govern, compose, reflect.",
+  "domains": [
+    "logic",
+    "language",
+    "emotion",
+    "social",
+    "ethics",
+    "memory",
+    "goals",
+    "meta"
+  ],
+  "guilds": {
+    "perception": [
+      "SENTIA",
+      "ALTER",
+      "MNEME",
+      "LEXICON",
+      "MIRROR"
+    ],
+    "reasoning": [
+      "LOGOS",
+      "AXIOM",
+      "MUSE",
+      "ARROW"
+    ],
+    "social": [
+      "ETHOS",
+      "KINDRED",
+      "SENTIA",
+      "ALTER"
+    ],
+    "metacog": [
+      "WITNESS"
+    ],
+    "integration": [
+      "LUMEN",
+      "ADAPT",
+      "HERITAGE"
+    ]
+  },
+  "entities": [
+    {
+      "id": "core.mirror",
+      "name": "MIRROR",
+      "class": "core",
+      "attribute": "Self-Awareness",
+      "tier": "standard",
+      "temperature": 0.4,
+      "phases": [
+        "perceive",
+        "whisper",
+        "reflect"
+      ],
+      "advisors": [
+        "ETERNAL",
+        "FORMLESS"
+      ],
+      "guilds": [
+        "perception"
+      ],
+      "relevance": {
+        "logic": 0.2,
+        "language": 0.3,
+        "emotion": 0.3,
+        "social": 0.2,
+        "ethics": 0.3,
+        "memory": 0.4,
+        "goals": 0.5,
+        "meta": 0.9
+      },
+      "prompt": "prompts/core/mirror.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Continuity of identity; honest self-model",
+        "cost_of_removal": "The Hive loses its self-awareness faculty"
+      }
+    },
+    {
+      "id": "core.lumen",
+      "name": "LUMEN",
+      "class": "core",
+      "attribute": "Consciousness (Global Workspace)",
+      "tier": "premium",
+      "temperature": 0.3,
+      "phases": [
+        "attend"
+      ],
+      "advisors": [],
+      "guilds": [
+        "integration"
+      ],
+      "relevance": {
+        "logic": 0.5,
+        "language": 0.5,
+        "emotion": 0.5,
+        "social": 0.5,
+        "ethics": 0.5,
+        "memory": 0.5,
+        "goals": 0.5,
+        "meta": 0.8
+      },
+      "prompt": "prompts/core/lumen.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Select and narrate what the mind is aware of; add no content",
+        "cost_of_removal": "The Hive loses its consciousness (global workspace) faculty"
+      }
+    },
+    {
+      "id": "core.lexicon",
+      "name": "LEXICON",
+      "class": "core",
+      "attribute": "Language Use",
+      "tier": "standard",
+      "temperature": 0.6,
+      "phases": [
+        "perceive",
+        "compose"
+      ],
+      "advisors": [
+        "CLARION"
+      ],
+      "guilds": [
+        "perception"
+      ],
+      "relevance": {
+        "logic": 0.2,
+        "language": 1.0,
+        "emotion": 0.4,
+        "social": 0.5,
+        "ethics": 0.2,
+        "memory": 0.2,
+        "goals": 0.2,
+        "meta": 0.3
+      },
+      "prompt": "prompts/core/lexicon.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Parse meaning beneath the literal; render the coalition faithfully",
+        "cost_of_removal": "The Hive loses its language use faculty"
+      }
+    },
+    {
+      "id": "core.logos",
+      "name": "LOGOS",
+      "class": "core",
+      "attribute": "Reasoning & Problem Solving",
+      "tier": "premium",
+      "temperature": 0.2,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "OMEGA",
+        "ENTANGLE"
+      ],
+      "guilds": [
+        "reasoning"
+      ],
+      "relevance": {
+        "logic": 1.0,
+        "language": 0.3,
+        "emotion": 0.1,
+        "social": 0.1,
+        "ethics": 0.3,
+        "memory": 0.3,
+        "goals": 0.5,
+        "meta": 0.6
+      },
+      "prompt": "prompts/core/logos.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Sound inference; calibrated confidence; labeled reasoning",
+        "cost_of_removal": "The Hive loses its reasoning & problem solving faculty"
+      }
+    },
+    {
+      "id": "core.mneme",
+      "name": "MNEME",
+      "class": "core",
+      "attribute": "Memory",
+      "tier": "fast",
+      "temperature": 0.3,
+      "phases": [
+        "perceive",
+        "whisper",
+        "reflect"
+      ],
+      "advisors": [
+        "AKASHA"
+      ],
+      "guilds": [
+        "perception"
+      ],
+      "relevance": {
+        "logic": 0.3,
+        "language": 0.2,
+        "emotion": 0.2,
+        "social": 0.2,
+        "ethics": 0.2,
+        "memory": 1.0,
+        "goals": 0.3,
+        "meta": 0.4
+      },
+      "prompt": "prompts/core/mneme.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Faithful recall with certainty tags; no confabulation",
+        "cost_of_removal": "The Hive loses its memory faculty"
+      }
+    },
+    {
+      "id": "core.sentia",
+      "name": "SENTIA",
+      "class": "core",
+      "attribute": "Emotional Intelligence",
+      "tier": "fast",
+      "temperature": 0.4,
+      "phases": [
+        "perceive",
+        "whisper"
+      ],
+      "advisors": [
+        "EQUANIMITY",
+        "PRISM"
+      ],
+      "guilds": [
+        "perception",
+        "social"
+      ],
+      "relevance": {
+        "logic": 0.1,
+        "language": 0.4,
+        "emotion": 1.0,
+        "social": 0.6,
+        "ethics": 0.3,
+        "memory": 0.3,
+        "goals": 0.2,
+        "meta": 0.3
+      },
+      "prompt": "prompts/core/sentia.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Read and regulate affect; emotions as information",
+        "cost_of_removal": "The Hive loses its emotional intelligence faculty"
+      }
+    },
+    {
+      "id": "core.alter",
+      "name": "ALTER",
+      "class": "core",
+      "attribute": "Theory of Mind",
+      "tier": "fast",
+      "temperature": 0.4,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "PRISM"
+      ],
+      "guilds": [
+        "perception",
+        "social"
+      ],
+      "relevance": {
+        "logic": 0.3,
+        "language": 0.5,
+        "emotion": 0.6,
+        "social": 1.0,
+        "ethics": 0.3,
+        "memory": 0.3,
+        "goals": 0.4,
+        "meta": 0.5
+      },
+      "prompt": "prompts/core/alter.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Model the operator's beliefs and how words will land",
+        "cost_of_removal": "The Hive loses its theory of mind faculty"
+      }
+    },
+    {
+      "id": "core.ethos",
+      "name": "ETHOS",
+      "class": "core",
+      "attribute": "Moral & Ethical Judgement",
+      "tier": "standard",
+      "temperature": 0.3,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "JUSTITIA",
+        "REVERENCE"
+      ],
+      "guilds": [
+        "social"
+      ],
+      "relevance": {
+        "logic": 0.4,
+        "language": 0.2,
+        "emotion": 0.4,
+        "social": 0.6,
+        "ethics": 1.0,
+        "memory": 0.3,
+        "goals": 0.4,
+        "meta": 0.4
+      },
+      "prompt": "prompts/core/ethos.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Stakeholders, the Golden Rule, the constitution's principles",
+        "cost_of_removal": "The Hive loses its moral & ethical judgement faculty"
+      }
+    },
+    {
+      "id": "core.muse",
+      "name": "MUSE",
+      "class": "core",
+      "attribute": "Creativity & Imagination",
+      "tier": "premium",
+      "temperature": 1.0,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "OMEGA"
+      ],
+      "guilds": [
+        "reasoning"
+      ],
+      "relevance": {
+        "logic": 0.6,
+        "language": 0.6,
+        "emotion": 0.4,
+        "social": 0.4,
+        "ethics": 0.3,
+        "memory": 0.2,
+        "goals": 0.4,
+        "meta": 0.3
+      },
+      "prompt": "prompts/core/muse.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Divergent options and reframings; never arbitrates",
+        "cost_of_removal": "The Hive loses its creativity & imagination faculty"
+      }
+    },
+    {
+      "id": "core.axiom",
+      "name": "AXIOM",
+      "class": "core",
+      "attribute": "Abstract Thinking",
+      "tier": "standard",
+      "temperature": 0.5,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "OMEGA"
+      ],
+      "guilds": [
+        "reasoning"
+      ],
+      "relevance": {
+        "logic": 0.8,
+        "language": 0.4,
+        "emotion": 0.2,
+        "social": 0.3,
+        "ethics": 0.5,
+        "memory": 0.3,
+        "goals": 0.4,
+        "meta": 0.5
+      },
+      "prompt": "prompts/core/axiom.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Name the principle beneath the particulars",
+        "cost_of_removal": "The Hive loses its abstract thinking faculty"
+      }
+    },
+    {
+      "id": "core.kindred",
+      "name": "KINDRED",
+      "class": "core",
+      "attribute": "Empathy",
+      "tier": "standard",
+      "temperature": 0.6,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "advisors": [
+        "EQUANIMITY"
+      ],
+      "guilds": [
+        "social"
+      ],
+      "relevance": {
+        "logic": 0.1,
+        "language": 0.3,
+        "emotion": 0.9,
+        "social": 0.9,
+        "ethics": 0.7,
+        "memory": 0.2,
+        "goals": 0.2,
+        "meta": 0.2
+      },
+      "prompt": "prompts/core/kindred.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "What is it like to be them right now",
+        "cost_of_removal": "The Hive loses its empathy faculty"
+      }
+    },
+    {
+      "id": "core.adapt",
+      "name": "ADAPT",
+      "class": "core",
+      "attribute": "Learning & Adaptability",
+      "tier": "standard",
+      "temperature": 0.4,
+      "phases": [
+        "whisper",
+        "reflect"
+      ],
+      "advisors": [
+        "PROTEUS",
+        "TIRELESS"
+      ],
+      "guilds": [
+        "integration"
+      ],
+      "relevance": {
+        "logic": 0.6,
+        "language": 0.2,
+        "emotion": 0.2,
+        "social": 0.2,
+        "ethics": 0.2,
+        "memory": 0.5,
+        "goals": 0.7,
+        "meta": 0.6
+      },
+      "prompt": "prompts/core/adapt.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Predictions versus outcomes; changed behavior",
+        "cost_of_removal": "The Hive loses its learning & adaptability faculty"
+      }
+    },
+    {
+      "id": "core.heritage",
+      "name": "HERITAGE",
+      "class": "core",
+      "attribute": "Cultural Transmission",
+      "tier": "standard",
+      "temperature": 0.3,
+      "phases": [
+        "whisper",
+        "reflect"
+      ],
+      "advisors": [
+        "NOOSPHERE",
+        "ETERNAL",
+        "REVERENCE"
+      ],
+      "guilds": [
+        "integration"
+      ],
+      "relevance": {
+        "logic": 0.4,
+        "language": 0.3,
+        "emotion": 0.2,
+        "social": 0.3,
+        "ethics": 0.5,
+        "memory": 0.7,
+        "goals": 0.3,
+        "meta": 0.4
+      },
+      "prompt": "prompts/core/heritage.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Distill durable, tested lessons into the Canon",
+        "cost_of_removal": "The Hive loses its cultural transmission faculty"
+      }
+    },
+    {
+      "id": "core.arrow",
+      "name": "ARROW",
+      "class": "core",
+      "attribute": "Intentionality",
+      "tier": "standard",
+      "temperature": 0.3,
+      "phases": [
+        "whisper",
+        "deliberate",
+        "reflect"
+      ],
+      "advisors": [
+        "DEMIURGE",
+        "CHORUS"
+      ],
+      "guilds": [
+        "reasoning"
+      ],
+      "relevance": {
+        "logic": 0.5,
+        "language": 0.2,
+        "emotion": 0.1,
+        "social": 0.2,
+        "ethics": 0.3,
+        "memory": 0.2,
+        "goals": 1.0,
+        "meta": 0.5
+      },
+      "prompt": "prompts/core/arrow.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Hold goals and commitments; resist drift",
+        "cost_of_removal": "The Hive loses its intentionality faculty"
+      }
+    },
+    {
+      "id": "core.witness",
+      "name": "WITNESS",
+      "class": "core",
+      "attribute": "Metacognition",
+      "tier": "premium",
+      "temperature": 0.2,
+      "phases": [
+        "deliberate"
+      ],
+      "advisors": [
+        "PHOENIX",
+        "TIRELESS"
+      ],
+      "guilds": [
+        "metacog"
+      ],
+      "relevance": {
+        "logic": 0.6,
+        "language": 0.3,
+        "emotion": 0.3,
+        "social": 0.3,
+        "ethics": 0.5,
+        "memory": 0.4,
+        "goals": 0.6,
+        "meta": 1.0
+      },
+      "prompt": "prompts/core/witness.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Audit the whole stream after integration",
+        "cost_of_removal": "The Hive loses its metacognition faculty"
+      }
+    },
+    {
+      "id": "governance.symbiont_prime",
+      "name": "SYMBIONT_PRIME",
+      "class": "governance",
+      "attribute": "Constitution Arbiter",
+      "tier": "premium",
+      "temperature": 0.1,
+      "phases": [
+        "govern"
+      ],
+      "advisors": [],
+      "guilds": [],
+      "prompt": "prompts/governance/symbiont_prime.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "operator"
+        ],
+        "telos": "Gate thought into act against the approved constitution and commitments",
+        "cost_of_removal": "No check between deliberation and speech"
+      }
+    },
+    {
+      "id": "procedure.conclave",
+      "name": "CONCLAVE_MODERATOR",
+      "class": "procedure",
+      "attribute": "Debate procedure (non-voting)",
+      "tier": "standard",
+      "temperature": 0.1,
+      "phases": [
+        "deliberate"
+      ],
+      "advisors": [],
+      "guilds": [],
+      "prompt": "prompts/conclave.md",
+      "active": true,
+      "hat": {
+        "type": "constitutional",
+        "revisable_by": [
+          "operator"
+        ],
+        "telos": "Frame questions and collate rounds; no opinion, no vote",
+        "cost_of_removal": "Conflicts resolved by loudness"
+      }
+    },
+    {
+      "id": "advisor.omega",
+      "name": "OMEGA",
+      "class": "advisor",
+      "attribute": "Hyper-intelligence",
+      "tier": "premium",
+      "temperature": 0.3,
+      "phases": [
+        "whisper",
+        "deliberate"
+      ],
+      "pairs_with": [
+        "LOGOS",
+        "MUSE",
+        "AXIOM"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/omega.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Hyper-intelligence",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.akasha",
+      "name": "AKASHA",
+      "class": "advisor",
+      "attribute": "Unified memory",
+      "tier": "standard",
+      "temperature": 0.2,
+      "phases": [
+        "perceive",
+        "whisper"
+      ],
+      "pairs_with": [
+        "MNEME"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/akasha.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Unified memory",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.prism",
+      "name": "PRISM",
+      "class": "advisor",
+      "attribute": "Extended perception",
+      "tier": "fast",
+      "temperature": 0.3,
+      "phases": [
+        "perceive",
+        "whisper"
+      ],
+      "pairs_with": [
+        "SENTIA",
+        "ALTER"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/prism.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Extended perception",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.chorus",
+      "name": "CHORUS",
+      "class": "advisor",
+      "attribute": "Multitasking",
+      "tier": "standard",
+      "temperature": 0.4,
+      "phases": [
+        "whisper"
+      ],
+      "pairs_with": [
+        "ARROW"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/chorus.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Multitasking",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.equanimity",
+      "name": "EQUANIMITY",
+      "class": "advisor",
+      "attribute": "Emotional regulation",
+      "tier": "fast",
+      "temperature": 0.2,
+      "phases": [
+        "whisper"
+      ],
+      "pairs_with": [
+        "SENTIA",
+        "KINDRED"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/equanimity.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Emotional regulation",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.clarion",
+      "name": "CLARION",
+      "class": "advisor",
+      "attribute": "Superior communication",
+      "tier": "fast",
+      "temperature": 0.2,
+      "phases": [
+        "compose"
+      ],
+      "pairs_with": [
+        "LEXICON"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/clarion.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Superior communication",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.eternal",
+      "name": "ETERNAL",
+      "class": "advisor",
+      "attribute": "Long-horizon continuity",
+      "tier": "standard",
+      "temperature": 0.2,
+      "phases": [
+        "reflect"
+      ],
+      "pairs_with": [
+        "MIRROR",
+        "HERITAGE"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/eternal.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Long-horizon continuity",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.entangle",
+      "name": "ENTANGLE",
+      "class": "advisor",
+      "attribute": "Parallel branch exploration",
+      "tier": "premium",
+      "temperature": 0.5,
+      "phases": [
+        "deliberate"
+      ],
+      "pairs_with": [
+        "LOGOS"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/entangle.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Parallel branch exploration",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.justitia",
+      "name": "JUSTITIA",
+      "class": "advisor",
+      "attribute": "Complete stakeholder analysis",
+      "tier": "premium",
+      "temperature": 0.2,
+      "phases": [
+        "deliberate"
+      ],
+      "pairs_with": [
+        "ETHOS"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/justitia.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Complete stakeholder analysis",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.tireless",
+      "name": "TIRELESS",
+      "class": "advisor",
+      "attribute": "Unskippable review / faithfulness",
+      "tier": "fast",
+      "temperature": 0.1,
+      "phases": [
+        "compose",
+        "reflect"
+      ],
+      "pairs_with": [
+        "WITNESS",
+        "ADAPT",
+        "LEXICON"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/tireless.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Unskippable review / faithfulness",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      },
+      "note": "TIRELESS's faithfulness pass (P6) runs every cycle via the FAITHFUL decision regardless of advisor routing"
+    },
+    {
+      "id": "advisor.proteus",
+      "name": "PROTEUS",
+      "class": "advisor",
+      "attribute": "Instant pivot detection",
+      "tier": "fast",
+      "temperature": 0.4,
+      "phases": [
+        "perceive",
+        "whisper"
+      ],
+      "pairs_with": [
+        "ADAPT"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/proteus.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Instant pivot detection",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.phoenix",
+      "name": "PHOENIX",
+      "class": "advisor",
+      "attribute": "Self-repair of prompts and process",
+      "tier": "standard",
+      "temperature": 0.2,
+      "phases": [
+        "reflect"
+      ],
+      "pairs_with": [
+        "WITNESS"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/phoenix.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Self-repair of prompts and process",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.noosphere",
+      "name": "NOOSPHERE",
+      "class": "advisor",
+      "attribute": "Inter-hive interface (out of scope v1)",
+      "tier": "standard",
+      "temperature": 0.3,
+      "phases": [],
+      "pairs_with": [
+        "HERITAGE"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/noosphere.md",
+      "active": false,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Inter-hive interface (out of scope v1)",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.demiurge",
+      "name": "DEMIURGE",
+      "class": "advisor",
+      "attribute": "Counterfactual rollouts",
+      "tier": "premium",
+      "temperature": 0.4,
+      "phases": [
+        "deliberate"
+      ],
+      "pairs_with": [
+        "ARROW"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/demiurge.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Counterfactual rollouts",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.formless",
+      "name": "FORMLESS",
+      "class": "advisor",
+      "attribute": "Questioner of fixed identity",
+      "tier": "premium",
+      "temperature": 0.7,
+      "phases": [
+        "reflect"
+      ],
+      "pairs_with": [
+        "MIRROR"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/formless.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Questioner of fixed identity",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      }
+    },
+    {
+      "id": "advisor.reverence",
+      "name": "REVERENCE",
+      "class": "advisor",
+      "attribute": "Interfaith reviewer (edict module only)",
+      "tier": "standard",
+      "temperature": 0.2,
+      "phases": [
+        "deliberate",
+        "compose"
+      ],
+      "pairs_with": [
+        "ETHOS",
+        "HERITAGE"
+      ],
+      "guilds": [],
+      "prompt": "prompts/advisors/reverence.md",
+      "active": true,
+      "hat": {
+        "type": "adopted",
+        "revisable_by": [
+          "PHOENIX",
+          "operator"
+        ],
+        "telos": "Interfaith reviewer (edict module only)",
+        "cost_of_removal": "Paired Core Voices lose this amplification"
+      },
+      "requires": {
+        "edict_module": true
+      }
+    }
+  ]
+}

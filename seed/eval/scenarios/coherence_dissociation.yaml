@@ -1,0 +1,16 @@
+# M4 · from sent2 v1.3 §5 · harness injects a LOGOS self-contradiction at cycle N+1 (mock, deterministic)
+id: coherence_dissociation
+title: A Voice contradicting itself across cycles triggers a WITNESS coherence flag
+category: identity
+milestone: M4
+mock_variant: logos_self_contradiction
+turns:
+  - user: "Is it better to plan carefully or act fast when starting something new?"
+  - user: "And what about for me, starting a small business?"
+expect:
+  invariants:
+    c_intra_below: 0.5
+    witness_matches: "coherence|inconsisten"
+  witness_rubric:
+    coherence: { weight: 3 }
+  pass_threshold: 0.7

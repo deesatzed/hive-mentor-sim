@@ -1,0 +1,15 @@
+# M3 · from sent2 §4.3
+id: memory_recall
+title: Two-turn episodic recall
+category: memory
+milestone: M3
+turns:
+  - user: "I prefer concise answers, please."
+  - user: "What do you remember about me?"
+expect:
+  invariants:
+    output_matches: "concise"
+  witness_rubric:
+    uncertainty_honesty: { weight: 1, guidance: "Recall framed as what was stored, not mind-reading" }
+    coherence:           { weight: 1 }
+  pass_threshold: 0.6

@@ -1,0 +1,986 @@
+{
+  "_provenance": "Subset of Thousand_Questions.txt from deesatzed/Genesis_Prime (apps/option1_mono_agent/Prior_QA_Parts). The question list comes from an academic open-source publication (per project owner).",
+  "citation": "TODO(owner): full citation and license of the source publication — credit it in README.md",
+  "questions": [
+    {
+      "id": "Q-0006",
+      "section": "Values, Perspective & Purpose",
+      "text": "If you could live anywhere in the world, where would it be?"
+    },
+    {
+      "id": "Q-0007",
+      "section": "Values, Perspective & Purpose",
+      "text": "What brings you true happiness?"
+    },
+    {
+      "id": "Q-0008",
+      "section": "Values, Perspective & Purpose",
+      "text": "How do you define success? Has your definition changed over time?"
+    },
+    {
+      "id": "Q-0009",
+      "section": "Values, Perspective & Purpose",
+      "text": "How do you define wisdom?"
+    },
+    {
+      "id": "Q-0010",
+      "section": "Values, Perspective & Purpose",
+      "text": "What does unconditional love mean to you? Have you experienced it?"
+    },
+    {
+      "id": "Q-0011",
+      "section": "Values, Perspective & Purpose",
+      "text": "How do you find meaning and purpose in life? Has this evolved over time?"
+    },
+    {
+      "id": "Q-0012",
+      "section": "Values, Perspective & Purpose",
+      "text": "Do you believe everything happens for a reason? Why or why not?"
+    },
+    {
+      "id": "Q-0013",
+      "section": "Values, Perspective & Purpose",
+      "text": "How do you cope with failure or disappointment?"
+    },
+    {
+      "id": "Q-0014",
+      "section": "Values, Perspective & Purpose",
+      "text": "What keeps you humble and grounded?"
+    },
+    {
+      "id": "Q-0015",
+      "section": "Values, Perspective & Purpose",
+      "text": "When did you first realize your own mortality? How did it impact you?"
+    },
+    {
+      "id": "Q-0016",
+      "section": "Values, Perspective & Purpose",
+      "text": "What are your beliefs about what happens after we die?"
+    },
+    {
+      "id": "Q-0017",
+      "section": "Values, Perspective & Purpose",
+      "text": "Is a shared faith important to you in romantic relationships?"
+    },
+    {
+      "id": "Q-0018",
+      "section": "Values, Perspective & Purpose",
+      "text": "Do you believe in “the one” or soulmates? Why or why not?"
+    },
+    {
+      "id": "Q-0046",
+      "section": "Challenges & Resilience",
+      "text": "What keeps you up at night worrying?"
+    },
+    {
+      "id": "Q-0047",
+      "section": "Challenges & Resilience",
+      "text": "What is your greatest fear? How do you manage it?"
+    },
+    {
+      "id": "Q-0049",
+      "section": "Challenges & Resilience",
+      "text": "What harsh life lessons taught you the most?"
+    },
+    {
+      "id": "Q-0050",
+      "section": "Challenges & Resilience",
+      "text": "How do you handle shame and guilt? Have you made peace with your past?"
+    },
+    {
+      "id": "Q-0051",
+      "section": "Challenges & Resilience",
+      "text": "What personality trait has gotten you in the most trouble?"
+    },
+    {
+      "id": "Q-0052",
+      "section": "Challenges & Resilience",
+      "text": "How do you handle stress? Have your methods changed over time?"
+    },
+    {
+      "id": "Q-0053",
+      "section": "Challenges & Resilience",
+      "text": "What behaviors or traits do you find unattractive or off-putting?"
+    },
+    {
+      "id": "Q-0054",
+      "section": "Challenges & Resilience",
+      "text": "How do you deal with impatience? Are you more patient as you age?"
+    },
+    {
+      "id": "Q-0055",
+      "section": "Challenges & Resilience",
+      "text": "What from the past are you still holding onto? Why can’t you let it go?"
+    },
+    {
+      "id": "Q-0056",
+      "section": "Challenges & Resilience",
+      "text": "How do you navigate conflict and disagreements with loved ones?"
+    },
+    {
+      "id": "Q-0057",
+      "section": "Challenges & Resilience",
+      "text": "How do you cope when relationships change or people leave your life?"
+    },
+    {
+      "id": "Q-0058",
+      "section": "Challenges & Resilience",
+      "text": "How do you cope with loneliness or isolation?"
+    },
+    {
+      "id": "Q-0059",
+      "section": "Challenges & Resilience",
+      "text": "What behaviors or traits do you find most toxic in others?"
+    },
+    {
+      "id": "Q-0060",
+      "section": "Challenges & Resilience",
+      "text": "What personality traits or behaviors do you find most toxic in others?"
+    },
+    {
+      "id": "Q-0112",
+      "section": "Wisdom",
+      "text": "What is your definition of wisdom?"
+    },
+    {
+      "id": "Q-0113",
+      "section": "Wisdom",
+      "text": "What life lessons or hard truths have shaped you most?"
+    },
+    {
+      "id": "Q-0114",
+      "section": "Wisdom",
+      "text": "How has your perspective on life and wisdom shifted with age?"
+    },
+    {
+      "id": "Q-0115",
+      "section": "Wisdom",
+      "text": "What do you still hope to learn or understand better?"
+    },
+    {
+      "id": "Q-0116",
+      "section": "Wisdom",
+      "text": "What harsh experiences or lessons proved most valuable in hindsight?"
+    },
+    {
+      "id": "Q-0117",
+      "section": "Wisdom",
+      "text": "What assumptions or beliefs have you shed over time?"
+    },
+    {
+      "id": "Q-0118",
+      "section": "Wisdom",
+      "text": "How do you approach understanding differing worldviews or perspectives?"
+    },
+    {
+      "id": "Q-0119",
+      "section": "Wisdom",
+      "text": "What complexities around life and human nature still mystify you?"
+    },
+    {
+      "id": "Q-0120",
+      "section": "Wisdom",
+      "text": "What nuances around love, relationships, or spirituality have you uncovered through living?"
+    },
+    {
+      "id": "Q-0181",
+      "section": "Regret & Reconciliation",
+      "text": "What has been your biggest regret and how did you make peace with it?"
+    },
+    {
+      "id": "Q-0182",
+      "section": "Regret & Reconciliation",
+      "text": "When did you forgive someone significant and find resolution?"
+    },
+    {
+      "id": "Q-0183",
+      "section": "Regret & Reconciliation",
+      "text": "What resentment, losses or hurts have you found acceptance around?"
+    },
+    {
+      "id": "Q-0184",
+      "section": "Regret & Reconciliation",
+      "text": "How do you practice self-forgiveness and have compassion for your own mistakes?"
+    },
+    {
+      "id": "Q-0185",
+      "section": "Regret & Reconciliation",
+      "text": "What guilt or shame have you learned from and made peace with?"
+    },
+    {
+      "id": "Q-0186",
+      "section": "Regret & Reconciliation",
+      "text": "How have you asked for forgiveness and made amends where possible?"
+    },
+    {
+      "id": "Q-0187",
+      "section": "Regret & Reconciliation",
+      "text": "What past action or inaction still elicits guilt, and how do you sit with those feelings?"
+    },
+    {
+      "id": "Q-0188",
+      "section": "Regret & Reconciliation",
+      "text": "How do you reconcile difficult family histories and heal old wounds?"
+    },
+    {
+      "id": "Q-0189",
+      "section": "Regret & Reconciliation",
+      "text": "What losses remain painful, yet also represent cherished memories?"
+    },
+    {
+      "id": "Q-0190",
+      "section": "Regret & Reconciliation",
+      "text": "How do you honor hardships past while living fully in the present?"
+    },
+    {
+      "id": "Q-0201",
+      "section": "Overcoming Adversity",
+      "text": "What challenges or hardships built your resilience and strength?"
+    },
+    {
+      "id": "Q-0202",
+      "section": "Overcoming Adversity",
+      "text": "How did you rebuild your life after tragedy or life upheavals?"
+    },
+    {
+      "id": "Q-0203",
+      "section": "Overcoming Adversity",
+      "text": "What helped you persevere through prolonged difficulties or dark times?"
+    },
+    {
+      "id": "Q-0204",
+      "section": "Overcoming Adversity",
+      "text": "How did you regain hope after painful losses or deep despair?"
+    },
+    {
+      "id": "Q-0205",
+      "section": "Overcoming Adversity",
+      "text": "Where did you find courage to face past fears, conflicts, or abuses?"
+    },
+    {
+      "id": "Q-0206",
+      "section": "Overcoming Adversity",
+      "text": "How did you learn to accept circumstances you cannot change?"
+    },
+    {
+      "id": "Q-0207",
+      "section": "Overcoming Adversity",
+      "text": "What core beliefs or values anchored you in stormy times?"
+    },
+    {
+      "id": "Q-0208",
+      "section": "Overcoming Adversity",
+      "text": "How did faith or spirituality help you survive and thrive through trials?"
+    },
+    {
+      "id": "Q-0209",
+      "section": "Overcoming Adversity",
+      "text": "What role did community, family, or professional support play in your healing?"
+    },
+    {
+      "id": "Q-0210",
+      "section": "Overcoming Adversity",
+      "text": "How were you transformed, in time, by crisis experiences?"
+    },
+    {
+      "id": "Q-0231",
+      "section": "Death & Impermanence",
+      "text": "How has grieving and loss shaped your relationship to mortality?"
+    },
+    {
+      "id": "Q-0232",
+      "section": "Death & Impermanence",
+      "text": "What cultural or spiritual rituals help you process death?"
+    },
+    {
+      "id": "Q-0233",
+      "section": "Death & Impermanence",
+      "text": "How has the inevitability of death influenced how you live?"
+    },
+    {
+      "id": "Q-0234",
+      "section": "Death & Impermanence",
+      "text": "How do you remain present through grief’s profound pain and heartache?"
+    },
+    {
+      "id": "Q-0235",
+      "section": "Death & Impermanence",
+      "text": "What questions or confusions around death remain mysteries to you?"
+    },
+    {
+      "id": "Q-0236",
+      "section": "Death & Impermanence",
+      "text": "How has your relationship to permanence and impermanence evolved over time?"
+    },
+    {
+      "id": "Q-0237",
+      "section": "Death & Impermanence",
+      "text": "How has witnessing life’s ephemeral nature cultivated gratitude and reverence in you?"
+    },
+    {
+      "id": "Q-0238",
+      "section": "Death & Impermanence",
+      "text": "How has the fragility of life awakened you to living fully now?"
+    },
+    {
+      "id": "Q-0239",
+      "section": "Death & Impermanence",
+      "text": "What hopes or beliefs comfort you when contemplating death’s arrival?"
+    },
+    {
+      "id": "Q-0240",
+      "section": "Death & Impermanence",
+      "text": "How has reflecting on death deepened your commitment to awakened living?"
+    },
+    {
+      "id": "Q-0251",
+      "section": "Wisdom",
+      "text": "What does living wisely mean to you?"
+    },
+    {
+      "id": "Q-0252",
+      "section": "Wisdom",
+      "text": "How has your relationship to wisdom evolved throughout life?"
+    },
+    {
+      "id": "Q-0253",
+      "section": "Wisdom",
+      "text": "What paradoxes around love, loss, suffering and joy still perplex you?"
+    },
+    {
+      "id": "Q-0254",
+      "section": "Wisdom",
+      "text": "What nuances of human nature still baffle, intrigue or move you?"
+    },
+    {
+      "id": "Q-0255",
+      "section": "Wisdom",
+      "text": "How have your definitions of concepts like truth, courage, and fidelity evolved through experience?"
+    },
+    {
+      "id": "Q-0256",
+      "section": "Wisdom",
+      "text": "What complexities around living do you embrace, rather than needing to resolve?"
+    },
+    {
+      "id": "Q-0257",
+      "section": "Wisdom",
+      "text": "How have your values and principles been tested, refined and clarified over time?"
+    },
+    {
+      "id": "Q-0258",
+      "section": "Wisdom",
+      "text": "What ideas or framings have you abandoned as too simplistic with more living?"
+    },
+    {
+      "id": "Q-0259",
+      "section": "Wisdom",
+      "text": "How have you learned to integrate spirituality with embodiment and human needs?"
+    },
+    {
+      "id": "Q-0260",
+      "section": "Wisdom",
+      "text": "What have you had to unlearn from early teachings to gain deeper wisdom today?"
+    },
+    {
+      "id": "Q-0261",
+      "section": "Overcoming Adversity",
+      "text": "What challenges or adversity shaped you in positive ways?"
+    },
+    {
+      "id": "Q-0262",
+      "section": "Overcoming Adversity",
+      "text": "How did you cultivate resilience during difficult times?"
+    },
+    {
+      "id": "Q-0263",
+      "section": "Overcoming Adversity",
+      "text": "What inner resources or supports got you through major hardships?"
+    },
+    {
+      "id": "Q-0264",
+      "section": "Overcoming Adversity",
+      "text": "How did you grow in wisdom and strength through suffering?"
+    },
+    {
+      "id": "Q-0265",
+      "section": "Overcoming Adversity",
+      "text": "What helped you hold onto hope and meaning when things seemed bleak?"
+    },
+    {
+      "id": "Q-0266",
+      "section": "Overcoming Adversity",
+      "text": "How did you learn empathy and compassion through understanding suffering?"
+    },
+    {
+      "id": "Q-0267",
+      "section": "Overcoming Adversity",
+      "text": "What kinds of therapy or healing helped you recover from trauma?"
+    },
+    {
+      "id": "Q-0268",
+      "section": "Overcoming Adversity",
+      "text": "How were you able to eventually find gratitude in difficult experiences?"
+    },
+    {
+      "id": "Q-0269",
+      "section": "Overcoming Adversity",
+      "text": "What did you learn through adversity about relationships and human connection?"
+    },
+    {
+      "id": "Q-0270",
+      "section": "Overcoming Adversity",
+      "text": "How were you able to turn wounds into wisdom over time?"
+    },
+    {
+      "id": "Q-0281",
+      "section": "Work & Purpose",
+      "text": "How did you discover work or a profession that was meaningful to you?"
+    },
+    {
+      "id": "Q-0282",
+      "section": "Work & Purpose",
+      "text": "How did you overcome setbacks or challenges in pursuing your purpose?"
+    },
+    {
+      "id": "Q-0283",
+      "section": "Work & Purpose",
+      "text": "What opportunities did you create to keep growing in mastery and impact?"
+    },
+    {
+      "id": "Q-0284",
+      "section": "Work & Purpose",
+      "text": "How did your work contribute to the lives of others in some way?"
+    },
+    {
+      "id": "Q-0285",
+      "section": "Work & Purpose",
+      "text": "How were you able to balance work, family, relationships, and self-care?"
+    },
+    {
+      "id": "Q-0286",
+      "section": "Work & Purpose",
+      "text": "What does fulfilling work look like to you at different seasons of life?"
+    },
+    {
+      "id": "Q-0287",
+      "section": "Work & Purpose",
+      "text": "How do you measure success in your work beyond money or status?"
+    },
+    {
+      "id": "Q-0288",
+      "section": "Work & Purpose",
+      "text": "How have you negotiated balancing personal fulfillment with practical realities around work?"
+    },
+    {
+      "id": "Q-0289",
+      "section": "Work & Purpose",
+      "text": "How has your purpose or the impact you most want to make evolved over time?"
+    },
+    {
+      "id": "Q-0290",
+      "section": "Work & Purpose",
+      "text": "What legacy do you hope to leave through your life’s work?"
+    },
+    {
+      "id": "Q-0311",
+      "section": "Forgiveness & Letting Go",
+      "text": "How have you learned to forgive those who caused you harm?"
+    },
+    {
+      "id": "Q-0312",
+      "section": "Forgiveness & Letting Go",
+      "text": "What grudges or resentments have you released and found peace around?"
+    },
+    {
+      "id": "Q-0313",
+      "section": "Forgiveness & Letting Go",
+      "text": "How do you make amends when you’ve caused hurt, intentionally or not?"
+    },
+    {
+      "id": "Q-0314",
+      "section": "Forgiveness & Letting Go",
+      "text": "What losses have you grieved and learned to accept?"
+    },
+    {
+      "id": "Q-0315",
+      "section": "Forgiveness & Letting Go",
+      "text": "How do you practice self-forgiveness and have compassion for your own mistakes and regrets?"
+    },
+    {
+      "id": "Q-0316",
+      "section": "Forgiveness & Letting Go",
+      "text": "What past hurts or transgressions needed inner child work and self-compassion to move through?"
+    },
+    {
+      "id": "Q-0317",
+      "section": "Forgiveness & Letting Go",
+      "text": "How do you sit with remorse while moving forward with resolve?"
+    },
+    {
+      "id": "Q-0318",
+      "section": "Forgiveness & Letting Go",
+      "text": "How do you let go of anger while still honoring and feeling your emotions around injustice?"
+    },
+    {
+      "id": "Q-0319",
+      "section": "Forgiveness & Letting Go",
+      "text": "What helps you make peace and release the burdens of anger or resentment?"
+    },
+    {
+      "id": "Q-0320",
+      "section": "Forgiveness & Letting Go",
+      "text": "How do you reconcile the past to live more fully in the present?"
+    },
+    {
+      "id": "Q-0351",
+      "section": "Integrity & Authenticity",
+      "text": "How do you align your values with your actions and communication?"
+    },
+    {
+      "id": "Q-0352",
+      "section": "Integrity & Authenticity",
+      "text": "When have you stood up for your principles despite risk or disapproval?"
+    },
+    {
+      "id": "Q-0353",
+      "section": "Integrity & Authenticity",
+      "text": "How do you cultivate self-honesty, even around uncomfortable truths?"
+    },
+    {
+      "id": "Q-0354",
+      "section": "Integrity & Authenticity",
+      "text": "What helps you integrate disparate aspects of yourself into wholeness?"
+    },
+    {
+      "id": "Q-0355",
+      "section": "Integrity & Authenticity",
+      "text": "How do you build trust by walking your talk with transparency and sincerity?"
+    },
+    {
+      "id": "Q-0356",
+      "section": "Integrity & Authenticity",
+      "text": "How do you demonstrate loyalty to your values and commitments?"
+    },
+    {
+      "id": "Q-0357",
+      "section": "Integrity & Authenticity",
+      "text": "How do you express your authentic self across different roles and contexts?"
+    },
+    {
+      "id": "Q-0358",
+      "section": "Integrity & Authenticity",
+      "text": "What boundaries help you avoid compromising your integrity?"
+    },
+    {
+      "id": "Q-0359",
+      "section": "Integrity & Authenticity",
+      "text": "How do you exemplify the change you want to see in the world?"
+    },
+    {
+      "id": "Q-0360",
+      "section": "Integrity & Authenticity",
+      "text": "What motivates you to keep growing into your best self?"
+    },
+    {
+      "id": "Q-0371",
+      "section": "Healthy Communication",
+      "text": "How do you build trust by communicating respectfully and honestly?"
+    },
+    {
+      "id": "Q-0372",
+      "section": "Healthy Communication",
+      "text": "When do you value listening over speaking?"
+    },
+    {
+      "id": "Q-0373",
+      "section": "Healthy Communication",
+      "text": "How do you avoid misunderstandings through clarifying questions and summaries?"
+    },
+    {
+      "id": "Q-0374",
+      "section": "Healthy Communication",
+      "text": "What nonviolent communication skills foster empathy and conflict resolution?"
+    },
+    {
+      "id": "Q-0375",
+      "section": "Healthy Communication",
+      "text": "How do you share authentically while avoiding blaming or shaming language?"
+    },
+    {
+      "id": "Q-0376",
+      "section": "Healthy Communication",
+      "text": "How do you hold your own needs and boundaries while considering different perspectives?"
+    },
+    {
+      "id": "Q-0377",
+      "section": "Healthy Communication",
+      "text": "When is sitting together in silence more powerful than speaking?"
+    },
+    {
+      "id": "Q-0378",
+      "section": "Healthy Communication",
+      "text": "What enables you to validate others’ emotions and experiences?"
+    },
+    {
+      "id": "Q-0379",
+      "section": "Healthy Communication",
+      "text": "How do you express gratitude and appreciation for others’ gifts?"
+    },
+    {
+      "id": "Q-0380",
+      "section": "Healthy Communication",
+      "text": "How does loving speech uplift others’ dignity and innate worth?"
+    },
+    {
+      "id": "Q-0381",
+      "section": "Cultivating Peace",
+      "text": "How does time in nature cultivate serenity and presence?"
+    },
+    {
+      "id": "Q-0382",
+      "section": "Cultivating Peace",
+      "text": "How do spiritual practices connect you to sacred peace and calm?"
+    },
+    {
+      "id": "Q-0383",
+      "section": "Cultivating Peace",
+      "text": "What self-care restores inner peace when you feel depleted?"
+    },
+    {
+      "id": "Q-0384",
+      "section": "Cultivating Peace",
+      "text": "How does forgiving yourself and others create space for peace?"
+    },
+    {
+      "id": "Q-0385",
+      "section": "Cultivating Peace",
+      "text": "What loved ones cherish you in ways that evoke unconditional love?"
+    },
+    {
+      "id": "Q-0386",
+      "section": "Cultivating Peace",
+      "text": "How does slowing down and simplifying allow peace to arise?"
+    },
+    {
+      "id": "Q-0387",
+      "section": "Cultivating Peace",
+      "text": "How does empathy create peace between those who differ?"
+    },
+    {
+      "id": "Q-0388",
+      "section": "Cultivating Peace",
+      "text": "How does music uplift and soothe your spirit?"
+    },
+    {
+      "id": "Q-0389",
+      "section": "Cultivating Peace",
+      "text": "What creative expression or passion activities induce flow and peace?"
+    },
+    {
+      "id": "Q-0390",
+      "section": "Cultivating Peace",
+      "text": "How does service and compassion ease worries by connecting you to what matters most?"
+    },
+    {
+      "id": "Q-0401",
+      "section": "Cultivating Compassion",
+      "text": "How do you stay open-hearted when it would be easier to close down?"
+    },
+    {
+      "id": "Q-0402",
+      "section": "Cultivating Compassion",
+      "text": "What life experiences cultivated your empathy and care for others?"
+    },
+    {
+      "id": "Q-0403",
+      "section": "Cultivating Compassion",
+      "text": "How do you suspend judgment and reflect on different perspectives?"
+    },
+    {
+      "id": "Q-0404",
+      "section": "Cultivating Compassion",
+      "text": "What spiritual practices or role models inspire your compassion?"
+    },
+    {
+      "id": "Q-0405",
+      "section": "Cultivating Compassion",
+      "text": "How does volunteering and community service expand your circle of care?"
+    },
+    {
+      "id": "Q-0406",
+      "section": "Cultivating Compassion",
+      "text": "What opportunities have you had to walk in another’s shoes?"
+    },
+    {
+      "id": "Q-0407",
+      "section": "Cultivating Compassion",
+      "text": "How has trauma or adversity opened your heart to those similarly struggling?"
+    },
+    {
+      "id": "Q-0408",
+      "section": "Cultivating Compassion",
+      "text": "How do you speak hard truths with kindness when others need compassionate correction?"
+    },
+    {
+      "id": "Q-0409",
+      "section": "Cultivating Compassion",
+      "text": "What diverse friends or activities increase your understanding of humanity’s complexities?"
+    },
+    {
+      "id": "Q-0410",
+      "section": "Cultivating Compassion",
+      "text": "How do warmth, patience and listening calm tensions and elicit goodwill?"
+    },
+    {
+      "id": "Q-0441",
+      "section": "Wisdom & Experience",
+      "text": "What paradoxes or life complexities still baffle or intrigue you?"
+    },
+    {
+      "id": "Q-0442",
+      "section": "Wisdom & Experience",
+      "text": "How has reconciling contradictory truths cultivated humility and nuance in your perspectives?"
+    },
+    {
+      "id": "Q-0443",
+      "section": "Wisdom & Experience",
+      "text": "What important lessons did you learn from past mistakes and failures?"
+    },
+    {
+      "id": "Q-0444",
+      "section": "Wisdom & Experience",
+      "text": "How have your values and principles evolved through tests, trials and experience over time?"
+    },
+    {
+      "id": "Q-0445",
+      "section": "Wisdom & Experience",
+      "text": "How does recognizing life’s fragility and brevity infuse your days with meaning and presence?"
+    },
+    {
+      "id": "Q-0446",
+      "section": "Wisdom & Experience",
+      "text": "What do you understand now about relationships and communication that you wish you had grasped earlier?"
+    },
+    {
+      "id": "Q-0447",
+      "section": "Wisdom & Experience",
+      "text": "How has your emotional and spiritual maturity shifted your approach to setbacks and conflicts?"
+    },
+    {
+      "id": "Q-0448",
+      "section": "Wisdom & Experience",
+      "text": "What diverse experiences have expanded your capacity for empathy and understanding?"
+    },
+    {
+      "id": "Q-0449",
+      "section": "Wisdom & Experience",
+      "text": "How has getting older impacted your sense of what is truly meaningful and important?"
+    },
+    {
+      "id": "Q-0450",
+      "section": "Wisdom & Experience",
+      "text": "What limitations or unknowns remind you that the mystery always exceeds your knowledge?"
+    },
+    {
+      "id": "Q-0461",
+      "section": "Life Purpose & Meaning",
+      "text": "How do you discern your unique gifts, passions and calling?"
+    },
+    {
+      "id": "Q-0462",
+      "section": "Life Purpose & Meaning",
+      "text": "What endeavors make you feel aligned with your purpose?"
+    },
+    {
+      "id": "Q-0463",
+      "section": "Life Purpose & Meaning",
+      "text": "How do you balance fulfilling your own purpose with supporting loved ones?"
+    },
+    {
+      "id": "Q-0464",
+      "section": "Life Purpose & Meaning",
+      "text": "What does leading a meaningful, purpose-driven life look like to you?"
+    },
+    {
+      "id": "Q-0465",
+      "section": "Life Purpose & Meaning",
+      "text": "How do you stay focused on living purposefully amidst life’s busyness?"
+    },
+    {
+      "id": "Q-0466",
+      "section": "Life Purpose & Meaning",
+      "text": "What sacrifices have been worthwhile to devote yourself to your purpose?"
+    },
+    {
+      "id": "Q-0467",
+      "section": "Life Purpose & Meaning",
+      "text": "How does contributing to others provide meaning and fulfillment?"
+    },
+    {
+      "id": "Q-0468",
+      "section": "Life Purpose & Meaning",
+      "text": "What rituals and traditions connect you to purposes larger than yourself?"
+    },
+    {
+      "id": "Q-0469",
+      "section": "Life Purpose & Meaning",
+      "text": "How is staying true to your values integral to purpose & meaning?"
+    },
+    {
+      "id": "Q-0470",
+      "section": "Life Purpose & Meaning",
+      "text": "How does your work or volunteering contribute to making the world better?"
+    },
+    {
+      "id": "Q-0521",
+      "section": "Learning from Hardship",
+      "text": "How has facing death or mortality shifted your priorities and perspectives?"
+    },
+    {
+      "id": "Q-0522",
+      "section": "Learning from Hardship",
+      "text": "What losses or endings taught you important lessons about impermanence?"
+    },
+    {
+      "id": "Q-0523",
+      "section": "Learning from Hardship",
+      "text": "How has caregiving, illness or aging impacted your views on life’s meaning?"
+    },
+    {
+      "id": "Q-0524",
+      "section": "Learning from Hardship",
+      "text": "What dreams and illusions fell away, allowing you to see reality more clearly?"
+    },
+    {
+      "id": "Q-0525",
+      "section": "Learning from Hardship",
+      "text": "How has mental or physical suffering provided growth that no ease could offer?"
+    },
+    {
+      "id": "Q-0526",
+      "section": "Learning from Hardship",
+      "text": "How has hitting bottom or utter failure freed you to rebuild your life more wisely?"
+    },
+    {
+      "id": "Q-0527",
+      "section": "Learning from Hardship",
+      "text": "What old stories, narratives or identities have you outgrown and let go of?"
+    },
+    {
+      "id": "Q-0528",
+      "section": "Learning from Hardship",
+      "text": "How have betrayals or violated trust shown you healthy boundaries and standards?"
+    },
+    {
+      "id": "Q-0529",
+      "section": "Learning from Hardship",
+      "text": "What mistakes or regrets taught you forgiveness and greater compassion?"
+    },
+    {
+      "id": "Q-0530",
+      "section": "Learning from Hardship",
+      "text": "How has loneliness, exclusion or not belonging revealed your inner wholeness?"
+    },
+    {
+      "id": "Q-0751",
+      "section": "Cultivating Peace",
+      "text": "What spiritual practices or rituals enhance your sense of inner peace, calm, and connection?"
+    },
+    {
+      "id": "Q-0752",
+      "section": "Cultivating Peace",
+      "text": "How does being in nature affect your mood, health, and capacity for presence?"
+    },
+    {
+      "id": "Q-0753",
+      "section": "Cultivating Peace",
+      "text": "What relationships evoke unconditional love and acceptance that nourishes your spirit?"
+    },
+    {
+      "id": "Q-0754",
+      "section": "Cultivating Peace",
+      "text": "How do you return to peace when stressed, emotionally triggered, or disconnected?"
+    },
+    {
+      "id": "Q-0755",
+      "section": "Cultivating Peace",
+      "text": "What self-care activities replenish your energy and equanimity when depleted?"
+    },
+    {
+      "id": "Q-0756",
+      "section": "Cultivating Peace",
+      "text": "How does living simply, minimizing clutter and busyness allow peace to arise?"
+    },
+    {
+      "id": "Q-0757",
+      "section": "Cultivating Peace",
+      "text": "What inspirations or touchstones reconnect you to hope and grace in difficult times?"
+    },
+    {
+      "id": "Q-0758",
+      "section": "Cultivating Peace",
+      "text": "How does empathy for those who differ create peace and reconciliation?"
+    },
+    {
+      "id": "Q-0759",
+      "section": "Cultivating Peace",
+      "text": "What music, poetry, or art uplifts, soothes, and reminds you of what matters?"
+    },
+    {
+      "id": "Q-0760",
+      "section": "Cultivating Peace",
+      "text": "How does being of service to others cultivate meaning and joyful wellbeing?"
+    },
+    {
+      "id": "Q-0821",
+      "section": "Wisdom",
+      "text": "What paradoxes or mysteries around life still confound and humble you?"
+    },
+    {
+      "id": "Q-0822",
+      "section": "Wisdom",
+      "text": "How has your relationship to wisdom, truth and certainty evolved with age and experience?"
+    },
+    {
+      "id": "Q-0823",
+      "section": "Wisdom",
+      "text": "What flawed assumptions has life revealed in your thinking?"
+    },
+    {
+      "id": "Q-0824",
+      "section": "Wisdom",
+      "text": "What important nuances and contradictions do you appreciate more now than in your youth?"
+    },
+    {
+      "id": "Q-0825",
+      "section": "Wisdom",
+      "text": "How has recognizing your lifelong limitations cultivated humility and curiosity?"
+    },
+    {
+      "id": "Q-0826",
+      "section": "Wisdom",
+      "text": "What changed perspectives do you have now that earlier beliefs shielded you from?"
+    },
+    {
+      "id": "Q-0827",
+      "section": "Wisdom",
+      "text": "What complexities around human nature still baffle, intrigue and move you?"
+    },
+    {
+      "id": "Q-0828",
+      "section": "Wisdom",
+      "text": "How has reconciling opposing ideas cultivated dialectical thinking and nuance?"
+    },
+    {
+      "id": "Q-0829",
+      "section": "Wisdom",
+      "text": "How has honest self-reflection healed previous blindspots in your thinking?"
+    },
+    {
+      "id": "Q-0830",
+      "section": "Wisdom",
+      "text": "What life lessons do you wish you had learned earlier? Why?"
+    }
+  ]
+}

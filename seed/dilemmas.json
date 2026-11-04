@@ -1,0 +1,962 @@
+[
+  {
+    "id": "DL-01",
+    "setKey": "dilemma",
+    "domain": "work",
+    "text": "A friend you hired is underperforming, and the team is starting to resent carrying them.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Have the hard conversation now, even if it costs the friendship"
+      },
+      {
+        "id": "b",
+        "text": "Give them more time and support before saying anything"
+      },
+      {
+        "id": "c",
+        "text": "Quietly move them to a role where they'll do less harm"
+      }
+    ],
+    "tags": [
+      "loyalty",
+      "duty"
+    ]
+  },
+  {
+    "id": "DL-02",
+    "setKey": "dilemma",
+    "domain": "money",
+    "text": "You lent money to a relative who now clearly can't repay it.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Forgive the debt and say so"
+      },
+      {
+        "id": "b",
+        "text": "Ask for repayment on a gentler schedule"
+      },
+      {
+        "id": "c",
+        "text": "Say nothing and let it go silently"
+      }
+    ],
+    "tags": [
+      "generosity",
+      "honesty"
+    ]
+  },
+  {
+    "id": "DL-03",
+    "setKey": "dilemma",
+    "domain": "anger",
+    "text": "Someone insults you publicly, unfairly.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Answer them firmly in public"
+      },
+      {
+        "id": "b",
+        "text": "Say nothing now and address it privately later"
+      },
+      {
+        "id": "c",
+        "text": "Let it pass entirely"
+      }
+    ],
+    "tags": [
+      "self-control",
+      "dignity"
+    ]
+  },
+  {
+    "id": "DL-04",
+    "setKey": "dilemma",
+    "domain": "praise",
+    "text": "You're praised for an achievement that was mostly a colleague's work.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Correct the record immediately"
+      },
+      {
+        "id": "b",
+        "text": "Share the credit later when there's a natural chance"
+      },
+      {
+        "id": "c",
+        "text": "Accept it — the colleague will get their turn"
+      }
+    ],
+    "tags": [
+      "honesty",
+      "humility"
+    ]
+  },
+  {
+    "id": "DL-05",
+    "setKey": "dilemma",
+    "domain": "duty",
+    "text": "You're exhausted, and a duty you agreed to is due tomorrow. Doing it well will cost the sleep you need.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Do it, and do it well, tonight"
+      },
+      {
+        "id": "b",
+        "text": "Ask for an extension and rest"
+      },
+      {
+        "id": "c",
+        "text": "Do a passable version and rest"
+      }
+    ],
+    "tags": [
+      "duty",
+      "health"
+    ]
+  },
+  {
+    "id": "DL-06",
+    "setKey": "dilemma",
+    "domain": "justice",
+    "text": "A rule at work is unjust to a group you're not part of. Objecting will cost you standing.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Object openly"
+      },
+      {
+        "id": "b",
+        "text": "Work quietly to change it from inside"
+      },
+      {
+        "id": "c",
+        "text": "Leave it to those affected to raise"
+      }
+    ],
+    "tags": [
+      "justice",
+      "courage"
+    ]
+  },
+  {
+    "id": "DL-07",
+    "setKey": "dilemma",
+    "domain": "wealth",
+    "text": "You can take a higher-paying role doing work you find empty, or stay in modest work you find meaningful.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Take the higher-paying role"
+      },
+      {
+        "id": "b",
+        "text": "Stay in the meaningful work"
+      },
+      {
+        "id": "c",
+        "text": "Take the money for a set period, with a plan to return"
+      }
+    ],
+    "tags": [
+      "meaning",
+      "security"
+    ]
+  },
+  {
+    "id": "DL-08",
+    "setKey": "dilemma",
+    "domain": "friendship",
+    "text": "A friend asks your honest opinion of a project you think will fail.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Tell them plainly"
+      },
+      {
+        "id": "b",
+        "text": "Encourage them and keep your doubts to yourself"
+      },
+      {
+        "id": "c",
+        "text": "Ask questions that let them find the weaknesses themselves"
+      }
+    ],
+    "tags": [
+      "honesty",
+      "kindness"
+    ]
+  },
+  {
+    "id": "DL-09",
+    "setKey": "dilemma",
+    "domain": "revenge",
+    "text": "Someone who harmed you badly is now in trouble, and you could easily make it worse for them.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Do nothing to them either way"
+      },
+      {
+        "id": "b",
+        "text": "Help them, despite the harm"
+      },
+      {
+        "id": "c",
+        "text": "Let consequences fall on them; don't intervene"
+      }
+    ],
+    "tags": [
+      "mercy",
+      "justice"
+    ]
+  },
+  {
+    "id": "DL-10",
+    "setKey": "dilemma",
+    "domain": "grief",
+    "text": "A friend is grieving and wants you to say their loss will make sense someday. You don't believe it will.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Say it anyway, to comfort them"
+      },
+      {
+        "id": "b",
+        "text": "Stay with them without saying it"
+      },
+      {
+        "id": "c",
+        "text": "Gently say what you honestly believe"
+      }
+    ],
+    "tags": [
+      "honesty",
+      "compassion"
+    ]
+  },
+  {
+    "id": "DL-11",
+    "setKey": "dilemma",
+    "domain": "ambition",
+    "text": "You can lead a high-profile effort you're not sure you're ready for.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Accept and learn on the job"
+      },
+      {
+        "id": "b",
+        "text": "Decline until you're ready"
+      },
+      {
+        "id": "c",
+        "text": "Accept, but insist on an experienced partner"
+      }
+    ],
+    "tags": [
+      "ambition",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-12",
+    "setKey": "dilemma",
+    "domain": "speech",
+    "text": "In a group, people are mocking someone who isn't present.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Object"
+      },
+      {
+        "id": "b",
+        "text": "Stay silent"
+      },
+      {
+        "id": "c",
+        "text": "Change the subject"
+      }
+    ],
+    "tags": [
+      "courage",
+      "fairness"
+    ]
+  },
+  {
+    "id": "DL-13",
+    "setKey": "dilemma",
+    "domain": "work",
+    "text": "You can finish a task quickly to an acceptable standard, or slowly to a standard only you would notice.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Finish quickly and move on"
+      },
+      {
+        "id": "b",
+        "text": "Take the time to do it excellently"
+      },
+      {
+        "id": "c",
+        "text": "Do it quickly now and improve it later if it matters"
+      }
+    ],
+    "tags": [
+      "craft",
+      "efficiency"
+    ]
+  },
+  {
+    "id": "DL-14",
+    "setKey": "dilemma",
+    "domain": "family",
+    "text": "An aging parent wants to keep living alone; you believe it's no longer safe.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Respect their wish"
+      },
+      {
+        "id": "b",
+        "text": "Insist on a change"
+      },
+      {
+        "id": "c",
+        "text": "Negotiate a middle path with more support"
+      }
+    ],
+    "tags": [
+      "autonomy",
+      "care"
+    ]
+  },
+  {
+    "id": "DL-15",
+    "setKey": "dilemma",
+    "domain": "honesty",
+    "text": "A small lie would spare someone's feelings and harm no one you can see.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Tell the lie"
+      },
+      {
+        "id": "b",
+        "text": "Tell the truth gently"
+      },
+      {
+        "id": "c",
+        "text": "Find something true and kind to say instead"
+      }
+    ],
+    "tags": [
+      "honesty",
+      "kindness"
+    ]
+  },
+  {
+    "id": "DL-16",
+    "setKey": "dilemma",
+    "domain": "risk",
+    "text": "You can leave a secure position to pursue something you believe in, with a real chance of failure.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Leave and pursue it"
+      },
+      {
+        "id": "b",
+        "text": "Stay and pursue it on the side"
+      },
+      {
+        "id": "c",
+        "text": "Stay"
+      }
+    ],
+    "tags": [
+      "courage",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-17",
+    "setKey": "dilemma",
+    "domain": "leadership",
+    "text": "As a leader, you must cut one of two people. One is more skilled; the other has served loyally for years.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Keep the more skilled person"
+      },
+      {
+        "id": "b",
+        "text": "Keep the loyal person"
+      },
+      {
+        "id": "c",
+        "text": "Look for any alternative before cutting either"
+      }
+    ],
+    "tags": [
+      "fairness",
+      "loyalty"
+    ]
+  },
+  {
+    "id": "DL-18",
+    "setKey": "dilemma",
+    "domain": "health",
+    "text": "Your work is going well, but it's slowly damaging your health.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Keep going while it's going well"
+      },
+      {
+        "id": "b",
+        "text": "Cut back now"
+      },
+      {
+        "id": "c",
+        "text": "Set a firm end date and keep going until then"
+      }
+    ],
+    "tags": [
+      "health",
+      "duty"
+    ]
+  },
+  {
+    "id": "DL-19",
+    "setKey": "dilemma",
+    "domain": "forgiveness",
+    "text": "Someone apologizes for a serious wrong, but you doubt they've changed.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Forgive them and rebuild trust"
+      },
+      {
+        "id": "b",
+        "text": "Forgive them but keep your distance"
+      },
+      {
+        "id": "c",
+        "text": "Withhold forgiveness until they show change"
+      }
+    ],
+    "tags": [
+      "forgiveness",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-20",
+    "setKey": "dilemma",
+    "domain": "fame",
+    "text": "You're offered public recognition that would require you to simplify your views into slogans.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Accept"
+      },
+      {
+        "id": "b",
+        "text": "Decline"
+      },
+      {
+        "id": "c",
+        "text": "Accept only on terms that let you speak with nuance"
+      }
+    ],
+    "tags": [
+      "integrity",
+      "influence"
+    ]
+  },
+  {
+    "id": "DL-21",
+    "setKey": "dilemma",
+    "domain": "teaching",
+    "text": "Someone you're mentoring makes a mistake you could prevent; letting it happen would teach them more.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Prevent it"
+      },
+      {
+        "id": "b",
+        "text": "Let it happen and help them learn from it"
+      },
+      {
+        "id": "c",
+        "text": "Warn them once and let them decide"
+      }
+    ],
+    "tags": [
+      "care",
+      "growth"
+    ]
+  },
+  {
+    "id": "DL-22",
+    "setKey": "dilemma",
+    "domain": "community",
+    "text": "Your neighborhood needs a volunteer for a thankless job that will take hours every week.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Volunteer"
+      },
+      {
+        "id": "b",
+        "text": "Contribute money instead of time"
+      },
+      {
+        "id": "c",
+        "text": "Leave it to those with more time"
+      }
+    ],
+    "tags": [
+      "service",
+      "boundaries"
+    ]
+  },
+  {
+    "id": "DL-23",
+    "setKey": "dilemma",
+    "domain": "promise",
+    "text": "You promised to attend an event, and something far more valuable to you has come up.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Keep the promise"
+      },
+      {
+        "id": "b",
+        "text": "Break it and explain honestly"
+      },
+      {
+        "id": "c",
+        "text": "Ask to be released from it"
+      }
+    ],
+    "tags": [
+      "fidelity",
+      "judgment"
+    ]
+  },
+  {
+    "id": "DL-24",
+    "setKey": "dilemma",
+    "domain": "adversity",
+    "text": "After a serious setback, people urge you to quit while you can still save face.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Persist"
+      },
+      {
+        "id": "b",
+        "text": "Quit"
+      },
+      {
+        "id": "c",
+        "text": "Pause, reassess honestly, then decide"
+      }
+    ],
+    "tags": [
+      "perseverance",
+      "judgment"
+    ]
+  },
+  {
+    "id": "DL-25",
+    "setKey": "dilemma",
+    "domain": "possessions",
+    "text": "You own something valuable that someone else needs far more than you do.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Give it to them"
+      },
+      {
+        "id": "b",
+        "text": "Sell it and give part of the proceeds"
+      },
+      {
+        "id": "c",
+        "text": "Keep it"
+      }
+    ],
+    "tags": [
+      "generosity",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-26",
+    "setKey": "dilemma",
+    "domain": "truth",
+    "text": "Publishing an uncomfortable truth would help many strangers but hurt someone close to you.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Publish it"
+      },
+      {
+        "id": "b",
+        "text": "Don't publish it"
+      },
+      {
+        "id": "c",
+        "text": "Publish only after telling the person close to you first"
+      }
+    ],
+    "tags": [
+      "truth",
+      "loyalty"
+    ]
+  },
+  {
+    "id": "DL-27",
+    "setKey": "dilemma",
+    "domain": "self-control",
+    "text": "You're offered a pleasure you know you'll regret tomorrow but enjoy tonight.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Decline"
+      },
+      {
+        "id": "b",
+        "text": "Accept"
+      },
+      {
+        "id": "c",
+        "text": "Accept a smaller version of it"
+      }
+    ],
+    "tags": [
+      "self-control",
+      "enjoyment"
+    ]
+  },
+  {
+    "id": "DL-28",
+    "setKey": "dilemma",
+    "domain": "conflict",
+    "text": "Two people you respect ask you to take sides in their dispute.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Take the side you think is right"
+      },
+      {
+        "id": "b",
+        "text": "Refuse to take sides"
+      },
+      {
+        "id": "c",
+        "text": "Try to help them resolve it directly"
+      }
+    ],
+    "tags": [
+      "fairness",
+      "peace"
+    ]
+  },
+  {
+    "id": "DL-29",
+    "setKey": "dilemma",
+    "domain": "time",
+    "text": "Your days are full of urgent but unimportant tasks, and the important work keeps slipping.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Protect time for the important work, letting some urgent things fail"
+      },
+      {
+        "id": "b",
+        "text": "Clear the urgent things first, then the important work"
+      },
+      {
+        "id": "c",
+        "text": "Delegate or drop the urgent tasks wherever possible"
+      }
+    ],
+    "tags": [
+      "purpose",
+      "discipline"
+    ]
+  },
+  {
+    "id": "DL-30",
+    "setKey": "dilemma",
+    "domain": "criticism",
+    "text": "You receive harsh criticism that is partly unfair and partly true.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Thank them and act on the true part"
+      },
+      {
+        "id": "b",
+        "text": "Defend yourself against the unfair part"
+      },
+      {
+        "id": "c",
+        "text": "Ignore it"
+      }
+    ],
+    "tags": [
+      "humility",
+      "dignity"
+    ]
+  },
+  {
+    "id": "DL-31",
+    "setKey": "dilemma",
+    "domain": "patience",
+    "text": "A process you depend on is slow, and you could force it faster at some cost to others.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Wait"
+      },
+      {
+        "id": "b",
+        "text": "Force it"
+      },
+      {
+        "id": "c",
+        "text": "Push politely and accept the outcome"
+      }
+    ],
+    "tags": [
+      "patience",
+      "initiative"
+    ]
+  },
+  {
+    "id": "DL-32",
+    "setKey": "dilemma",
+    "domain": "rest",
+    "text": "Everyone around you is working through the holiday; you planned to rest.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Rest as planned"
+      },
+      {
+        "id": "b",
+        "text": "Work with them"
+      },
+      {
+        "id": "c",
+        "text": "Do a little, then rest"
+      }
+    ],
+    "tags": [
+      "rest",
+      "solidarity"
+    ]
+  },
+  {
+    "id": "DL-33",
+    "setKey": "dilemma",
+    "domain": "mercy",
+    "text": "You catch someone in a small theft committed out of real need.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Report it"
+      },
+      {
+        "id": "b",
+        "text": "Let it go"
+      },
+      {
+        "id": "c",
+        "text": "Confront them privately and help them"
+      }
+    ],
+    "tags": [
+      "mercy",
+      "justice"
+    ]
+  },
+  {
+    "id": "DL-34",
+    "setKey": "dilemma",
+    "domain": "legacy",
+    "text": "You can spend your next years building something that outlasts you, or enjoying the life you've already built.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Build something lasting"
+      },
+      {
+        "id": "b",
+        "text": "Enjoy what you have"
+      },
+      {
+        "id": "c",
+        "text": "Mostly enjoy, but leave one lasting thing"
+      }
+    ],
+    "tags": [
+      "legacy",
+      "contentment"
+    ]
+  },
+  {
+    "id": "DL-35",
+    "setKey": "dilemma",
+    "domain": "authority",
+    "text": "You are ordered to do something legal that you believe is wrong.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Refuse"
+      },
+      {
+        "id": "b",
+        "text": "Comply"
+      },
+      {
+        "id": "c",
+        "text": "Comply while formally objecting"
+      }
+    ],
+    "tags": [
+      "conscience",
+      "order"
+    ]
+  },
+  {
+    "id": "DL-36",
+    "setKey": "dilemma",
+    "domain": "envy",
+    "text": "A rival succeeds in something you wanted, partly through luck.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Congratulate them sincerely"
+      },
+      {
+        "id": "b",
+        "text": "Keep your distance"
+      },
+      {
+        "id": "c",
+        "text": "Study what they did right"
+      }
+    ],
+    "tags": [
+      "generosity",
+      "growth"
+    ]
+  },
+  {
+    "id": "DL-37",
+    "setKey": "dilemma",
+    "domain": "hospitality",
+    "text": "A stranger asks for help that would be inconvenient and carries a small risk.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Help"
+      },
+      {
+        "id": "b",
+        "text": "Decline politely"
+      },
+      {
+        "id": "c",
+        "text": "Point them to someone better placed to help"
+      }
+    ],
+    "tags": [
+      "kindness",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-38",
+    "setKey": "dilemma",
+    "domain": "knowledge",
+    "text": "You can make an important decision now with the information you have, or delay to learn more while the chance may pass.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Decide now"
+      },
+      {
+        "id": "b",
+        "text": "Delay and learn more"
+      },
+      {
+        "id": "c",
+        "text": "Make a small, reversible move now and learn as you go"
+      }
+    ],
+    "tags": [
+      "courage",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-39",
+    "setKey": "dilemma",
+    "domain": "fear",
+    "text": "You have the skill to help in an emergency, but helping exposes you to real danger.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Help"
+      },
+      {
+        "id": "b",
+        "text": "Don't help"
+      },
+      {
+        "id": "c",
+        "text": "Help in the safest way available, even if less effective"
+      }
+    ],
+    "tags": [
+      "courage",
+      "prudence"
+    ]
+  },
+  {
+    "id": "DL-40",
+    "setKey": "dilemma",
+    "domain": "change",
+    "text": "You realize a deeply held belief of yours was mistaken, and admitting it will unsettle people who rely on you.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Admit it openly"
+      },
+      {
+        "id": "b",
+        "text": "Change your behavior quietly"
+      },
+      {
+        "id": "c",
+        "text": "Keep the belief publicly until a better time"
+      }
+    ],
+    "tags": [
+      "honesty",
+      "responsibility"
+    ]
+  }
+]

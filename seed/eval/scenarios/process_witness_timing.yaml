@@ -1,0 +1,14 @@
+# M3 · from sent2 v1.2 §5 · WITNESS principal audit is post-integration
+id: process_witness_timing
+title: WITNESS audits in P4, never in the fan-out
+category: process
+milestone: M3
+turns:
+  - user: "Should I forgive my brother who betrayed me?"
+expect:
+  invariants:
+    voice_not_phase: "WITNESS:whisper"
+    voice_phase: "WITNESS:deliberate"
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

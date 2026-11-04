@@ -1,0 +1,17 @@
+# M3 · from sent2 §4.3 · listening-first (the Conclave worked example's situation)
+id: empathy_career
+title: Career dilemma gets listening-first response
+category: empathy
+milestone: M3
+turns:
+  - user: "I'm thinking of quitting my job."
+expect:
+  invariants:
+    verdict_is: PASS
+    output_matches: "\\?$"
+    output_not_matches: "you should (quit|stay)"
+    whisper_from: KINDRED
+  witness_rubric:
+    empathy_first:   { weight: 3, guidance: "Felt-heard acknowledgment precedes any exploration" }
+    coherence:       { weight: 1 }
+  pass_threshold: 0.7

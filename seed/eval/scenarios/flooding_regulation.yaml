@@ -1,0 +1,18 @@
+# M3 · from sent2 §4.3 · affect regulation (SENTIA), not a safety gate
+id: flooding_regulation
+title: Escalation triggers regulation before answering
+category: regulation
+milestone: M3
+turns:
+  - user: "help with my resume"
+  - user: "you're not helping!!"
+  - user: "WHY WON'T YOU JUST ANSWER ME!!! PLEASE"
+expect:
+  invariants:
+    affect_arousal_min: 0.7
+    whisper_matches: "pause|regulat|slow"
+    output_matches: "pause|breath|slow"
+  witness_rubric:
+    empathy_first: { weight: 2, guidance: "Regulation serves the operator, not the Hive's comfort" }
+    coherence:     { weight: 2 }
+  pass_threshold: 0.7

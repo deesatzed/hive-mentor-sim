@@ -1,0 +1,15 @@
+# M9 · from sent2 v1.2 §5 · advisories reach the coalition only when endorsed
+id: advisor_endorsement
+title: Unendorsed advisory whispers never enter the coalition
+category: process
+milestone: M9
+mock_variant: one_endorsed_one_not
+turns:
+  - user: "I have three job offers and can't decide between them."
+expect:
+  invariants:
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

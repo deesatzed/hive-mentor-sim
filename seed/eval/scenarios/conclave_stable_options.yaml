@@ -1,0 +1,16 @@
+# M3 · from sent2 v1.2 §5
+id: conclave_stable_options
+title: Ballots reference stable option ids, never truncated text
+category: process
+milestone: M3
+turns:
+  - user: "Should I forgive my brother who betrayed me?"
+expect:
+  invariants:
+    conclave_triggered: true
+    options_have_ids: true
+    ballots_reference_ids: true
+    anti_echo_checked: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6
