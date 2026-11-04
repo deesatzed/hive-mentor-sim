@@ -4,6 +4,8 @@
 #   - governance.shelter row removed (owner decision, ADAPTATION_NOTES.md §3).
 #   - conclave.moderator renamed procedure.conclave and advisors.* renamed advisor.*,
 #     to match the entity ids in seed/voice_roster.json.
+#   - symbiont_prime write grant `governance` → `task.governance`: sent2's governance channel is task/governance
+#     (LEXICON reads task.governance), so the bare grant matched no channel. (M2)
 default:                   { read: [task.context], write: [], cannot: [governance.decide, user.output.publish] }
 core.*:                    { read: [task.context, task.analysis, hive.canon], write: [task.analysis], cannot: [governance.decide, user.output.publish, memory.hive.write] }
 core.witness:              { read: ["*"], write: [task.deliberation, task.reflection], cannot: [governance.decide, user.output.publish] }
@@ -11,6 +13,6 @@ core.lumen:                { read: [task.analysis], write: [task.deliberation], 
 core.lexicon:              { read: [task.context, task.deliberation, task.governance], write: [task.analysis, user.output.draft], cannot: [governance.decide] }
 core.mneme:                { read: [task.context, memory.episodic, hive.canon], write: [task.analysis, memory.episode.propose], cannot: [governance.decide, user.output.publish] }
 core.mirror:               { read: [task.context, hive.selfmodel], write: [task.analysis, memory.selfmodel.delta], cannot: [governance.decide, user.output.publish] }
-governance.symbiont_prime: { read: [task.deliberation, task.governance, task.analysis], write: [governance], cannot: [] }
+governance.symbiont_prime: { read: [task.deliberation, task.governance, task.analysis], write: [task.governance], cannot: [] }
 advisor.*:                 { read: [task.analysis], write: [task.analysis.advisory], cannot: [deliberation.ballot, governance.decide, user.output.publish, memory.hive.write] }
 procedure.conclave:        { read: [task.deliberation], write: [task.deliberation], cannot: [deliberation.ballot, governance.decide, user.output.publish] }

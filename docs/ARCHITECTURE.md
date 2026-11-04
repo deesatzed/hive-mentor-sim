@@ -92,7 +92,7 @@ export interface Embedder { model: string; dim: number; embed(texts: string[]): 
 
 An empty `TIER_*_MODEL` falls back to `OPENROUTER_REVIEWER_MODEL` (the owner's central model; for the proof of concept all three tiers are set to it). If both are empty and mocks are off, `getProviders()` throws `LiveModeNotConfiguredError` naming the missing tier. The live eval grader also uses `OPENROUTER_REVIEWER_MODEL`.
 
-Every provider call: `costMeter.check()` before, `costMeter.add()` after, one `LedgerEvent` with the caller's `purpose` and `cycleId`.
+Every provider call: `costMeter.add()` with the measured cost after, one `LedgerEvent` with the caller's `purpose` and `cycleId`.
 
 ## The heartbeat (`orchestrator.ts`)
 
@@ -113,7 +113,7 @@ Adapted from sent2 v1.2 §3.4. SHELTER steps removed. Each phase writes only the
 
 **Promotion policy (P7):** a proposal is promoted to hive scope only if (a) every evidence ref verifies, (b) it adds no goal or permission not traceable to an approved constitution principle (else a CONFLICT marker and the ego audit is triggered), (c) for Self-Model deltas, coherence-decreasing but accuracy-increasing deltas (recording a contradiction) are never rejected on coherence grounds alone. Constitution text itself is never changed by P7, only by the operator.
 
-**Cost control:** `costMeter` caps the whole process. If the cap is hit mid-cycle, the cycle stops at the current phase, stores a partial trace with `status=budget_exceeded`, and the UI shows which phases did not run.
+**Cost:** `costMeter` records measured spend per model and per phase for the trace. There is no cap (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only).
 
 ## Attribute lens (`lens.ts`)
 

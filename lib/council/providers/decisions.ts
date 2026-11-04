@@ -195,7 +195,6 @@ export class OpenRouterDecisions implements Decider {
     const attempts: { model: string; reason: string }[] = [];
 
     for (const model of this.o.chain) {
-      this.o.meter.check();
       const t0 = Date.now();
       let res: Response;
       try {
@@ -328,7 +327,6 @@ export class LocalLLMDecisions implements Decider {
     const n = Object.keys(qs).length;
     if (n === 0) throw new Error("decide() called with no questions");
     if (n > MAX_Q_PER_REQUEST) throw new TooManyQuestionsError(n);
-    this.o.meter.check();
     const t0 = Date.now();
     const system =
       "You answer typed questions about a situation. Return only JSON: an object keyed by question name. " +

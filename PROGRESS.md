@@ -83,7 +83,7 @@ Total measured spend: $0.00030673. Single runs, not averages. The three decision
 - Noul questions that the catalog lists without criteria use `true: "Yes."`, `false: "No."` (WITNESS_FLAGS flags, ARBITRATE humility, AUTHORITY_GRAB, CONCLAVE_FRAME, CALIBRATION_HARD, ANACHRONISM). CALIBRATION_QUALITY criteria are given in the catalog as short descriptions; they are phrased as questions ("Does the response …?").
 - Added `AUTHORIAL: 0.5` to `T` (threshold from MENTOR_CORPUS.md).
 - Scripts that import `lib/` run with `tsx --conditions=react-server` so the `server-only` guard allows them.
-- Appended `DATABASE_URL="file:./dev.db"` and `COST_CAP_USD=5.00` to the owner's `.env` (the HANDOFF defaults; existing lines untouched).
+- Appended `DATABASE_URL="file:./dev.db"` to the owner's `.env` (HANDOFF default; existing lines untouched). A `COST_CAP_USD` line added here was removed again on 2026-11-04 with the cap.
 - Left as the spec requires ("these edits and nothing else"), flagged for the owner: `witness.md` still lists "pause-and-ask-user" as a recommendation while the decision layer offers continue/redirect/reflect; `formless.md` still says "does it still serve the Edict" when the edict module may be off.
 - Quote tests use a passage copied from Project Gutenberg #2680 (downloaded 2026-11-04) plus one constructed string, labeled, for typographic folding.
 
@@ -104,4 +104,38 @@ Total measured spend: $0.00030673. Single runs, not averages. The three decision
 - `pnpm check:prompts`: 15 + 1 + 1 + 16 = 33 entity prompts: passes.
 - Removed-items test: passes (`tests/unit/removed-items.test.ts`).
 
-## Next: M2 (bus, permissions, envelope, voices, attention, conclave math; mock)
+## Owner decision 2026-11-04: no spending cap
+
+The owner limits spend with per-key limits on OpenRouter. Removed: `COST_CAP_USD`, `BudgetExceededError`, `costMeter.check()`, the budget-exceeded cycle status, the budget test (TEST_PLAN #8, now "cost recording"), and the cap in `verify:live`. `CostMeter` only records measured spend per model. Docs updated: HANDOFF, GOAL, ADAPTATION_NOTES §4.8, ARCHITECTURE, TEST_PLAN, DECISION_LAYER, BUILD_PLAN, PRODUCT_SPEC, MENTOR_CORPUS, DATA_MODEL. The `COST_CAP_USD` line was removed from `.env` and `.env.example`. Test count went from 87 to 84 (three cap tests removed, one recording test kept).
+
+## M2: Bus, permissions, envelope, voices, attention, Conclave math (done 2026-11-04, mock only)
+
+**Done**
+- `lib/hive/envelope.ts`: Envelope v2 (urgency low|normal|high; guardian message type removed; whisper numbers come from the decision layer; evidence as verified {chunkId, quote, mentorId}).
+- `lib/hive/permissions.ts`: deny-first `PolicyEngine` over `constitution/permissions.yaml`, segment-aware matching, channel normalization.
+- `lib/hive/bus.ts`: authenticate (bus-issued credentials, roster entities only) → validate → authorize → rate-limit (1 whisper per entity per cycle) → stamp → persist `BusMessage`. Every denial is persisted with `authorized=false`, ledgered `bus.denied`, and thrown. Only writer of `BusMessage`.
+- `lib/hive/voices.ts`: roster + prompt-file loader; REVERENCE active only with the edict module; NOOSPHERE inactive; `guildsOf`.
+- `lib/hive/attention.ts`: A(m) = s·c − λ·dup + μ·|v|, moral bypass, top-k, decayed list, id tie-break.
+- `lib/hive/conclave.ts`: `relevanceWeight`, `conflictKappa`, `shouldConvene`, `buildOptions` (opt_<taskId>_<n>, dedup), `situationOptions`, `aggregate` (quorum → threshold → margin → anti-echo, abstentions, dissent), `BlocAudit` (exact search over groups ≥ 3, mean ρ > 0.9, T ≥ 5, members' mean w).
+
+**Fixes and deviations**
+- sent2's permission matcher compared "/" channels with "." grants, so in its code every Core Voice whisper would be denied. Channels are normalized; a test publishes a LOGOS whisper to `task/analysis`.
+- `governance.symbiont_prime` write grant `governance` → `task.governance` (the bare grant matched no channel).
+- **Worked example, second correction.** sent2's ALTER row says w = 1.0, c = .80, α = .720; 1.0 × .80 = .80, but every sum in the example uses α = .720. With c = .80 the test computed Σα = 2.97, not 2.890. `CONCLAVE_MATH.md` §6 now lists ALTER c = .72 (w unchanged), and the test feeds that. I missed this row when writing the handoff; the corrected S values were always computed from α = .720.
+- Advisors publish to `task/analysis/advisory` (their only write grant), not `task/analysis`.
+- Open for M3: no entity has a write grant that allows `ballot.cast` (Core Voices cannot write `task/deliberation`; advisors and the moderator are denied ballots). Ballots come from the decision layer, so M3 should record them in `ConclaveRun` from orchestrator code rather than as entity bus messages.
+
+**Commands run (2026-11-04), all exit 0**
+- `pnpm lint`: 0 problems
+- `pnpm typecheck`: 0 errors
+- `pnpm test`: 13 files, 125 / 125 passed
+- `pnpm check:prompts`: 33 entity prompts, 0 violations
+- `pnpm build`: succeeded
+- `pnpm test:e2e`: 1 / 1 passed
+
+**Acceptance (BUILD_PLAN M2)**
+- Invariant 9 (`tests/unit/bus.test.ts`): advisor `ballot.cast` throws; LUMEN `memory.hive.write` throws on the deny rule; unauthenticated sender throws (no credential, forged token, another entity's credential); second whisper in a cycle throws.
+- Worked example: S(A) 0.6995, S(B) 0.2566, S(C) 0.8616 (±0.001), Δ 0.162, winner C, PASS (`tests/unit/conclave.test.ts`).
+- Relevance max-rule against the table; quorum, threshold, margin, and anti-echo failures; bloc audit flags a 3-clique with ρ̄ > 0.9 over 5 Conclaves and not before; attention bypass keeps moral-flagged items and lists decayed ones (`tests/unit/attention.test.ts`).
+
+## Next: M3 (heartbeat v1 in mock mode, REPL, eval harness)

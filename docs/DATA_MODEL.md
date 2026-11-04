@@ -160,7 +160,7 @@ model Cycle {
   output       String?
   awareness    String?
   verdict      String?                    // PASS | AMEND | ASK_USER
-  status       String   @default("running") // running | done | budget_exceeded | error
+  status       String   @default("running") // running | done | error
   formationVersion    Int
   constitutionVersion Int?
   trace        String   @default("{}")   // CycleTrace (zod), see below

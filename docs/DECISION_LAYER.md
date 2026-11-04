@@ -56,7 +56,7 @@ Port of hatrack's `decisions.py`, which was tested live:
 - **HTTP 401/402/403:** throw immediately. Don't fall back; it's an auth or credit problem.
 - **Missing answers:** if the response doesn't answer every question, move to the next model.
 - Every success: `costMeter.add(model, usage.cost)`, plus a `LedgerEvent` with kind `decision.<purpose>`, payload `{ questions: names, answers compacted to numbers, stateHash }`, model, cost, latency. Store a SHA-256 hash of the state and a ≤ 200-char preview (keeps the ledger compact; full state is reconstructable from the cycle trace).
-- Budget exceeded → `BudgetExceededError`. Callers fall back as documented per question below.
+- Every model failing → `DecisionUnavailableError`. Callers fall back as documented per question below.
 
 ### Live verification (2026-11-03, one minimal request per model: one noul, one choice, one score; owner-approved)
 

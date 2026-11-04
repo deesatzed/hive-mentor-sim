@@ -6,7 +6,7 @@ import {
   LiveModeNotConfiguredError,
   resolveProviderConfig,
 } from "@/lib/council/providers";
-import { BudgetExceededError, CostMeter, costCapFromEnv } from "@/lib/council/providers/costMeter";
+import { CostMeter } from "@/lib/council/providers/costMeter";
 import { expectedScoreIndex, makeDecisionResult, MissingAnswerError, type Question } from "@/lib/council/providers/decisions";
 import { MockDecider, MockEmbedder, MockLLM, mockChoice, mockNoul } from "@/lib/council/providers/mocks";
 import { MemoryLedger } from "../helpers/fakeFetch";
@@ -21,7 +21,7 @@ const CLOUD_BASE = {
 
 describe("resolveProviderConfig", () => {
   it("USE_MOCK_PROVIDERS=true → mock, needs no keys", () => {
-    expect(resolveProviderConfig({ USE_MOCK_PROVIDERS: "true" })).toEqual({ mode: "mock", costCapUsd: 5 });
+    expect(resolveProviderConfig({ USE_MOCK_PROVIDERS: "true" })).toEqual({ mode: "mock" });
   });
 
   it("cloud: every tier set explicitly uses its own env var", () => {
@@ -121,24 +121,14 @@ describe("getProviders", () => {
 });
 
 describe("costMeter", () => {
-  it("throws BudgetExceededError when the cap is reached", () => {
-    const m = new CostMeter(0.0001);
-    m.check();
-    expect(() => m.add("x", 0.00005)).not.toThrow();
-    expect(() => m.add("x", 0.00006)).toThrow(BudgetExceededError);
-    expect(() => m.check()).toThrow(BudgetExceededError);
-    expect(m.breakdown()).toEqual({ x: 0.00011 });
-  });
-
-  it("COST_CAP_USD parsing", () => {
-    expect(costCapFromEnv({})).toBe(5);
-    expect(costCapFromEnv({ COST_CAP_USD: "0.25" })).toBe(0.25);
-    expect(() => costCapFromEnv({ COST_CAP_USD: "abc" })).toThrow();
-  });
-
-  it("mock providers stop once the cap is already reached", async () => {
-    const m = new CostMeter(0);
-    await expect(new MockDecider({}, m).decide("s", {}, { purpose: "t" })).rejects.toThrow(BudgetExceededError);
+  it("records measured spend per model and in total; there is no cap", () => {
+    const m = new CostMeter();
+    m.add("x", 0.00005);
+    m.add("x", 0.00006);
+    m.add("y", 1000);
+    expect(m.spentUsd).toBeCloseTo(1000.00011, 8);
+    expect(m.breakdown()).toEqual({ x: 0.00011, y: 1000 });
+    expect(() => m.add("x", -1)).toThrow();
   });
 });
 

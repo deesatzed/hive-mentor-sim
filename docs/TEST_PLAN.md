@@ -31,7 +31,7 @@ Local CI equivalent: `pnpm lint && pnpm typecheck && pnpm test && pnpm eval && p
 5. **Only the ledger writes LedgerEvent; only the bus writes BusMessage.** Grep test on `prisma.ledgerEvent.create` / `prisma.busMessage.create` outside those modules.
 6. **Append-only tables.** No `update`/`delete` on `BusMessage`, `LedgerEvent`, `MemoryRecord` (except `priority` and `resolvedCycle` in `state.ts`), `Commitment` (except `status`, `breakageRecord` in `commitments.ts`).
 7. **Held-out isolation.** `retrieval.search` never returns `heldOut` chunks, incl. k > corpus size.
-8. **Budget.** With `COST_CAP_USD=0.0001` and fake costs, providers throw `BudgetExceededError`; a cycle stops at the current phase with a partial trace; the UI shows which phases did not run; no stack traces.
+8. **Cost recording.** Every provider call adds its measured `usage.cost` to `costMeter` and the ledger; a cycle trace shows cost per phase. (The spending-cap test was removed (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only).)
 9. **Local-mode labeling.** With `PROVIDER_MODE=local`, numbers from `LocalLLMDecisions` carry `calibrated: false` and the "local estimate" tag in the trace.
 10. **Live mode not configured.** With mocks off, an empty `TIER_*_MODEL` uses `OPENROUTER_REVIEWER_MODEL`; with both empty, the app and REPL refuse to run a cycle and name the missing tier.
 11. **Calibration isolation.** Calibration cycles create no hive-scope memory, Self-Model version, or commitment.

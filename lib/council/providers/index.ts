@@ -7,7 +7,7 @@ import type { LLM, PromptRenderer, Tier } from "./llm";
 import { LocalLLM, OpenRouterLLM, TIERS } from "./llm";
 import type { Embedder } from "./embeddings";
 import { OllamaEmbeddings, OpenAIEmbeddings, UnconfiguredEmbedder } from "./embeddings";
-import { CostMeter, costCapFromEnv } from "./costMeter";
+import { CostMeter } from "./costMeter";
 import { LiveModeNotConfiguredError } from "./errors";
 import { MockDecider, MockEmbedder, MockLLM } from "./mocks";
 import { renderPrompt } from "@/lib/hive/prompts";
@@ -36,10 +36,9 @@ const TIER_ENV: Record<Tier, string> = {
 export type ProviderMode = "mock" | "cloud" | "local";
 
 export type ResolvedConfig =
-  | { mode: "mock"; costCapUsd: number }
+  | { mode: "mock" }
   | {
       mode: "cloud";
-      costCapUsd: number;
       decisionChain: string[];
       apiKey: string;
       tiers: Record<Tier, { model: string; source: string }>;
@@ -48,7 +47,7 @@ export type ResolvedConfig =
       embeddings: { apiKey: string; model: string } | null;
       embeddingsMissing: string[];
     }
-  | { mode: "local"; costCapUsd: number; baseUrl: string; llmModel: string; embedModel: string };
+  | { mode: "local"; baseUrl: string; llmModel: string; embedModel: string };
 
 const clean = (v: string | undefined) => {
   const t = v?.trim().replace(/^["']|["']$/g, "");
@@ -67,8 +66,7 @@ export function decisionChainFromEnv(env: Env): string[] {
 }
 
 export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
-  const costCapUsd = costCapFromEnv(env);
-  if (clean(env.USE_MOCK_PROVIDERS)?.toLowerCase() === "true") return { mode: "mock", costCapUsd };
+  if (clean(env.USE_MOCK_PROVIDERS)?.toLowerCase() === "true") return { mode: "mock" };
 
   const mode = clean(env.PROVIDER_MODE)?.toLowerCase() ?? "cloud";
   if (mode === "local") {
@@ -79,7 +77,7 @@ export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
     if (!llmModel) missing.push("LOCAL_LLM_MODEL");
     if (!embedModel) missing.push("LOCAL_EMBED_MODEL");
     if (missing.length) throw new LiveModeNotConfiguredError(missing);
-    return { mode: "local", costCapUsd, baseUrl, llmModel: llmModel!, embedModel: embedModel! };
+    return { mode: "local", baseUrl, llmModel: llmModel!, embedModel: embedModel! };
   }
   if (mode !== "cloud") throw new Error(`PROVIDER_MODE must be cloud or local, got '${mode}'`);
 
@@ -103,7 +101,6 @@ export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
   const embeddingsMissing = [...(openaiKey ? [] : ["OPENAI_API_KEY"]), ...(embedModel ? [] : ["OPENAI_EMBED_MODEL"])];
   return {
     mode: "cloud",
-    costCapUsd,
     apiKey: clean(env.OPENROUTER_API_KEY)!,
     decisionChain,
     tiers,
@@ -130,7 +127,7 @@ export interface ProviderDeps {
 
 export function getProviders(env: Env = process.env, deps: ProviderDeps = {}): Providers {
   const config = resolveProviderConfig(env);
-  const meter = deps.meter ?? new CostMeter(config.costCapUsd);
+  const meter = deps.meter ?? new CostMeter();
   if (config.mode === "mock") {
     return {
       config,

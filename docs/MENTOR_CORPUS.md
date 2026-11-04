@@ -106,7 +106,7 @@ verifyQuote(quote, chunkText) =
 
 ## Budget
 
-A full build for 18 mentors should cost under $5 (cap via `COST_CAP_USD`). Fingerprinting makes about 236 DeepSeek calls per mentor (40 dilemmas + 196 bank questions). If the cap is tight, run the dilemmas first: activation depends on them, and the bank questions can follow in a second pass.
+No spending cap in the build (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only). Fingerprinting makes one `MENTOR_ANSWER` call per mentor per question (40 dilemmas + 196 bank questions). Record measured cost per mentor. Run the dilemmas first: activation depends on them, and the bank questions can follow in a second pass.
 
 ## Voice attribute lenses (Hive-specific)
 

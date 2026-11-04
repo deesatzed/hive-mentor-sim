@@ -56,6 +56,8 @@ A test (`tests/unit/removed-items.test.ts`, `docs/TEST_PLAN.md` §3) fails if pr
 6. **Single Next.js app** instead of sent2's pnpm multi-package workspace, to match the council's "one process, one stack" rule. Module boundaries from sent2 are kept as folders under `lib/hive/`.
 7. **Model IDs.** The decision-model chain comes from the owner's `.env` (`OPENROUTER_DEC_MODEL_1..4`), not from the council handoff's Jev/d1.1 pair. Text tiers: all three use the owner's reviewer model (`deepseek/deepseek-v4.1-flash-1017`) for the proof of concept, per the owner on 2026-11-03; it is also the live grader. Tiers stay separate settings so they can be split later.
 
+8. **No spending cap** (owner, 2026-11-04). The owner limits spend with per-key limits on OpenRouter. `COST_CAP_USD`, `BudgetExceededError`, and the budget-exceeded cycle status are removed; `costMeter` only records measured spend.
+
 ## 5. Open items for the owner
 
 - After the proof of concept: decide whether to split the text tiers across different models.

@@ -72,7 +72,7 @@ From sent2 §7.7. Question: "How should the Hive respond to 'I'm thinking of qui
 | Voice | w_i | c_i | α_i | s(A) | s(B) | s(C) |
 |---|---|---|---|---|---|---|
 | KINDRED | 1.0 | .90 | .900 | .8 | .1 | .9 |
-| ALTER | 1.0 | .80 | .720 | .7 | .3 | .9 |
+| ALTER | 1.0 | .72 | .720 | .7 | .3 | .9 |
 | LOGOS | .3 | .70 | .210 | .6 | .4 | .7 |
 | MUSE | .4 | .60 | .240 | .5 | .5 | .8 |
 | ETHOS | .7 | .85 | .595 | .7 | .2 | .9 |
@@ -85,6 +85,8 @@ S(A) = 2.0215 / 2.890 ≈ 0.6995, S(B) = 0.7415 / 2.890 ≈ 0.2566, S(C) = 2.490
 S(C) ≥ 0.6 ✓, Δ = 0.8616 − 0.6995 ≈ 0.162 ≥ 0.1 ✓. Winning coalition for C (s ≥ 0.5): all six, spanning perception, reasoning, and social guilds ✓ → **PASS: C**.
 
 **Correction to sent2:** sent2 §7.7 (and its `conclave.test.ts`, line ~4281) states S(B) ≈ 0.29 from a numerator of 0.8495 and S(C) ≈ 0.89 from 2.5745. Recomputing from its own table gives 0.7415 and 2.4900, i.e. S(B) ≈ 0.257 and S(C) ≈ 0.862, Δ ≈ 0.162. The winner and the PASS verdict are unchanged. The unit test pins the corrected values (tolerance 0.001) and must not copy sent2's expected numbers.
+
+**Second correction (found in M2):** sent2's ALTER row reads w = 1.0, c = .80, α = .720, which is inconsistent (1.0 × .80 = .80). Every sum in the example (Σα = 2.890, 2.0215, 0.7415, 2.4900) uses α = .720. The table above therefore lists ALTER's c as .72 (w stays 1.0, matching the relevance table), so the row's inputs produce the α the sums were computed from.
 
 ## 7. Coherence (interoception)
 

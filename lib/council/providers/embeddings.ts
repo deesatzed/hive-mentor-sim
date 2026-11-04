@@ -38,7 +38,6 @@ export class OpenAIEmbeddings implements Embedder {
 
   async embed(texts: string[]): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
-    this.o.meter.check();
     const t0 = Date.now();
     const res = await postJsonWithRetry(this.fetchImpl, this.sleep, this.o.url ?? OPENAI_EMBEDDINGS_URL, { Authorization: `Bearer ${this.o.apiKey}` }, {
       model: this.o.model,

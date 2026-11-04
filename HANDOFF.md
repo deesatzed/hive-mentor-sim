@@ -77,7 +77,7 @@ Build a local, single-operator simulation in which:
 
 - Execute `docs/BUILD_PLAN.md` milestones **in order**. Before moving on, a milestone's acceptance criteria must pass, along with `pnpm lint && pnpm typecheck && pnpm test` and, from M3 on, `pnpm eval`.
 - Commit at least once per milestone, message `M<n>: <summary>`, once the owner has authorized commits. Keep `PROGRESS.md` at the repo root: done, deferred, deviations and why, commands run with their actual output counts.
-- **Missing API keys do not block work.** Build and test against the mocks. Run live checks only when keys exist, always under `COST_CAP_USD`.
+- **Missing API keys do not block work.** Build and test against the mocks. Run live checks only when keys exist. There is no spending cap in the build (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only).
 - **Unreachable corpus source:** mark that mentor `active=false` with the reason, record it, continue. If fewer than 8 mentors can be activated live, stop the live activation claim at the end of M5 and report.
 - **Ambiguity:** choose the option most consistent with the non-negotiables, record it in `PROGRESS.md`, continue. Stop only for something that would violate a non-negotiable or change scope.
 - Never weaken a quote verifier, permission check, invariant, or test to make something pass.
@@ -91,8 +91,8 @@ Build a local, single-operator simulation in which:
 - The Conclave unit test reproduces the worked example in `docs/CONCLAVE_MATH.md` §6 (S(A) ≈ 0.6995, S(B) ≈ 0.2566, S(C) ≈ 0.8616, winner C, PASS; these correct an arithmetic error in sent2 §7.7).
 - `README.md` covers setup, env vars, mock and live operation, corpus build, the question-bank citation, and known limitations.
 
-**Live verification (only when keys, network, and budget exist; report each as unverified otherwise):**
-- `pnpm corpus build --mentor all` activates ≥ 8 mentors under the cost cap; `reports/mentor_fidelity.md` exists for each active mentor.
+**Live verification (only when keys and network exist; report each as unverified otherwise):**
+- `pnpm corpus build --mentor all` activates ≥ 8 mentors; `reports/mentor_fidelity.md` exists for each active mentor.
 - `pnpm smoke:live` completes one full heartbeat cycle end to end; the measured cost and per-phase breakdown are printed and recorded.
 - `pnpm eval:live` runs the scenarios against live tiers; pass counts are recorded as measured, with no pass-rate claim beyond what ran.
 - `pnpm eval:calibration` runs the matched pairs; the report lists per-pair hard-constraint results and consistency findings.
@@ -107,6 +107,7 @@ OPENROUTER_API_KEY=...            # decisions + text generation
 OPENROUTER_DEC_MODEL_1=...        # decision-model fallback chain, tried in order (add _2, _3, ...)
 OPENROUTER_REVIEWER_MODEL=...     # present in the owner's .env; role to be confirmed by the owner (see ADAPTATION_NOTES §5)
 OPENAI_API_KEY=...                # embeddings (default)
+OPENAI_EMBED_MODEL=...            # owner-chosen embedding model ID (added in M1)
 PROVIDER_MODE=cloud               # cloud | local
 LOCAL_LLM_BASE_URL=http://127.0.0.1:11434/v1
 LOCAL_LLM_MODEL=...
@@ -115,6 +116,5 @@ TIER_FAST_MODEL=deepseek/deepseek-v4.1-flash-1017      # proof of concept: all t
 TIER_STANDARD_MODEL=deepseek/deepseek-v4.1-flash-1017
 TIER_PREMIUM_MODEL=deepseek/deepseek-v4.1-flash-1017
 # If a TIER_* is empty, the client falls back to OPENROUTER_REVIEWER_MODEL; if that is empty too, live mode refuses to start.
-COST_CAP_USD=5.00
 USE_MOCK_PROVIDERS=false          # true forces all mocks (tests and eval set this)
 ```

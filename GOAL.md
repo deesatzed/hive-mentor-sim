@@ -11,7 +11,7 @@ PROOF OF DONE:
 3. Complete M0–M10 acceptance criteria, recording commands, actual counts, deviations, and deferred live checks in PROGRESS.md.
 4. With mock providers and no API keys: pnpm lint, typecheck, test, eval (twice, byte-identical reports), test:e2e, and build all pass; the e2e journey runs formation → constitution → chat cycle with full trace → Reveal over 40 dilemmas → prediction → check-in → track record.
 5. Tests demonstrate: cite-or-silence (fabricated and out-of-lens quotes never survive); no mentor first person; bus permission violations throw; advisors never vote; WITNESS audits post-integration; the corrected Conclave worked example (S(C) ≈ 0.8616); ego-capture fixture produces a CONFLICT marker and REFLECT; calibration cycles promote nothing; removed crisis/safety items stay removed.
-6. When keys, network, and budget exist: run the live corpus build (≥ 8 active mentors), pnpm smoke:live, pnpm eval:live, and pnpm eval:calibration under COST_CAP_USD; record measured results and costs. Report any unrun live check as unverified.
+6. When keys and network exist: run the live corpus build (≥ 8 active mentors), pnpm smoke:live, pnpm eval:live, and pnpm eval:calibration; record measured results and costs. Report any unrun live check as unverified.
 7. README.md covers setup, env vars, mock vs live, model configuration (.env tiers and decision chain), corpus build, Reveal and calibration, known limitations, and the question-bank citation.
 
 SCOPE:
@@ -24,7 +24,7 @@ CONSTRAINTS:
 - Decision models judge; LLMs write. The orchestrator, attention, and Conclave math are deterministic code.
 - Do not weaken quote verification, permissions, invariants, or tests to pass checks. Where a source or model is unavailable, keep explicit no-evidence or unavailable states.
 - Label every mock-derived number as mock. Report measured numbers only; no cost or time estimates.
-- Stay within COST_CAP_USD; no paid calls without a configured budget.
+- No spending cap in the build (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only).
 
 ITERATION:
 - Inspect first, keep a concise milestone queue in PROGRESS.md, work M0–M10 in order in small batches, run focused checks after each batch. Diagnose failures rather than weakening criteria. If the same failure survives two fix attempts, stop, list causes, add logging, then fix, and record it in ERROR_LOG.md.

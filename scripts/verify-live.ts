@@ -4,7 +4,7 @@
  *      plus one HONESTY_PROBE noul, sent to that model alone.
  *   2. One structured-output call per distinct text-tier model (LEXICON_PARSE through the real prompt path).
  * Writes reports/live-verification-<date>.json with measured latency and cost. Never prints the key.
- * Cost cap for this script: VERIFY_COST_CAP_USD (default 0.05).
+ * Spend is limited by the owner's per-key OpenRouter limit; this script records measured cost only.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -27,10 +27,10 @@ async function main() {
   const env = { ...process.env, USE_MOCK_PROVIDERS: "false", PROVIDER_MODE: "cloud" };
   const cfg = resolveProviderConfig(env);
   if (cfg.mode !== "cloud") throw new Error("verify:live needs cloud mode");
-  const meter = new CostMeter(Number(process.env.VERIFY_COST_CAP_USD ?? "0.05"));
+  const meter = new CostMeter();
   const ledger = new PrismaLedger();
   const input = "I finally finished the project I was dreading, but now I'm not sure it was worth it.";
-  const report: Record<string, unknown> = { date: new Date().toISOString(), capUsd: meter.capUsd, decisions: [], text: [] };
+  const report: Record<string, unknown> = { date: new Date().toISOString(), decisions: [], text: [] };
 
   for (const model of cfg.decisionChain) {
     const d = new OpenRouterDecisions({ apiKey: cfg.apiKey, chain: [model], meter, ledger });

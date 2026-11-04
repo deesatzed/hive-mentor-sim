@@ -17,7 +17,7 @@ const reply = (content: string, cost = 0.00001, model = "t/fast") => ({
 function client(script: Parameters<typeof fakeFetch>[0]) {
   const f = fakeFetch(script);
   const ledger = new MemoryLedger();
-  const meter = new CostMeter(1);
+  const meter = new CostMeter();
   const llm = new OpenRouterLLM({ apiKey: "test-key", models: MODELS, meter, ledger, render, fetch: f.impl, sleep: noSleep });
   return { llm, f, ledger, meter };
 }
@@ -87,7 +87,7 @@ describe("LocalLLM", () => {
   it("uses the local endpoint, json_object mode, and labels the model local:<name>", async () => {
     const f = fakeFetch([reply('{"claim":"a","uncertainty":"b"}', 0, "llama-test")]);
     const ledger = new MemoryLedger();
-    const llm = new LocalLLM({ baseUrl: "http://127.0.0.1:11434/v1/", model: "llama-test", meter: new CostMeter(1), ledger, render, fetch: f.impl, sleep: noSleep });
+    const llm = new LocalLLM({ baseUrl: "http://127.0.0.1:11434/v1/", model: "llama-test", meter: new CostMeter(), ledger, render, fetch: f.impl, sleep: noSleep });
     const r = await llm.generate("X", {}, schema, { tier: "premium", purpose: "t" });
     expect(f.calls[0].url).toBe("http://127.0.0.1:11434/v1/chat/completions");
     expect(f.calls[0].body.response_format).toEqual({ type: "json_object" });

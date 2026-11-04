@@ -9,7 +9,7 @@ import {
   TooManyQuestionsError,
   type Question,
 } from "@/lib/council/providers/decisions";
-import { BudgetExceededError, CostMeter } from "@/lib/council/providers/costMeter";
+import { CostMeter } from "@/lib/council/providers/costMeter";
 import { ProviderAuthError } from "@/lib/council/providers/http";
 import { fakeFetch, MemoryLedger, noSleep } from "../helpers/fakeFetch";
 
@@ -30,10 +30,10 @@ const OK_BODY = (model = "dec/one-20261101", cost = 0.000002) => ({
   provider: "TestProvider",
 });
 
-function client(script: Parameters<typeof fakeFetch>[0], chain = ["dec/one", "dec/two"], cap = 1) {
+function client(script: Parameters<typeof fakeFetch>[0], chain = ["dec/one", "dec/two"]) {
   const f = fakeFetch(script);
   const ledger = new MemoryLedger();
-  const meter = new CostMeter(cap);
+  const meter = new CostMeter();
   const d = new OpenRouterDecisions({ apiKey: "test-key", chain, meter, ledger, fetch: f.impl, sleep: noSleep });
   return { d, f, ledger, meter };
 }
@@ -121,7 +121,7 @@ describe("OpenRouterDecisions", () => {
     expect(f.calls).toHaveLength(1);
   });
 
-  it("missing answers → next model; the paid call still counts toward the cap", async () => {
+  it("missing answers → next model; the paid call is still recorded as spend", async () => {
     const partial = OK_BODY("dec/one-1", 0.00001);
     delete (partial.answers as Record<string, unknown>).level;
     const { d, f, meter } = client([{ status: 200, body: partial }, { status: 200, body: OK_BODY("dec/two-1", 0.00002) }]);
@@ -153,11 +153,6 @@ describe("OpenRouterDecisions", () => {
     expect(f.calls).toHaveLength(0);
   });
 
-  it("checks the budget before calling", async () => {
-    const { d, f } = client([], ["dec/one"], 0);
-    await expect(d.decide("s", QS, { purpose: "t" })).rejects.toBeInstanceOf(BudgetExceededError);
-    expect(f.calls).toHaveLength(0);
-  });
 
   it("strips anything resembling a key from error details it ledgers", async () => {
     const { d, ledger } = client([{ status: 404, body: "bad key sk-test-abcdefghijklmnop" }, { status: 200, body: OK_BODY() }]);
@@ -176,7 +171,7 @@ describe("LocalLLMDecisions", () => {
     });
     const f = fakeFetch([{ status: 200, body: { choices: [{ message: { content: "```json\n" + content + "\n```" } }] } }]);
     const ledger = new MemoryLedger();
-    const d = new LocalLLMDecisions({ baseUrl: "http://127.0.0.1:11434/v1", model: "llama-test", meter: new CostMeter(1), ledger, fetch: f.impl, sleep: noSleep });
+    const d = new LocalLLMDecisions({ baseUrl: "http://127.0.0.1:11434/v1", model: "llama-test", meter: new CostMeter(), ledger, fetch: f.impl, sleep: noSleep });
     const r = await d.decide("s", QS, { purpose: "affect" });
     expect(f.calls[0].url).toBe("http://127.0.0.1:11434/v1/chat/completions");
     expect(r.p("is_x")).toBe(1);

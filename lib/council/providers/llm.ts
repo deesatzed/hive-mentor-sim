@@ -124,7 +124,6 @@ class ChatCompletionsLLM implements LLM {
     let totalCost = 0;
     let lastError = "";
     for (let attempt = 1; attempt <= 2; attempt++) {
-      this.o.meter.check();
       const t0 = Date.now();
       const res = await postJsonWithRetry(this.fetchImpl, this.sleep, this.o.url, this.o.headers, {
         model,

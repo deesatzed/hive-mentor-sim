@@ -69,7 +69,6 @@ export class MockDecider implements Decider {
   }
 
   async decide(state: unknown, qs: Record<string, Question>, _opts: DecideOpts): Promise<DecisionResult> {
-    this.meter?.check();
     const text = stateToText(state);
     const answers: Record<string, RawAnswer> = {};
     for (const [name, q] of Object.entries(qs)) {
@@ -112,7 +111,6 @@ export class MockLLM implements LLM {
   }
 
   async generate<T>(promptId: string, vars: Record<string, unknown>, schema: z.ZodType<T>, opts: GenerateOpts) {
-    this.meter?.check();
     const fx = this.load(promptId);
     const key = [vars.mockVariant, vars.voice, vars.scenarioId].find((v) => typeof v === "string") as
       | string

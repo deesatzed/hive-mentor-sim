@@ -12,7 +12,7 @@ Conventions: TypeScript strict; zod at every boundary; server-only code in `lib/
 - Next.js (App Router, TS strict), Prisma + SQLite, zod, vitest, Playwright, tsx, yaml, gray-matter. Scripts: `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `dev:repl`, `corpus`, `eval`, `eval:live`, `eval:calibration`, `smoke:live`, `check:prompts`.
 - `.env.example` with every variable from HANDOFF. `.gitignore`: `.env`, `*.db`, `corpus/raw/`.
 - Copy `seed/` and `reference/sent2.md` into the repo. Write ADR-001 (single Next.js app; sent2 is design reference), ADR-002 (mock-first; no key needed before live checks), ADR-003 (invariants as tests/evals first) in `docs/adr/`.
-- `lib/council/providers/*` interfaces, `getProviders()`, `costMeter.ts` with `BudgetExceededError`, `LiveModeNotConfiguredError`, and mocks (`MockDecider`, `MockLLM`, `MockEmbedder`) labeled as mocks in code comments and in every result (`calibrated: false`, `model: "mock:*"`).
+- `lib/council/providers/*` interfaces, `getProviders()`, `costMeter.ts` (records measured spend; no cap (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only)), `LiveModeNotConfiguredError`, and mocks (`MockDecider`, `MockLLM`, `MockEmbedder`) labeled as mocks in code comments and in every result (`calibrated: false`, `model: "mock:*"`).
 - **Models:** copy the owner's `.env` to the repo root (gitignored). Text tiers all = `OPENROUTER_REVIEWER_MODEL` for the proof of concept; decision chain = `OPENROUTER_DEC_MODEL_*`. Record the served model versions in `PROGRESS.md`. No model selection step.
 
 **Acceptance**
@@ -23,7 +23,7 @@ Conventions: TypeScript strict; zod at every boundary; server-only code in `lib/
 **Tasks**
 - Prisma schema from `docs/DATA_MODEL.md`; migration; `prisma/seed.ts` per its seeding section.
 - `ledger.ts` (only writer of `LedgerEvent`), `quotes.ts` (`verifyQuote`, exactly as `MENTOR_CORPUS.md`).
-- `OpenRouterDecisions` + `LocalLLMDecisions` per `DECISION_LAYER.md`; verify each model in the `OPENROUTER_DEC_MODEL_*` chain answers one minimal decision request (only with a configured budget; the public models list does not include decision models) (if a key exists) and record the result.
+- `OpenRouterDecisions` + `LocalLLMDecisions` per `DECISION_LAYER.md`; verify each model in the `OPENROUTER_DEC_MODEL_*` chain answers one minimal decision request (if a key exists; the public models list does not include decision models) and record the result.
 - `OpenRouterLLM` (tiered) + `LocalLLM`; `OpenAIEmbeddings` + `OllamaEmbeddings`.
 - `config/hive.yaml` (all parameters in `CONCLAVE_MATH.md` §9 + relevance table + guilds + advisor_activation + `edict_module` + `honesty_clause` + `self_model_seed`).
 - Extract prompts into `prompts/` per `LLM_PROMPTS.md` §3 with the listed edits; `_shared.md` per §2; `constitution/permissions.yaml` (sent2 v1.2 §3.6, SHELTER row removed, `procedure.conclave` and `governance.symbiont_prime` rows as in sent2); `scripts/check-prompts.ts` (port sent2 lines ~4058–4220, minus the SHELTER and harm checks): every roster entity has a prompt, frontmatter parses, voice names unique, tier and temperature present.
@@ -60,7 +60,7 @@ Conventions: TypeScript strict; zod at every boundary; server-only code in `lib/
 - REPL: "I'm thinking of quitting my job." produces a listening-first question and a full stored trace.
 - `pnpm eval` (mock): the M3 scenario set in `EVAL_SCENARIOS.md` passes, twice, byte-identical reports. Goldens blessed only after hand inspection, noted in `PROGRESS.md`.
 - `process_witness_timing` fails if WITNESS is moved into P2 (prove it, revert, record).
-- Unit: LUMEN selecting an id outside the shortlist is rejected; unfaithful sentence triggers one regeneration then removal; budget exceeded mid-cycle stores a partial trace with `status=budget_exceeded`.
+- Unit: LUMEN selecting an id outside the shortlist is rejected; unfaithful sentence triggers one regeneration then removal; a provider failure mid-cycle stores a partial trace with `status=error` and the phases that did not run.
 
 ## M4: Identity layer (mock)
 **Tasks**

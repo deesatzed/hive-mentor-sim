@@ -76,7 +76,7 @@ A local simulation of a sentient AI built from a swarm of LLM agents. Fifteen Vo
 - Bus transcript view per cycle: every envelope with from, to, type, scope, and authorization result.
 
 ### 10. `/settings`
-- Provider mode (cloud / local), mock override indicator, tier model IDs (read-only, from env), cost cap, edict module and Honesty Clause state (read-only, from config), database reset (typed confirmation).
+- Provider mode (cloud / local), mock override indicator, tier model IDs (read-only, from env), measured spend to date, edict module and Honesty Clause state (read-only, from config), database reset (typed confirmation).
 
 ## Out of scope for v1
 
