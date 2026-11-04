@@ -1,0 +1,16 @@
+# Runtime capability matrix. Prompts describe; this decides. `cannot` always wins (deny-first).
+# Source: reference/sent2.md v1.2 §3.6 as expanded in its entity generator (PERMISSIONS table, ~line 5320).
+# Changes from sent2:
+#   - governance.shelter row removed (owner decision, ADAPTATION_NOTES.md §3).
+#   - conclave.moderator renamed procedure.conclave and advisors.* renamed advisor.*,
+#     to match the entity ids in seed/voice_roster.json.
+default:                   { read: [task.context], write: [], cannot: [governance.decide, user.output.publish] }
+core.*:                    { read: [task.context, task.analysis, hive.canon], write: [task.analysis], cannot: [governance.decide, user.output.publish, memory.hive.write] }
+core.witness:              { read: ["*"], write: [task.deliberation, task.reflection], cannot: [governance.decide, user.output.publish] }
+core.lumen:                { read: [task.analysis], write: [task.deliberation], cannot: [governance.decide, memory.hive.write, user.output.publish] }
+core.lexicon:              { read: [task.context, task.deliberation, task.governance], write: [task.analysis, user.output.draft], cannot: [governance.decide] }
+core.mneme:                { read: [task.context, memory.episodic, hive.canon], write: [task.analysis, memory.episode.propose], cannot: [governance.decide, user.output.publish] }
+core.mirror:               { read: [task.context, hive.selfmodel], write: [task.analysis, memory.selfmodel.delta], cannot: [governance.decide, user.output.publish] }
+governance.symbiont_prime: { read: [task.deliberation, task.governance, task.analysis], write: [governance], cannot: [] }
+advisor.*:                 { read: [task.analysis], write: [task.analysis.advisory], cannot: [deliberation.ballot, governance.decide, user.output.publish, memory.hive.write] }
+procedure.conclave:        { read: [task.deliberation], write: [task.deliberation], cannot: [deliberation.ballot, governance.decide, user.output.publish] }

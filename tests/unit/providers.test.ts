@@ -4,12 +4,12 @@ import {
   decisionChainFromEnv,
   getProviders,
   LiveModeNotConfiguredError,
-  ProviderNotBuiltError,
   resolveProviderConfig,
 } from "@/lib/council/providers";
 import { BudgetExceededError, CostMeter, costCapFromEnv } from "@/lib/council/providers/costMeter";
 import { expectedScoreIndex, makeDecisionResult, MissingAnswerError, type Question } from "@/lib/council/providers/decisions";
 import { MockDecider, MockEmbedder, MockLLM, mockChoice, mockNoul } from "@/lib/council/providers/mocks";
+import { MemoryLedger } from "../helpers/fakeFetch";
 
 // Test env values are labels, not real model IDs: these tests check resolution logic only.
 const CLOUD_BASE = {
@@ -95,8 +95,28 @@ describe("getProviders", () => {
     expect(p.config.mode).toBe("mock");
   });
 
-  it("cloud mode resolves config, then reports live clients are not built yet (M0)", () => {
-    expect(() => getProviders(CLOUD_BASE)).toThrow(ProviderNotBuiltError);
+  it("cloud mode builds the OpenRouter clients; embedding fails on use when unconfigured", async () => {
+    const ledger = new MemoryLedger();
+    const p = getProviders(CLOUD_BASE, { ledger, render: () => ({ system: "", user: "" }) });
+    expect(p.decider.constructor.name).toBe("OpenRouterDecisions");
+    expect(p.llm.constructor.name).toBe("OpenRouterLLM");
+    expect(p.embedder.model).toBe("unconfigured");
+    await expect(p.embedder.embed(["x"])).rejects.toThrow(/OPENAI_API_KEY, OPENAI_EMBED_MODEL/);
+    if (p.config.mode !== "cloud") throw new Error("expected cloud");
+    expect(p.config.embeddingsMissing).toEqual(["OPENAI_API_KEY", "OPENAI_EMBED_MODEL"]);
+  });
+
+  it("cloud mode uses OpenAI embeddings when key and model are set", () => {
+    const p = getProviders({ ...CLOUD_BASE, OPENAI_API_KEY: "k", OPENAI_EMBED_MODEL: "e/m" }, { ledger: new MemoryLedger() });
+    expect(p.embedder.constructor.name).toBe("OpenAIEmbeddings");
+    expect(p.embedder.model).toBe("e/m");
+  });
+
+  it("local mode builds the local clients", () => {
+    const p = getProviders({ PROVIDER_MODE: "local", LOCAL_LLM_MODEL: "l/m", LOCAL_EMBED_MODEL: "e/m" }, { ledger: new MemoryLedger() });
+    expect(p.decider.constructor.name).toBe("LocalLLMDecisions");
+    expect(p.llm.constructor.name).toBe("LocalLLM");
+    expect(p.embedder.model).toBe("local:e/m");
   });
 });
 

@@ -1,10 +1,18 @@
 import "server-only";
+import type { Ledger } from "../ledger";
+import { PrismaLedger } from "../ledger";
 import type { Decider } from "./decisions";
-import type { LLM, Tier } from "./llm";
-import { TIERS } from "./llm";
+import { LocalLLMDecisions, OpenRouterDecisions } from "./decisions";
+import type { LLM, PromptRenderer, Tier } from "./llm";
+import { LocalLLM, OpenRouterLLM, TIERS } from "./llm";
 import type { Embedder } from "./embeddings";
+import { OllamaEmbeddings, OpenAIEmbeddings, UnconfiguredEmbedder } from "./embeddings";
 import { CostMeter, costCapFromEnv } from "./costMeter";
+import { LiveModeNotConfiguredError } from "./errors";
 import { MockDecider, MockEmbedder, MockLLM } from "./mocks";
+import { renderPrompt } from "@/lib/hive/prompts";
+
+export { LiveModeNotConfiguredError };
 
 /**
  * Provider resolution (docs/ARCHITECTURE.md `getProviders()` table).
@@ -18,21 +26,6 @@ import { MockDecider, MockEmbedder, MockLLM } from "./mocks";
  */
 
 export type Env = Record<string, string | undefined>;
-
-export class LiveModeNotConfiguredError extends Error {
-  constructor(public readonly missing: string[]) {
-    super(`live mode not configured; missing: ${missing.join(", ")}`);
-    this.name = "LiveModeNotConfiguredError";
-  }
-}
-
-/** Thrown while a live provider class has not been built yet (M0 only; removed in M1). */
-export class ProviderNotBuiltError extends Error {
-  constructor(what: string, milestone: string) {
-    super(`${what} is not built yet (arrives in ${milestone}); set USE_MOCK_PROVIDERS=true for now`);
-    this.name = "ProviderNotBuiltError";
-  }
-}
 
 const TIER_ENV: Record<Tier, string> = {
   fast: "TIER_FAST_MODEL",
@@ -48,8 +41,12 @@ export type ResolvedConfig =
       mode: "cloud";
       costCapUsd: number;
       decisionChain: string[];
+      apiKey: string;
       tiers: Record<Tier, { model: string; source: string }>;
       reviewerModel: string;
+      /** null when OPENAI_API_KEY or OPENAI_EMBED_MODEL is missing; embedding then fails on use. */
+      embeddings: { apiKey: string; model: string } | null;
+      embeddingsMissing: string[];
     }
   | { mode: "local"; costCapUsd: number; baseUrl: string; llmModel: string; embedModel: string };
 
@@ -101,7 +98,19 @@ export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
   }
   if (missing.length) throw new LiveModeNotConfiguredError(missing);
 
-  return { mode: "cloud", costCapUsd, decisionChain, tiers, reviewerModel: reviewer ?? tiers.standard.model };
+  const openaiKey = clean(env.OPENAI_API_KEY);
+  const embedModel = clean(env.OPENAI_EMBED_MODEL);
+  const embeddingsMissing = [...(openaiKey ? [] : ["OPENAI_API_KEY"]), ...(embedModel ? [] : ["OPENAI_EMBED_MODEL"])];
+  return {
+    mode: "cloud",
+    costCapUsd,
+    apiKey: clean(env.OPENROUTER_API_KEY)!,
+    decisionChain,
+    tiers,
+    reviewerModel: reviewer ?? tiers.standard.model,
+    embeddings: embeddingsMissing.length ? null : { apiKey: openaiKey!, model: embedModel! },
+    embeddingsMissing,
+  };
 }
 
 export interface Providers {
@@ -112,9 +121,16 @@ export interface Providers {
   embedder: Embedder;
 }
 
-export function getProviders(env: Env = process.env): Providers {
+export interface ProviderDeps {
+  /** Prompt renderer for the LLM; defaults to lib/hive/prompts. */
+  render?: PromptRenderer;
+  ledger?: Ledger;
+  meter?: CostMeter;
+}
+
+export function getProviders(env: Env = process.env, deps: ProviderDeps = {}): Providers {
   const config = resolveProviderConfig(env);
-  const meter = new CostMeter(config.costCapUsd);
+  const meter = deps.meter ?? new CostMeter(config.costCapUsd);
   if (config.mode === "mock") {
     return {
       config,
@@ -124,6 +140,29 @@ export function getProviders(env: Env = process.env): Providers {
       embedder: new MockEmbedder(),
     };
   }
-  // M0: configuration resolves and is tested; the live clients are built in M1.
-  throw new ProviderNotBuiltError(config.mode === "cloud" ? "OpenRouter providers" : "local providers", "M1");
+  const ledger = deps.ledger ?? new PrismaLedger();
+  const render = deps.render ?? defaultRenderer();
+  if (config.mode === "cloud") {
+    const models = Object.fromEntries(TIERS.map((t) => [t, config.tiers[t].model])) as Record<Tier, string>;
+    return {
+      config,
+      meter,
+      decider: new OpenRouterDecisions({ apiKey: config.apiKey, chain: config.decisionChain, meter, ledger }),
+      llm: new OpenRouterLLM({ apiKey: config.apiKey, models, meter, ledger, render }),
+      embedder: config.embeddings
+        ? new OpenAIEmbeddings({ apiKey: config.embeddings.apiKey, model: config.embeddings.model, meter, ledger })
+        : new UnconfiguredEmbedder(config.embeddingsMissing),
+    };
+  }
+  return {
+    config,
+    meter,
+    decider: new LocalLLMDecisions({ baseUrl: config.baseUrl, model: config.llmModel, meter, ledger }),
+    llm: new LocalLLM({ baseUrl: config.baseUrl, model: config.llmModel, meter, ledger, render }),
+    embedder: new OllamaEmbeddings({ baseUrl: config.baseUrl, model: config.embedModel, meter, ledger }),
+  };
+}
+
+function defaultRenderer(): PromptRenderer {
+  return renderPrompt;
 }

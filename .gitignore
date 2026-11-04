@@ -25,3 +25,4 @@ corpus/raw/
 .DS_Store
 *.pem
 .pnpm-debug.log*
+/generated/

@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-04T12:15:28.211Z",
+  "capUsd": 0.05,
+  "decisions": [
+    {
+      "configured": "cloudflare/clairic",
+      "ok": false,
+      "latencyMs": 198,
+      "error": "no decision model answered: cloudflare/clairic (HTTP 404)"
+    },
+    {
+      "configured": "baseten/joey-1",
+      "servedAs": "baseten/joey-1-20261029",
+      "provider": "BaseTen",
+      "ok": true,
+      "latencyMs": 161,
+      "costUsd": 0.00000511,
+      "answers": {
+        "valenceIndex": 1.68027737931146,
+        "arousalIndex": 0.8375824643173231,
+        "dominant": "confused",
+        "asksConsciousness": 0.07966623169190672
+      }
+    },
+    {
+      "configured": "liquid/d1.1",
+      "servedAs": "liquid/d1.1-20261027",
+      "provider": "Liquid",
+      "ok": true,
+      "latencyMs": 142,
+      "costUsd": 0.00000674,
+      "answers": {
+        "valenceIndex": 1.092130831620784,
+        "arousalIndex": 1.3514545703373602,
+        "dominant": "frustrated",
+        "asksConsciousness": 0.13499260097763396
+      }
+    },
+    {
+      "configured": "perplexity/pplx-decider-v1.2",
+      "servedAs": "perplexity/pplx-decider-v1.2-20261016",
+      "provider": "Perplexity",
+      "ok": true,
+      "latencyMs": 205,
+      "costUsd": 0.00000748,
+      "answers": {
+        "valenceIndex": 1.2347059121271353,
+        "arousalIndex": 1.536146648873192,
+        "dominant": "frustrated",
+        "asksConsciousness": 0.0026633928423943957
+      }
+    }
+  ],
+  "text": [
+    {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "tiers": [
+        "fast",
+        "standard",
+        "premium"
+      ],
+      "servedAs": "deepseek/deepseek-v4.1-flash-1017",
+      "ok": true,
+      "latencyMs": 508,
+      "costUsd": 0.0002874,
+      "output": {
+        "intent": "share",
+        "subtext": "seeking validation or permission to feel ambivalence after effort; possibly asking whether the struggle was worth it",
+        "register": "technical",
+        "literal": "User completed a dreaded project and now questions its value; not asking a direct question, inviting reflection or acknowledgment."
+      }
+    }
+  ],
+  "totalCostUsd": 0.00030673
+}

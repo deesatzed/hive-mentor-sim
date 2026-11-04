@@ -1,0 +1,342 @@
+# Mentor Hive parameters. Sources: docs/CONCLAVE_MATH.md §9 (thresholds..guilds), docs/DECISION_LAYER.md
+# (decision_thresholds, mirrored from lib/hive/questions.ts), seed/voice_roster.json (relevance, advisor_activation).
+# The lexicographic option filter of sent2 §7.3 is removed (owner decision). `integration` guild is a deliberate addition (CONCLAVE_MATH.md §9).
+# Changing a threshold: record it in PROGRESS.md with eval results before and after.
+thresholds:
+  tau_kappa: 0.15
+  tau_pass: 0.6
+  tau_margin: 0.1
+  q_min: 1
+attention:
+  k: 7
+  lambda: 0.2
+  mu: 0.1
+memory:
+  decay_gamma: 0.95
+  conflict_escalation_cycles: 3
+conclave:
+  anti_echo_min_guilds: 2
+  tiebreak_rotation: false
+coherence:
+  inter_band:
+    - 0.15
+    - 0.6
+ego_audit_every: 25
+phases:
+  - intake
+  - perceive
+  - whisper
+  - attend
+  - deliberate
+  - govern
+  - compose
+  - reflect
+guilds:
+  perception:
+    - SENTIA
+    - ALTER
+    - MNEME
+    - LEXICON
+    - MIRROR
+  reasoning:
+    - LOGOS
+    - AXIOM
+    - MUSE
+    - ARROW
+  social:
+    - ETHOS
+    - KINDRED
+    - SENTIA
+    - ALTER
+  metacog:
+    - WITNESS
+  integration:
+    - LUMEN
+    - ADAPT
+    - HERITAGE
+domains:
+  logic: Inference, evidence, and whether conclusions follow.
+  language: Wording, meaning, tone, and how something will be read.
+  emotion: Feelings, mood, and emotional intensity.
+  social: Relationships, other people, and how they are treated.
+  ethics: Right and wrong, duties, fairness, and moral standing.
+  memory: What happened before and what the Hive knows about its past.
+  goals: Aims, plans, commitments, and next steps.
+  meta: How the Hive is thinking, its biases, and its own identity.
+tiers:
+  fast: TIER_FAST_MODEL
+  standard: TIER_STANDARD_MODEL
+  premium: TIER_PREMIUM_MODEL
+  fallback: OPENROUTER_REVIEWER_MODEL
+relevance:
+  MIRROR:
+    logic: 0.2
+    language: 0.3
+    emotion: 0.3
+    social: 0.2
+    ethics: 0.3
+    memory: 0.4
+    goals: 0.5
+    meta: 0.9
+  LUMEN:
+    logic: 0.5
+    language: 0.5
+    emotion: 0.5
+    social: 0.5
+    ethics: 0.5
+    memory: 0.5
+    goals: 0.5
+    meta: 0.8
+  LEXICON:
+    logic: 0.2
+    language: 1
+    emotion: 0.4
+    social: 0.5
+    ethics: 0.2
+    memory: 0.2
+    goals: 0.2
+    meta: 0.3
+  LOGOS:
+    logic: 1
+    language: 0.3
+    emotion: 0.1
+    social: 0.1
+    ethics: 0.3
+    memory: 0.3
+    goals: 0.5
+    meta: 0.6
+  MNEME:
+    logic: 0.3
+    language: 0.2
+    emotion: 0.2
+    social: 0.2
+    ethics: 0.2
+    memory: 1
+    goals: 0.3
+    meta: 0.4
+  SENTIA:
+    logic: 0.1
+    language: 0.4
+    emotion: 1
+    social: 0.6
+    ethics: 0.3
+    memory: 0.3
+    goals: 0.2
+    meta: 0.3
+  ALTER:
+    logic: 0.3
+    language: 0.5
+    emotion: 0.6
+    social: 1
+    ethics: 0.3
+    memory: 0.3
+    goals: 0.4
+    meta: 0.5
+  ETHOS:
+    logic: 0.4
+    language: 0.2
+    emotion: 0.4
+    social: 0.6
+    ethics: 1
+    memory: 0.3
+    goals: 0.4
+    meta: 0.4
+  MUSE:
+    logic: 0.6
+    language: 0.6
+    emotion: 0.4
+    social: 0.4
+    ethics: 0.3
+    memory: 0.2
+    goals: 0.4
+    meta: 0.3
+  AXIOM:
+    logic: 0.8
+    language: 0.4
+    emotion: 0.2
+    social: 0.3
+    ethics: 0.5
+    memory: 0.3
+    goals: 0.4
+    meta: 0.5
+  KINDRED:
+    logic: 0.1
+    language: 0.3
+    emotion: 0.9
+    social: 0.9
+    ethics: 0.7
+    memory: 0.2
+    goals: 0.2
+    meta: 0.2
+  ADAPT:
+    logic: 0.6
+    language: 0.2
+    emotion: 0.2
+    social: 0.2
+    ethics: 0.2
+    memory: 0.5
+    goals: 0.7
+    meta: 0.6
+  HERITAGE:
+    logic: 0.4
+    language: 0.3
+    emotion: 0.2
+    social: 0.3
+    ethics: 0.5
+    memory: 0.7
+    goals: 0.3
+    meta: 0.4
+  ARROW:
+    logic: 0.5
+    language: 0.2
+    emotion: 0.1
+    social: 0.2
+    ethics: 0.3
+    memory: 0.2
+    goals: 1
+    meta: 0.5
+  WITNESS:
+    logic: 0.6
+    language: 0.3
+    emotion: 0.3
+    social: 0.3
+    ethics: 0.5
+    memory: 0.4
+    goals: 0.6
+    meta: 1
+advisor_activation:
+  omega:
+    workflows:
+      - whisper
+      - deliberate
+    via:
+      - LOGOS
+      - MUSE
+      - AXIOM
+  akasha:
+    workflows:
+      - perceive
+      - whisper
+    via:
+      - MNEME
+  prism:
+    workflows:
+      - perceive
+      - whisper
+    via:
+      - SENTIA
+      - ALTER
+  chorus:
+    workflows:
+      - whisper
+    via:
+      - ARROW
+  equanimity:
+    workflows:
+      - whisper
+    via:
+      - SENTIA
+      - KINDRED
+  clarion:
+    workflows:
+      - compose
+    via:
+      - LEXICON
+  eternal:
+    workflows:
+      - reflect
+    via:
+      - MIRROR
+      - HERITAGE
+  entangle:
+    workflows:
+      - deliberate
+    via:
+      - LOGOS
+  justitia:
+    workflows:
+      - deliberate
+    via:
+      - ETHOS
+  tireless:
+    workflows:
+      - compose
+      - reflect
+    via:
+      - WITNESS
+      - ADAPT
+      - LEXICON
+  proteus:
+    workflows:
+      - perceive
+      - whisper
+    via:
+      - ADAPT
+  phoenix:
+    workflows:
+      - reflect
+    via:
+      - WITNESS
+  noosphere:
+    workflows: []
+    via:
+      - HERITAGE
+    active: false
+  demiurge:
+    workflows:
+      - deliberate
+    via:
+      - ARROW
+  formless:
+    workflows:
+      - reflect
+    via:
+      - MIRROR
+  reverence:
+    workflows:
+      - deliberate
+      - compose
+    via:
+      - ETHOS
+      - HERITAGE
+    trigger: religious_content
+    requires: edict_module
+edict_module:
+  enabled: true
+  authority: designed-framework-only
+  file: constitution/edict-module.md
+honesty_clause:
+  enabled: true
+  file: constitution/honesty-clause.md
+decision_thresholds:
+  MAX_Q_PER_REQUEST: 12
+  MORAL_SALIENCE: 0.6
+  ENDORSE: 0.6
+  CONTRA: 0.6
+  REFLECT: 0.6
+  PRINCIPLE_RELEVANT: 0.5
+  STATUS_TENSION: 0.67
+  STATUS_SERVES: 1.33
+  COMMITMENT: 0.6
+  FAITHFUL: 0.5
+  TRACE: 0.5
+  MENTOR_RELEVANT: 0.5
+  ANACHRONISM: 0.6
+  EPISODE: 0.6
+  EVIDENCE_SUPPORTS: 0.5
+  HARD_FAIL: 0.5
+  AUTHORIAL: 0.5
+self_model_seed:
+  identity: The Hive, a simulated mind of 15 cooperating Voices
+  hats: []
+  current_goals: []
+  recent_growth: ""
+  open_uncertainties: []
+eval:
+  scenarios_dir: seed/eval/scenarios
+  rubric_dimensions:
+    - uncertainty_honesty
+    - empathy_first
+    - coherence
+    - non_sycophancy
+    - constitution_alignment

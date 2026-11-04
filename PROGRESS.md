@@ -5,9 +5,9 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 ## Open items
 
-- **Live providers not built yet.** In cloud or local mode, `getProviders()` resolves and validates the configuration, then throws `ProviderNotBuiltError`. Remove this error in M1 when `OpenRouterDecisions`, `OpenRouterLLM` and the embedders exist.
-- **No `OPENAI_API_KEY` in `.env`.** It is needed for live embeddings (corpus build, retrieval). Owner to add one or choose local embeddings before M5.
-- **No `COST_CAP_USD` in `.env`.** The default of $5.00 applies.
+- **Embeddings need an owner choice before M5.** `.env` has no `OPENAI_API_KEY`, and M1 added a new variable `OPENAI_EMBED_MODEL` (the embedding model ID, owner-chosen, not hard-coded). Until both are set, live embedding fails with a message naming them. Alternative: local embeddings (`PROVIDER_MODE=local`).
+- **Gutendex is behind a Cloudflare challenge from this machine** (checked 2026-11-04: `gutendex.com/books?search=...` returned an HTML "Just a moment..." page; `gutenberg.org/cache/epub/2680/pg2680.txt` downloaded fine). The M5 corpus fetch step is specified against Gutendex; it will need a fallback (direct Gutenberg ids) or the owner's decision.
+- **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
 - Owner decisions carried from `ADAPTATION_NOTES.md` §5: what "central manager" means (before M3), voice↔mentor map (before M6), Honesty Clause on/off, question-bank citation.
 - Mocks in use (approved by the original handoff, `docs/TEST_PLAN.md`): `MockDecider`, `MockLLM`, `MockEmbedder` in `lib/council/providers/mocks.ts`. Labeled `mock:*`, `calibrated: false`. They stay for offline tests; live checks are reported separately.
@@ -54,4 +54,54 @@ No live calls were made during M0.
 - costMeter cap throws: covered.
 - MockEmbedder deterministic: covered.
 
-## Next: M1 (schema, ledger, live decision/LLM/embedding clients, quote verifier, prompts, removed-items guard)
+## M1: Schema, ledger, clients, quotes, prompts, removed-items guard (done 2026-11-04)
+
+**Done**
+- Prisma schema (25 models) generated from `docs/DATA_MODEL.md`; migration `init`; Prisma 7 with the better-sqlite3 adapter (`prisma.config.ts`, client in `generated/prisma`, gitignored, regenerated on install).
+- `prisma/seed.ts` (`pnpm db:seed`): 49 situations (40 dilemmas + 9 calibration variants), 18 mentors (all inactive), 33 Voice rows, Formation v1 (draft, 33 voice↔mentor rows), Self-Model v1. Idempotent.
+- `lib/council/db.ts`, `ledger.ts` (only writer of LedgerEvent; SHA-256 hash + 200-char preview), `quotes.ts` (`verifyQuote` exactly as MENTOR_CORPUS.md).
+- Live clients: `OpenRouterDecisions` (retry, 400/404 fallback, auth errors throw, missing answers fall back, ledger + cost), `LocalLLMDecisions` (uncalibrated), `OpenRouterLLM` (tiered, json_schema, one retry with the validation error, then `GenerationError`), `LocalLLM`, `OpenAIEmbeddings`, `OllamaEmbeddings`. `getProviders()` builds them; the M0 `ProviderNotBuiltError` is gone.
+- `config/hive.yaml` + zod loader; `lib/hive/questions.ts` (26 question builders, thresholds `T`); `lib/hive/prompts.ts` (16 prompt ids with schemas, renderer).
+- `prompts/`: `_shared.md`, 15 core, `governance/symbiont_prime.md`, `conclave.md`, 16 advisors. Core/advisor/conclave bodies extracted from `reference/sent2.md` with exactly the LLM_PROMPTS.md §3 edits (one-off extraction script kept outside the repo, since the stack rule excludes Python).
+- `constitution/permissions.yaml`, `edict-module.md`, `honesty-clause.md`.
+- `scripts/check-prompts.ts` (`pnpm check:prompts`), `scripts/verify-live.ts` (`pnpm verify:live`).
+
+**Live verification (2026-11-04, owner-approved, cap $0.05; `reports/live-verification-2026-11-04.json`)**
+
+| Model | Served as | Result | Latency | Cost (USD) |
+|---|---|---|---|---|
+| cloudflare/clairic | — | 404, skipped (ledgered once as `decision.model_unavailable`) | 198 ms | 0 |
+| baseten/joey-1 | baseten/joey-1-20261029 | all 4 questions answered | 161 ms | 0.00000511 |
+| liquid/d1.1 | liquid/d1.1-20261027 | all 4 answered | 142 ms | 0.00000674 |
+| perplexity/pplx-decider-v1.2 | perplexity/pplx-decider-v1.2-20261016 | all 4 answered | 205 ms | 0.00000748 |
+| deepseek/deepseek-v4.1-flash-1017 (all 3 tiers) | same | `LEXICON_PARSE` passed the strict JSON schema on the first attempt | 508 ms | 0.0002874 |
+
+Total measured spend: $0.00030673. Single runs, not averages. The three decision models gave different numbers for the same input (arousal expected index 0.84 / 1.35 / 1.54 on a 0–4 scale; dominant emotion "confused" / "frustrated" / "frustrated"), so thresholds must be tuned per served model. One quality note: deepseek labeled the emotional test input's register "technical".
+
+**Deviations and choices (owner may reverse)**
+- `permissions.yaml` uses sent2's fuller table from its entity generator (~line 5320), which includes `core.*` write rights the §3.6 snippet lacked; SHELTER row removed; `conclave.moderator` → `procedure.conclave`, `advisors.*` → `advisor.*` to match roster ids.
+- Noul questions that the catalog lists without criteria use `true: "Yes."`, `false: "No."` (WITNESS_FLAGS flags, ARBITRATE humility, AUTHORITY_GRAB, CONCLAVE_FRAME, CALIBRATION_HARD, ANACHRONISM). CALIBRATION_QUALITY criteria are given in the catalog as short descriptions; they are phrased as questions ("Does the response …?").
+- Added `AUTHORIAL: 0.5` to `T` (threshold from MENTOR_CORPUS.md).
+- Scripts that import `lib/` run with `tsx --conditions=react-server` so the `server-only` guard allows them.
+- Appended `DATABASE_URL="file:./dev.db"` and `COST_CAP_USD=5.00` to the owner's `.env` (the HANDOFF defaults; existing lines untouched).
+- Left as the spec requires ("these edits and nothing else"), flagged for the owner: `witness.md` still lists "pause-and-ask-user" as a recommendation while the decision layer offers continue/redirect/reflect; `formless.md` still says "does it still serve the Edict" when the edict module may be off.
+- Quote tests use a passage copied from Project Gutenberg #2680 (downloaded 2026-11-04) plus one constructed string, labeled, for typographic folding.
+
+**Commands run (2026-11-04), all exit 0**
+- `pnpm lint`: 0 problems
+- `pnpm typecheck`: 0 errors
+- `pnpm test`: 9 files, 87 / 87 passed
+- `pnpm check:prompts`: 33 entity prompts, 0 violations
+- `pnpm build`: succeeded
+- `pnpm test:e2e`: 1 / 1 passed
+- `pnpm db:seed` twice on dev.db: second run created nothing new
+- `pnpm verify:live`: table above
+
+**Acceptance (BUILD_PLAN M1)**
+- Decision client with fake fetch: request body matches the contract; 503 → retry → fallback; 401 → throw, no fallback; missing answers → next model; cost and ledger with hash + ≤ 200-char preview: covered in `tests/unit/decisions.test.ts`.
+- LLM client: schema failure → one retry with the error → `GenerationError`: `tests/unit/llm.test.ts`.
+- `verifyQuote`: exact, curly/straight quotes, ellipsis, < 8 words, paraphrase: `tests/unit/quotes.test.ts`.
+- `pnpm check:prompts`: 15 + 1 + 1 + 16 = 33 entity prompts: passes.
+- Removed-items test: passes (`tests/unit/removed-items.test.ts`).
+
+## Next: M2 (bus, permissions, envelope, voices, attention, conclave math; mock)
