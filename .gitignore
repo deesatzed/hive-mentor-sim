@@ -1,7 +1,27 @@
+# secrets
 .env
 .env.*
 !.env.example
-.DS_Store
-node_modules/
+
+# dependencies / build
+/node_modules
+/.next/
+/out/
+/build
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# databases and corpus downloads
 *.db
 *.db-journal
+corpus/raw/
+
+# test output
+/test-results/
+/playwright-report/
+
+# misc
+.DS_Store
+*.pem
+.pnpm-debug.log*

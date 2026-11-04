@@ -17,3 +17,15 @@ seed/                  mentor_roster, dilemmas, question_bank_subset (unchanged 
                        voice_roster, voice_mentor_map, calibration_pairs, eval/scenarios/*.yaml (new)
 reference/sent2.md     the full Hive design (design reference; this package wins on conflicts)
 ```
+
+## Running the app (built milestone by milestone; see `PROGRESS.md`)
+
+```
+pnpm install
+cp .env.example .env                 # fill in keys and model IDs (owner-supplied)
+pnpm exec playwright install chromium
+pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e   # offline, mock providers
+pnpm dev                             # http://localhost:3000
+```
+
+Tests and e2e run with `USE_MOCK_PROVIDERS=true` and need no API keys. Live mode reads every model ID from `.env`.

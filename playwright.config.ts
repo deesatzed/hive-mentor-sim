@@ -1,0 +1,14 @@
+import { defineConfig } from "@playwright/test";
+
+// e2e always runs against mock providers and the test database (docs/TEST_PLAN.md).
+export default defineConfig({
+  testDir: "tests/e2e",
+  use: { baseURL: "http://127.0.0.1:3100" },
+  webServer: {
+    command: "pnpm exec next dev --port 3100",
+    url: "http://127.0.0.1:3100",
+    reuseExistingServer: false,
+    timeout: 120_000,
+    env: { USE_MOCK_PROVIDERS: "true", DATABASE_URL: "file:./test.db" },
+  },
+});
