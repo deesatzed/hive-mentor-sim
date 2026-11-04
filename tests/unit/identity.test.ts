@@ -141,7 +141,7 @@ describe("coherence", () => {
   });
 
   it("an unconfigured embedder reports coherence unavailable instead of failing the cycle", async () => {
-    const r = await measureCoherence({ ...args, embedder: { model: "unconfigured", dim: 0, embed: async () => Promise.reject(new Error("OPENAI_API_KEY missing")) }, current: [{ voice: "A", claim: "x" }], previous: null });
+    const r = await measureCoherence({ ...args, embedder: { model: "unconfigured", dim: 0, embed: async () => Promise.reject(new Error("OPENROUTER_EMB_MODEL_1 missing")) }, current: [{ voice: "A", claim: "x" }], previous: null });
     expect(r.unavailable).toBe(true);
   });
 });

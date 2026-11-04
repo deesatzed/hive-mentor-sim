@@ -95,21 +95,29 @@ describe("getProviders", () => {
     expect(p.config.mode).toBe("mock");
   });
 
-  it("cloud mode builds the OpenRouter clients; embedding fails on use when unconfigured", async () => {
+  it("cloud mode builds the OpenRouter clients; embedding and rerank fail on use when no chain is configured", async () => {
     const ledger = new MemoryLedger();
-    const p = getProviders(CLOUD_BASE, { ledger, render: () => ({ system: "", user: "" }) });
+    const p = getProviders(CLOUD_BASE, { ledger, render: () => ({ system: "", user: "" }), models: {} });
     expect(p.decider.constructor.name).toBe("OpenRouterDecisions");
     expect(p.llm.constructor.name).toBe("OpenRouterLLM");
     expect(p.embedder.model).toBe("unconfigured");
-    await expect(p.embedder.embed(["x"])).rejects.toThrow(/OPENAI_API_KEY, OPENAI_EMBED_MODEL/);
-    if (p.config.mode !== "cloud") throw new Error("expected cloud");
-    expect(p.config.embeddingsMissing).toEqual(["OPENAI_API_KEY", "OPENAI_EMBED_MODEL"]);
+    await expect(p.embedder.embed(["x"])).rejects.toThrow(/OPENROUTER_EMB_MODEL_1/);
+    await expect(p.reranker.rerank("q", ["d"])).rejects.toThrow(/OPENROUTER_RETRIEVAL_MODEL_1/);
   });
 
-  it("cloud mode uses OpenAI embeddings when key and model are set", () => {
-    const p = getProviders({ ...CLOUD_BASE, OPENAI_API_KEY: "k", OPENAI_EMBED_MODEL: "e/m" }, { ledger: new MemoryLedger() });
-    expect(p.embedder.constructor.name).toBe("OpenAIEmbeddings");
-    expect(p.embedder.model).toBe("e/m");
+  it("cloud mode uses OpenRouter embeddings and reranking from the .env chains; config overrides go first", () => {
+    const env = { ...CLOUD_BASE, OPENROUTER_EMB_MODEL_1: "emb/one", OPENROUTER_EMB_MODEL_2: "emb/two", OPENROUTER_RETRIEVAL_MODEL_1: "rr/one" };
+    const p = getProviders(env, { ledger: new MemoryLedger(), models: {} });
+    expect(p.embedder.constructor.name).toBe("OpenRouterEmbeddings");
+    expect(p.reranker.constructor.name).toBe("OpenRouterReranker");
+    const c = resolveProviderConfig(env, { embedding: "emb/two", rerank: "rr/cfg" });
+    if (c.mode !== "cloud") throw new Error("cloud expected");
+    expect(c.embeddingChain).toEqual(["emb/two", "emb/one"]);
+    expect(c.rerankChain).toEqual(["rr/cfg", "rr/one"]);
+  });
+
+  it("a repeated decision model ID is tried once", () => {
+    expect(decisionChainFromEnv({ OPENROUTER_DEC_MODEL_1: "a/x", OPENROUTER_DEC_MODEL_2: "b/y", OPENROUTER_DEC_MODEL_3: "a/x" })).toEqual(["a/x", "b/y"]);
   });
 
   it("local mode builds the local clients", () => {

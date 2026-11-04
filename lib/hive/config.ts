@@ -50,6 +50,8 @@ export const HiveConfigSchema = z.object({
     standard: z.string(),
     premium: z.string(),
     grader: z.string(),
+    embedding: z.string(),
+    rerank: z.string(),
   }),
 });
 export type HiveConfig = z.infer<typeof HiveConfigSchema>;

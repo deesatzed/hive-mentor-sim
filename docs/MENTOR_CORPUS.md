@@ -42,7 +42,7 @@ Each step is idempotent and resumable. Progress for each mentor is recorded in `
 - If < 30,000 authorial words remain, mark the mentor inactive with the reason "insufficient authorial text."
 
 ### 4. embed
-- Embedder from `getProviders({ corpus: true })`. Store `embedding`, `embedModel`.
+- Embedder from `getProviders()`: OpenRouter embeddings from `OPENROUTER_EMB_MODEL_1..N` (owner decision 2026-11-04). Retrieval may rerank candidates with `OPENROUTER_RETRIEVAL_MODEL_1..N`. Store `embedding`, `embedModel`.
 - **If the embedding model changes, re-embed all chunks.** Retrieval refuses to mix models.
 
 ### 5. tag episodes and positions

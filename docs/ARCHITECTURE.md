@@ -87,7 +87,7 @@ export interface Embedder { model: string; dim: number; embed(texts: string[]): 
 | Condition | Decider | LLM | Embedder |
 |---|---|---|---|
 | `USE_MOCK_PROVIDERS=true` | MockDecider | MockLLM | MockEmbedder |
-| `PROVIDER_MODE=cloud` | OpenRouterDecisions | OpenRouterLLM (tier → `TIER_*_MODEL`) | OpenAIEmbeddings |
+| `PROVIDER_MODE=cloud` | OpenRouterDecisions | OpenRouterLLM (tier → `TIER_*_MODEL`) | OpenRouterEmbeddings (`OPENROUTER_EMB_MODEL_*`) + OpenRouterReranker (`OPENROUTER_RETRIEVAL_MODEL_*`) |
 | `PROVIDER_MODE=local` | LocalLLMDecisions | LocalLLM | OllamaEmbeddings |
 
 An empty `TIER_*_MODEL` falls back to `OPENROUTER_REVIEWER_MODEL` (the owner's central model; for the proof of concept all three tiers are set to it). If both are empty and mocks are off, `getProviders()` throws `LiveModeNotConfiguredError` naming the missing tier. The live eval grader also uses `OPENROUTER_REVIEWER_MODEL`.

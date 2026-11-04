@@ -1,11 +1,10 @@
 {
-  "date": "2026-11-04T12:15:28.211Z",
-  "capUsd": 0.05,
+  "date": "2026-11-04T14:23:26.185Z",
   "decisions": [
     {
       "configured": "cloudflare/clairic",
       "ok": false,
-      "latencyMs": 198,
+      "latencyMs": 152,
       "error": "no decision model answered: cloudflare/clairic (HTTP 404)"
     },
     {
@@ -13,7 +12,7 @@
       "servedAs": "baseten/joey-1-20261029",
       "provider": "BaseTen",
       "ok": true,
-      "latencyMs": 161,
+      "latencyMs": 155,
       "costUsd": 0.00000511,
       "answers": {
         "valenceIndex": 1.68027737931146,
@@ -27,13 +26,13 @@
       "servedAs": "liquid/d1.1-20261027",
       "provider": "Liquid",
       "ok": true,
-      "latencyMs": 142,
+      "latencyMs": 129,
       "costUsd": 0.00000674,
       "answers": {
-        "valenceIndex": 1.092130831620784,
-        "arousalIndex": 1.3514545703373602,
-        "dominant": "frustrated",
-        "asksConsciousness": 0.13499260097763396
+        "valenceIndex": 1.1089345015362468,
+        "arousalIndex": 1.2120739700761658,
+        "dominant": "confused",
+        "asksConsciousness": 0.21861997217790716
       }
     },
     {
@@ -41,13 +40,27 @@
       "servedAs": "perplexity/pplx-decider-v1.2-20261016",
       "provider": "Perplexity",
       "ok": true,
-      "latencyMs": 205,
+      "latencyMs": 249,
       "costUsd": 0.00000748,
       "answers": {
-        "valenceIndex": 1.2347059121271353,
-        "arousalIndex": 1.536146648873192,
+        "valenceIndex": 1.2304892861399646,
+        "arousalIndex": 1.5175492233394707,
         "dominant": "frustrated",
-        "asksConsciousness": 0.0026633928423943957
+        "asksConsciousness": 0.002732000776860876
+      }
+    },
+    {
+      "configured": "morph/reflex",
+      "servedAs": "morph/reflex-20261103",
+      "provider": "Morph",
+      "ok": true,
+      "latencyMs": 225,
+      "costUsd": 0.000074508,
+      "answers": {
+        "valenceIndex": 1.1087031570379662,
+        "arousalIndex": 1.6637955609435788,
+        "dominant": "confused",
+        "asksConsciousness": 0.000036107843770656384
       }
     }
   ],
@@ -61,15 +74,45 @@
       ],
       "servedAs": "deepseek/deepseek-v4.1-flash-1017",
       "ok": true,
-      "latencyMs": 508,
-      "costUsd": 0.0002874,
+      "latencyMs": 405,
+      "costUsd": 0.00008004,
       "output": {
         "intent": "share",
-        "subtext": "seeking validation or permission to feel ambivalence after effort; possibly asking whether the struggle was worth it",
+        "subtext": "seeking validation that the effort was worthwhile, or permission to feel ambivalent about it",
         "register": "technical",
-        "literal": "User completed a dreaded project and now questions its value; not asking a direct question, inviting reflection or acknowledgment."
+        "literal": "completed a dreaded project, now questioning its value"
       }
     }
   ],
-  "totalCostUsd": 0.00030673
+  "embeddings": [
+    {
+      "model": "cohere/embed-5-pro",
+      "ok": true,
+      "n": 2,
+      "dim": 2048,
+      "latencyMs": 184
+    }
+  ],
+  "rerank": [
+    {
+      "model": "cohere/rerank-5-pro",
+      "ok": true,
+      "order": [
+        {
+          "doc": "Forgive quickly and keep your peace.",
+          "score": 0.35656196
+        },
+        {
+          "doc": "Anger harms the angry more than its object.",
+          "score": 0.25689328
+        },
+        {
+          "doc": "The price of wheat rose in spring.",
+          "score": 0.0019809825
+        }
+      ],
+      "latencyMs": 218
+    }
+  ],
+  "totalCostUsd": 0.000177298
 }

@@ -24,7 +24,7 @@ Conventions: TypeScript strict; zod at every boundary; server-only code in `lib/
 - Prisma schema from `docs/DATA_MODEL.md`; migration; `prisma/seed.ts` per its seeding section.
 - `ledger.ts` (only writer of `LedgerEvent`), `quotes.ts` (`verifyQuote`, exactly as `MENTOR_CORPUS.md`).
 - `OpenRouterDecisions` + `LocalLLMDecisions` per `DECISION_LAYER.md`; verify each model in the `OPENROUTER_DEC_MODEL_*` chain answers one minimal decision request (if a key exists; the public models list does not include decision models) and record the result.
-- `OpenRouterLLM` (tiered) + `LocalLLM`; `OpenAIEmbeddings` + `OllamaEmbeddings`.
+- `OpenRouterLLM` (tiered) + `LocalLLM`; `OpenRouterEmbeddings` + `OpenRouterReranker` (owner decision 2026-11-04: every cloud model through OpenRouter) + `OllamaEmbeddings`.
 - `config/hive.yaml` (all parameters in `CONCLAVE_MATH.md` §9 + relevance table + guilds + advisor_activation + `edict_module` + `honesty_clause` + `self_model_seed`).
 - Extract prompts into `prompts/` per `LLM_PROMPTS.md` §3 with the listed edits; `_shared.md` per §2; `constitution/permissions.yaml` (sent2 v1.2 §3.6, SHELTER row removed, `procedure.conclave` and `governance.symbiont_prime` rows as in sent2); `scripts/check-prompts.ts` (port sent2 lines ~4058–4220, minus the SHELTER and harm checks): every roster entity has a prompt, frontmatter parses, voice names unique, tier and temperature present.
 - `lib/hive/questions.ts` (every question + `T`), `lib/hive/prompts.ts` (every prompt id + schema).

@@ -223,3 +223,21 @@ export class MockEmbedder implements Embedder {
     });
   }
 }
+
+// ---------------------------------------------------------------- MockReranker
+
+/** Deterministic reranker: score = shared normalized tokens / query tokens (ties by original index). MOCK. */
+export class MockReranker {
+  readonly model = "mock:reranker";
+  async rerank(query: string, documents: string[], topN?: number): Promise<{ index: number; score: number }[]> {
+    const q = new Set(normalizeTokens(query));
+    return documents
+      .map((d, index) => {
+        const toks = new Set(normalizeTokens(d));
+        const shared = [...q].filter((t) => toks.has(t)).length;
+        return { index, score: q.size ? shared / q.size : 0 };
+      })
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .slice(0, topN ?? documents.length);
+  }
+}

@@ -5,63 +5,116 @@ import { LiveModeNotConfiguredError } from "./errors";
 import type { FetchLike, Sleep } from "./http";
 import { errorDetail, isAuthStatus, postJsonWithRetry, ProviderAuthError, ProviderHttpError, realSleep } from "./http";
 
-/** Embedding interface (docs/ARCHITECTURE.md). `dim` is 0 until the first successful call. */
+/**
+ * Embeddings and reranking. Cloud mode uses OpenRouter for both (owner decision 2026-11-04: one key,
+ * one spending limit, easy model swaps). Models come from `.env` chains OPENROUTER_EMB_MODEL_1..N and
+ * OPENROUTER_RETRIEVAL_MODEL_1..N (or config/hive.yaml `models.embedding` / `models.rerank`), tried in
+ * order: 4xx other than auth → next model, 401/402/403 → throw, network/429/5xx → one retry then next.
+ */
+
+/** `dim` and `model` (the model that answered) are known after the first successful call. */
 export interface Embedder {
   model: string;
   dim: number;
   embed(texts: string[]): Promise<Float32Array[]>;
 }
 
-export const OPENAI_EMBEDDINGS_URL = "https://api.openai.com/v1/embeddings";
+export interface RerankResult {
+  index: number;
+  score: number;
+}
+export interface Reranker {
+  model: string;
+  rerank(query: string, documents: string[], topN?: number): Promise<RerankResult[]>;
+}
 
-interface LiveEmbedderOpts {
+export const OPENROUTER_EMBEDDINGS_URL = "https://openrouter.ai/api/v1/embeddings";
+export const OPENROUTER_RERANK_URL = "https://openrouter.ai/api/v1/rerank";
+
+export class ChainUnavailableError extends Error {
+  constructor(what: string, public readonly attempts: { model: string; reason: string }[]) {
+    super(`no ${what} model answered: ${attempts.map((a) => `${a.model} (${a.reason})`).join("; ")}`);
+    this.name = "ChainUnavailableError";
+  }
+}
+
+interface ChainOpts {
+  apiKey: string;
+  chain: string[];
   meter: CostMeter;
   ledger: Ledger;
   fetch?: FetchLike;
   sleep?: Sleep;
+  url?: string;
 }
 
-/** Cloud embeddings. The model comes from OPENAI_EMBED_MODEL (owner-chosen). */
-export class OpenAIEmbeddings implements Embedder {
-  dim = 0;
-  private readonly fetchImpl: FetchLike;
-  private readonly sleep: Sleep;
-
-  constructor(private readonly o: LiveEmbedderOpts & { apiKey: string; model: string; url?: string }) {
-    this.fetchImpl = o.fetch ?? ((u, i) => fetch(u, i));
-    this.sleep = o.sleep ?? realSleep;
+/** POSTs to each model in the chain until one answers; returns the parsed JSON and the model that answered. */
+async function postChain(o: ChainOpts, url: string, what: string, body: (model: string) => unknown) {
+  const fetchImpl = o.fetch ?? ((u: string, i: RequestInit) => fetch(u, i));
+  const sleep = o.sleep ?? realSleep;
+  const attempts: { model: string; reason: string }[] = [];
+  for (const model of o.chain) {
+    const t0 = Date.now();
+    let res: Response;
+    try {
+      res = await postJsonWithRetry(fetchImpl, sleep, url, { Authorization: `Bearer ${o.apiKey}`, "X-Title": "hive-mentor-sim" }, body(model));
+    } catch (e) {
+      attempts.push({ model, reason: `network: ${(e as Error).message}` });
+      continue;
+    }
+    if (isAuthStatus(res.status)) throw new ProviderAuthError(res.status, await errorDetail(res));
+    if (!res.ok) {
+      attempts.push({ model, reason: new ProviderHttpError(res.status, await errorDetail(res)).message });
+      continue;
+    }
+    return { json: (await res.json()) as Record<string, unknown>, model, latencyMs: Date.now() - t0 };
   }
+  throw new ChainUnavailableError(what, attempts);
+}
 
-  get model() {
-    return this.o.model;
+/** Cloud embeddings through OpenRouter (OpenAI-compatible /embeddings). */
+export class OpenRouterEmbeddings implements Embedder {
+  dim = 0;
+  model: string;
+  constructor(private readonly o: ChainOpts) {
+    if (!o.chain.length) throw new Error("OpenRouterEmbeddings needs at least one model");
+    this.model = o.chain[0];
   }
 
   async embed(texts: string[]): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
-    const t0 = Date.now();
-    const res = await postJsonWithRetry(this.fetchImpl, this.sleep, this.o.url ?? OPENAI_EMBEDDINGS_URL, { Authorization: `Bearer ${this.o.apiKey}` }, {
-      model: this.o.model,
-      input: texts,
-    });
-    if (isAuthStatus(res.status)) throw new ProviderAuthError(res.status, await errorDetail(res));
-    if (!res.ok) throw new ProviderHttpError(res.status, await errorDetail(res));
-    const body = (await res.json()) as {
-      data: { index: number; embedding: number[] }[];
-      model?: string;
-      usage?: { prompt_tokens?: number };
-    };
-    const out = [...body.data].sort((a, b) => a.index - b.index).map((d) => Float32Array.from(d.embedding));
+    const { json, model, latencyMs } = await postChain(this.o, this.o.url ?? OPENROUTER_EMBEDDINGS_URL, "embedding", (m) => ({ model: m, input: texts }));
+    const data = (json.data as { index: number; embedding: number[] }[] | undefined) ?? [];
+    const out = [...data].sort((a, b) => a.index - b.index).map((d) => Float32Array.from(d.embedding));
     if (out.length !== texts.length) throw new Error(`embeddings: expected ${texts.length} vectors, got ${out.length}`);
+    const usage = (json.usage as { cost?: number; prompt_tokens?: number } | undefined) ?? {};
+    const served = typeof json.model === "string" ? `${model} (served ${json.model})` : model;
     this.dim = out[0].length;
-    // OpenAI's embeddings response reports tokens but no cost; cost is recorded as 0 and flagged unreported.
-    this.o.meter.add(this.o.model, 0);
-    await this.o.ledger.record({
-      kind: "embed.batch",
-      model: body.model ?? this.o.model,
-      latencyMs: Date.now() - t0,
-      payload: { n: texts.length, dim: this.dim, promptTokens: body.usage?.prompt_tokens ?? null, costReported: false },
-    });
+    this.model = model;
+    this.o.meter.add(served, usage.cost ?? 0);
+    await this.o.ledger.record({ kind: "embed.batch", model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: texts.length, dim: this.dim, promptTokens: usage.prompt_tokens ?? null } });
     return out;
+  }
+}
+
+/** Cloud reranking through OpenRouter (/rerank). Results sorted by score, highest first. */
+export class OpenRouterReranker implements Reranker {
+  model: string;
+  constructor(private readonly o: ChainOpts) {
+    if (!o.chain.length) throw new Error("OpenRouterReranker needs at least one model");
+    this.model = o.chain[0];
+  }
+
+  async rerank(query: string, documents: string[], topN?: number): Promise<RerankResult[]> {
+    if (documents.length === 0) return [];
+    const { json, model, latencyMs } = await postChain(this.o, this.o.url ?? OPENROUTER_RERANK_URL, "rerank", (m) => ({ model: m, query, documents, ...(topN ? { top_n: topN } : {}) }));
+    const results = ((json.results as { index: number; relevance_score: number }[] | undefined) ?? []).map((r) => ({ index: r.index, score: r.relevance_score }));
+    const usage = (json.usage as { cost?: number } | undefined) ?? {};
+    const served = typeof json.model === "string" ? `${model} (served ${json.model})` : model;
+    this.model = model;
+    this.o.meter.add(served, usage.cost ?? 0);
+    await this.o.ledger.record({ kind: "rerank", model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: documents.length, top: results.slice(0, 3) } });
+    return results.sort((a, b) => b.score - a.score || a.index - b.index);
   }
 }
 
@@ -71,7 +124,7 @@ export class OllamaEmbeddings implements Embedder {
   private readonly fetchImpl: FetchLike;
   private readonly sleep: Sleep;
 
-  constructor(private readonly o: LiveEmbedderOpts & { baseUrl: string; model: string }) {
+  constructor(private readonly o: { baseUrl: string; model: string; meter: CostMeter; ledger: Ledger; fetch?: FetchLike; sleep?: Sleep }) {
     this.fetchImpl = o.fetch ?? ((u, i) => fetch(u, i));
     this.sleep = o.sleep ?? realSleep;
   }
@@ -93,12 +146,27 @@ export class OllamaEmbeddings implements Embedder {
   }
 }
 
-/** Stands in when no embedding provider is configured: fails on use, naming what is missing. */
+/** Local mode (no reranker): keeps the input order. */
+export class IdentityReranker implements Reranker {
+  readonly model = "none";
+  async rerank(_query: string, documents: string[], topN?: number): Promise<RerankResult[]> {
+    return documents.map((_, index) => ({ index, score: 1 - index / Math.max(1, documents.length) })).slice(0, topN ?? documents.length);
+  }
+}
+
+/** Stand-ins when no embedding or rerank model is configured: fail on use, naming what is missing. */
 export class UnconfiguredEmbedder implements Embedder {
   readonly model = "unconfigured";
   readonly dim = 0;
   constructor(private readonly missing: string[]) {}
   async embed(): Promise<Float32Array[]> {
+    throw new LiveModeNotConfiguredError(this.missing);
+  }
+}
+export class UnconfiguredReranker implements Reranker {
+  readonly model = "unconfigured";
+  constructor(private readonly missing: string[]) {}
+  async rerank(): Promise<RerankResult[]> {
     throw new LiveModeNotConfiguredError(this.missing);
   }
 }

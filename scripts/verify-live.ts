@@ -3,6 +3,8 @@
  *   1. Each model in OPENROUTER_DEC_MODEL_1..N answers one AFFECT request (noul-free: 2 score + 1 choice)
  *      plus one HONESTY_PROBE noul, sent to that model alone.
  *   2. One structured-output call per distinct text-tier model (LEXICON_PARSE through the real prompt path).
+ *   3. Each embedding model (OPENROUTER_EMB_MODEL_*) embeds two sentences; each rerank model
+ *      (OPENROUTER_RETRIEVAL_MODEL_*) ranks three passages.
  * Writes reports/live-verification-<date>.json with measured latency and cost. Never prints the key.
  * Spend is limited by the owner's per-key OpenRouter limit; this script records measured cost only.
  */
@@ -14,6 +16,7 @@ import { CostMeter } from "@/lib/council/providers/costMeter";
 import { OpenRouterDecisions } from "@/lib/council/providers/decisions";
 import { resolveProviderConfig } from "@/lib/council/providers";
 import { OpenRouterLLM, TIERS, type Tier } from "@/lib/council/providers/llm";
+import { OpenRouterEmbeddings, OpenRouterReranker } from "@/lib/council/providers/embeddings";
 import { AFFECT, HONESTY_PROBE } from "@/lib/hive/questions";
 import { renderPrompt, Schemas, promptSettings } from "@/lib/hive/prompts";
 
@@ -30,7 +33,7 @@ async function main() {
   const meter = new CostMeter();
   const ledger = new PrismaLedger();
   const input = "I finally finished the project I was dreading, but now I'm not sure it was worth it.";
-  const report: Record<string, unknown> = { date: new Date().toISOString(), decisions: [], text: [] };
+  const report: Record<string, unknown> = { date: new Date().toISOString(), decisions: [], text: [], embeddings: [], rerank: [] };
 
   for (const model of cfg.decisionChain) {
     const d = new OpenRouterDecisions({ apiKey: cfg.apiKey, chain: [model], meter, ledger });
@@ -65,6 +68,27 @@ async function main() {
       (report.text as unknown[]).push({ model, tiers: TIERS.filter((t) => cfg.tiers[t].model === model), servedAs: r.model, ok: true, latencyMs: Date.now() - t0, costUsd: r.costUsd, output: r.data });
     } catch (e) {
       (report.text as unknown[]).push({ model, ok: false, latencyMs: Date.now() - t0, error: (e as Error).message.slice(0, 300) });
+    }
+  }
+  for (const model of cfg.embeddingChain) {
+    const e = new OpenRouterEmbeddings({ apiKey: cfg.apiKey, chain: [model], meter, ledger });
+    const t0 = Date.now();
+    try {
+      const v = await e.embed(["The obstacle is the way.", "Plan carefully before acting."]);
+      (report.embeddings as unknown[]).push({ model, ok: true, n: v.length, dim: e.dim, latencyMs: Date.now() - t0 });
+    } catch (err) {
+      (report.embeddings as unknown[]).push({ model, ok: false, error: (err as Error).message.slice(0, 300) });
+    }
+  }
+  const docs = ["Anger harms the angry more than its object.", "The price of wheat rose in spring.", "Forgive quickly and keep your peace."];
+  for (const model of cfg.rerankChain) {
+    const r = new OpenRouterReranker({ apiKey: cfg.apiKey, chain: [model], meter, ledger });
+    const t0 = Date.now();
+    try {
+      const out = await r.rerank("how to stay calm when wronged", docs);
+      (report.rerank as unknown[]).push({ model, ok: true, order: out.map((x) => ({ doc: docs[x.index], score: x.score })), latencyMs: Date.now() - t0 });
+    } catch (err) {
+      (report.rerank as unknown[]).push({ model, ok: false, error: (err as Error).message.slice(0, 300) });
     }
   }
   report.totalCostUsd = meter.spentUsd;

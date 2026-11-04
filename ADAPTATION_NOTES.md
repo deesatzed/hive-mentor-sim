@@ -60,6 +60,8 @@ A test (`tests/unit/removed-items.test.ts`, `docs/TEST_PLAN.md` §3) fails if pr
 
 9. **Central manager orders the cycle** (owner, 2026-11-04: "yes for now, but after everything is built, there needs to be an easy way in a config file to change it and test different models"). The reviewer model also picks the next phase among those code allows. `config/hive.yaml: orchestration.mode: manager | code` switches it; `config/hive.yaml: models` overrides the manager, tier, and grader model IDs in one place.
 
+10. **Every cloud model through OpenRouter** (owner, 2026-11-04: "for ease of api key limits, and very fluid new model testing"). Embeddings (`OPENROUTER_EMB_MODEL_*`) and reranking (`OPENROUTER_RETRIEVAL_MODEL_*`) use the OpenRouter key; the OpenAI embedding path is removed. `hive-sim/.env` is a link to the owner's `.env` at the package root, so there is one file to edit.
+
 ## 5. Open items for the owner
 
 - After the proof of concept: decide whether to split the text tiers across different models.

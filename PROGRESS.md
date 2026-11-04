@@ -5,7 +5,8 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 ## Open items
 
-- **Embeddings need an owner choice before M5.** `.env` has no `OPENAI_API_KEY`, and M1 added a new variable `OPENAI_EMBED_MODEL` (the embedding model ID, owner-chosen, not hard-coded). Until both are set, live embedding fails with a message naming them. Alternative: local embeddings (`PROVIDER_MODE=local`).
+- **Owner question: the bare line `tencent/hy4` in `.env`** (added 2026-11-04) has no variable name, so nothing reads it. Which role is it for (decision chain, a text tier, embeddings, rerank)?
+- `cloudflare/clairic` is listed twice in `.env` (slots 1 and 6) and still returns 404; the chain now tries a repeated ID once.
 - **Gutendex is behind a Cloudflare challenge from this machine** (checked 2026-11-04: `gutendex.com/books?search=...` returned an HTML "Just a moment..." page; `gutenberg.org/cache/epub/2680/pg2680.txt` downloaded fine). The M5 corpus fetch step is specified against Gutendex; it will need a fallback (direct Gutenberg ids) or the owner's decision.
 - **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
@@ -223,7 +224,7 @@ Owner: "yes for now, but after everything is built, there needs to be an easy wa
 Turn 2 in every live run surfaced the conflict with the recorded concise-answers commitment and asked which governs (arbiter ASK_USER or PASS). The live COMMITMENT_CONFLICT decision did not flag a contradiction (asking is consistent with the commitment), so no commitment was broken live; the break path is exercised in mock and unit tests.
 
 **Open from M4**
-- Coherence is "unavailable" live: no embedding provider configured (`OPENAI_API_KEY` + `OPENAI_EMBED_MODEL`, or local). Mock mode uses MockEmbedder.
+- (Resolved after M4: coherence runs live through OpenRouter embeddings; see the next section.)
 - HERITAGE_CANON failed twice in one live cycle with truncated JSON padded with whitespace (a known JSON-mode failure); the step fell back (no canon candidate) and the cycle completed. One occurrence; cause not confirmed. Candidate fix if it recurs: make optional schema fields nullable so every schema qualifies for strict mode.
 - The diagnostic replay script was temporary and is deleted; its result is in ERROR_LOG.md.
 
@@ -233,5 +234,32 @@ Turn 2 in every live run surfaced the conflict with the recorded concise-answers
 - `pnpm check:prompts`: 33 / 0 violations
 - `pnpm eval` twice: 13 / 13 both, byte-identical
 - `pnpm test:e2e`: 4 / 4 passed (adds /interoception with the Commitment Ledger)
+
+## Owner decision 2026-11-04: every cloud model through OpenRouter
+
+Owner: "lets use openrouter models for ease of api key limits, and very fluid new model testing." Built:
+- `OpenRouterEmbeddings` (`/api/v1/embeddings`, chain `OPENROUTER_EMB_MODEL_1..N`) and `OpenRouterReranker` (`/api/v1/rerank`, chain `OPENROUTER_RETRIEVAL_MODEL_1..N`), with the same fallback rules as the decision client, cost from `usage.cost`, ledger events `embed.batch` / `rerank`. `MockReranker` (labeled mock) for offline tests; `IdentityReranker` in local mode. OpenAI embeddings removed.
+- `config/hive.yaml: models.embedding` / `models.rerank` overrides (tried first), next to the other model overrides.
+- Decision chain: a repeated model ID is tried once.
+- `hive-sim/.env` is now a symlink to the owner's `../.env` (one file to edit; still gitignored).
+
+**Live verification (2026-11-04, `pnpm verify:live`, `reports/live-verification-2026-11-04.json`), total $0.000177298**
+
+| Kind | Model | Result | Latency | Cost (USD) |
+|---|---|---|---|---|
+| decision | cloudflare/clairic | 404 | — | 0 |
+| decision | baseten/joey-1 | served joey-1-20261029, all answered | 155 ms | 0.00000511 |
+| decision | liquid/d1.1 | served d1.1-20261027 | 129 ms | 0.00000674 |
+| decision | perplexity/pplx-decider-v1.2 | served pplx-decider-v1.2-20261016 | 249 ms | 0.00000748 |
+| decision | morph/reflex (new) | served reflex-20261103 | 225 ms | 0.000074508 |
+| text | deepseek/deepseek-v4.1-flash-1017 | LEXICON_PARSE valid | 405 ms | 0.00008004 |
+| embedding | cohere/embed-5-pro (new) | served embed-v5.0-pro, 2048 dimensions | 184 ms | (in total) |
+| rerank | cohere/rerank-5-pro (new) | served rerank-v5.0-pro; top passage "Forgive quickly and keep your peace." (0.357) | 218 ms | (in total) |
+
+morph/reflex cost about 10× the other decision models for the same request (single measurement).
+
+**Coherence live (two cycles, fresh database):** cycle 1 C_inter 0.558 (C_intra needs a previous cycle); cycle 2 C_intra 0.485 and C_inter 0.604. Both cross the configured thresholds (C_intra < 0.55; C_inter > 0.6) although the Voices' claims were ordinary refinements between turns. The thresholds came from sent2's hashed toy embedder; they need tuning against the real embedding model (like the decision thresholds), and should be recorded per embedding model. Embedding spend for the two cycles: $0.000184.
+
+**Checks after the change:** unit 166 / 166 (adds embeddings/rerank client tests and chain tests).
 
 ## Next: M5 (mentor corpus pipeline, CLI)
