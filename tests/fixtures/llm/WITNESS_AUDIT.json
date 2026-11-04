@@ -4,5 +4,17 @@
     "quality": "sound",
     "notConsidering": "Whether the operator wants advice at all yet.",
     "note": "Check that the reply listens before it advises."
-  }
+  },
+  "rules": [
+    {
+      "when": {
+        "coherenceFlags": "inconsistent"
+      },
+      "output": {
+        "quality": "shaky: coherence is low; a Voice is inconsistent with its own prior claim.",
+        "notConsidering": "Why LOGOS reversed its position between cycles.",
+        "note": "Ask LOGOS to reconcile its two positions before advising."
+      }
+    }
+  ]
 }

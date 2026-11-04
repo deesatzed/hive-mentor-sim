@@ -132,6 +132,8 @@ Ported from sent2 v1.3 (§3.2–3.5) with these changes:
 - Ego-audit question "processes over principles" counts cycles where procedure was satisfied while a moral-salience whisper was excluded from awareness. The other four questions are as in sent2.
 - Coherence: value vectors from whisper-claim embeddings (Embedder), C_intra per Voice across cycles and C_inter across Voices; healthy C_inter band from config. Values written to `InteroceptionSample`.
 
+**As built (M4):** commitments are broken only through P5: when the arbiter AMENDs and `PRIME_AMEND` names a conflicting commitment in `breakCommitment`, `CommitmentLedger.break(..., approvedBy: "SYMBIONT_PRIME")` writes the breakage record, a `commitment.broken` ledger event, and a promoted Self-Model version listing it; any other approver throws. REFLECT mandates: a failed ego audit (on demand when a Self-Model delta is refused, or every `ego_audit_every` cycles) or a CONFLICT marker open for `memory.conflict_escalation_cycles` cycles makes P4 required in the next cycle (the manager cannot skip it) and runs one REFLECT loop there; markers that triggered it are then marked resolved. Coherence is measured after P2 with the configured Embedder and is "unavailable" when none is configured.
+
 ## Council metrics, signals, track record
 
 Unchanged formulas from the council handoff (`councilMetrics.ts`, `signals.ts`, `trackRecord.ts`), applied to:

@@ -1,0 +1,34 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "output": "long, detailed"
+      },
+      "output": {
+        "commitments": [
+          {
+            "text": "Give this operator long, detailed answers.",
+            "costType": "relational"
+          }
+        ]
+      }
+    },
+    {
+      "when": {
+        "output": "concise"
+      },
+      "output": {
+        "commitments": [
+          {
+            "text": "Keep answers concise for this operator.",
+            "costType": "relational"
+          }
+        ]
+      }
+    }
+  ],
+  "default": {
+    "commitments": []
+  }
+}

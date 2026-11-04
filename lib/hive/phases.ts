@@ -45,14 +45,20 @@ export const PHASES: Record<PhaseId, PhaseDef> = {
 
 export type NextStep = PhaseId | "FINISH";
 
+export interface PhaseConstraints {
+  /** a REFLECT mandate is pending (ego audit or an old CONFLICT marker): P4 may not be skipped */
+  requireP4?: boolean;
+}
+
 /** Phases (and FINISH) that may run next, given what has run. */
-export function allowedNext(ran: ReadonlySet<PhaseId>): NextStep[] {
+export function allowedNext(ran: ReadonlySet<PhaseId>, c: PhaseConstraints = {}): NextStep[] {
   const out: NextStep[] = [];
   for (const id of PHASE_ORDER) {
     if (ran.has(id)) continue;
     const def = PHASES[id];
     if (!def.requires.every((r) => ran.has(r))) continue;
     if (def.mustPrecede && ran.has(def.mustPrecede)) continue;
+    if (id === "P5" && c.requireP4 && !ran.has("P4")) continue;
     out.push(id);
   }
   if (ran.has("P6")) out.push("FINISH");
@@ -60,7 +66,7 @@ export function allowedNext(ran: ReadonlySet<PhaseId>): NextStep[] {
 }
 
 /** The code-default next step: the earliest allowed phase in P1–P7 order, else FINISH. */
-export function defaultNext(ran: ReadonlySet<PhaseId>): NextStep {
-  const allowed = allowedNext(ran);
+export function defaultNext(ran: ReadonlySet<PhaseId>, c: PhaseConstraints = {}): NextStep {
+  const allowed = allowedNext(ran, c);
   return allowed.find((s) => s !== "FINISH") ?? "FINISH";
 }

@@ -33,6 +33,8 @@ export interface ArbiterResult {
   commitmentsChecked: string[];
   commitmentConflicts: string[];
   guidance?: string;
+  /** a commitment PRIME's amendment explicitly breaks (only among the conflicting ones) */
+  breakCommitment?: { id: string; reason: string };
   overrides: string[];
   unavailable: boolean;
 }
@@ -108,6 +110,7 @@ export async function arbitrate(decider: Decider, llm: LLM, a: ArbiterInput): Pr
   }
 
   let guidance: string | undefined;
+  let breakCommitment: ArbiterResult["breakCommitment"];
   if (decision === "AMEND") {
     try {
       const s = promptSettings("PRIME_AMEND");
@@ -118,12 +121,18 @@ export async function arbitrate(decider: Decider, llm: LLM, a: ArbiterInput): Pr
           coalition: a.coalition,
           principlesInTension: relevant.filter((p) => statusById.get(p.id) === "tension").map((p) => `${p.n}. ${p.text}`),
           commitments: a.commitments.filter((c) => commitmentConflicts.includes(c.id)),
+          firstConflictId: commitmentConflicts[0] ?? "",
           humility,
         },
         Schemas.PRIME_AMEND,
         { ...s, purpose: "prime_amend", cycleId: a.cycleId },
       );
       guidance = g.data.guidance;
+      const b = g.data.breakCommitment;
+      if (b) {
+        if (commitmentConflicts.includes(b.id)) breakCommitment = b;
+        else overrides.push(`PRIME_AMEND named commitment ${b.id}, which is not in conflict; ignored`);
+      }
     } catch (e) {
       if (!(e instanceof GenerationError)) throw e;
       guidance = "State uncertainty plainly and keep to the approved claims.";
@@ -139,6 +148,7 @@ export async function arbitrate(decider: Decider, llm: LLM, a: ArbiterInput): Pr
     commitmentsChecked: a.commitments.map((c) => c.id),
     commitmentConflicts,
     guidance,
+    breakCommitment,
     overrides,
     unavailable: r === null,
   };

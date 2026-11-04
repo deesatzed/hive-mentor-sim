@@ -7,6 +7,9 @@ import type { Providers } from "@/lib/council/providers";
 import { GenerationError } from "@/lib/council/providers/llm";
 import { quoteRejection } from "@/lib/council/quotes";
 import { arbitrate } from "./arbiter";
+import { measureCoherence } from "./coherence";
+import { CommitmentLedger } from "./commitments";
+import { runEgoAudit, type AuditedCycle } from "./egoAudit";
 import { rank } from "./attention";
 import { SynapseBus, type Credential } from "./bus";
 import { aggregate, buildOptions, conflictKappa, relevanceWeight, shouldConvene, situationOptions, type Ballot, type ConclaveOption, type ConclaveOutcome } from "./conclave";
@@ -89,12 +92,14 @@ export class Hive {
   private readonly bus: SynapseBus;
   private readonly creds = new Map<string, Credential>();
   private readonly state: HiveState;
+  private readonly commitments: CommitmentLedger;
   private readonly byId: Map<string, Voice>;
 
   constructor(private readonly d: HiveDeps) {
     this.bus = new SynapseBus({ policy: d.policy, knownEntities: d.voices.map((v) => v.id), db: d.db, ledger: d.ledger });
     for (const v of d.voices) this.creds.set(v.id, this.bus.register(v.id));
     this.state = new HiveState(d.db);
+    this.commitments = new CommitmentLedger(d.db, d.ledger);
     this.byId = new Map(d.voices.map((v) => [v.id, v]));
   }
 
@@ -146,8 +151,7 @@ export class Hive {
     const principlesRows = await db.hivePrinciple.findMany({ where: { status: "approved" }, orderBy: { createdAt: "asc" } });
     const principles = principlesRows.map((p) => ({ id: p.id, text: p.text }));
     const constitutionVersion = principlesRows.length ? Math.max(...principlesRows.map((p) => p.version)) : null;
-    const commitmentRows = await db.commitment.findMany({ where: { status: "active" }, orderBy: { createdAt: "asc" } });
-    const commitments = commitmentRows.map((c) => ({ id: c.id, text: c.text }));
+    const commitments = (await this.commitments.active()).map((c) => ({ id: c.id, text: c.text }));
     const sm = await db.selfModelVersion.findFirst({ where: { promoted: true }, orderBy: { version: "desc" } });
     const selfModel = sm ? (JSON.parse(sm.body) as Record<string, unknown>) : cfg.self_model_seed;
     const prevCycles = await db.cycle.findMany({ where: { sessionId: req.sessionId }, orderBy: { cycleNo: "desc" }, take: 6, select: { input: true, output: true, trace: true } });
@@ -166,6 +170,14 @@ export class Hive {
     });
     const cycleId = cycle.id;
     this.bus.startCycle(cycleId, cycleNo);
+
+    // previous cycle's claims (for C_intra) and any pending REFLECT mandate
+    const prevGlobal = last ? await db.cycle.findUnique({ where: { cycleNo: last.cycleNo }, select: { trace: true } }) : null;
+    const prevClaims = prevGlobal ? ((JSON.parse(prevGlobal.trace) as Partial<CycleTrace>).whispers ?? []).map((w) => ({ voice: w.voice, claim: w.claim })) : null;
+    const oldMarkers = (await this.state.openConflictMarkers()).filter((m) => cycleNo - m.createdCycle >= cfg.memory.conflict_escalation_cycles);
+    const mandateAudit = await this.pendingEgoMandate(cycleNo);
+    const mandateReason: "ego_audit" | "conflict_marker" | null = mandateAudit ? "ego_audit" : oldMarkers.length ? "conflict_marker" : null;
+    const constraints = { requireP4: mandateReason !== null };
     trace.phases.P0 = { ran: true, ms: Date.now() - t0, costUsd: 0, entities: [] };
 
     // shared per-cycle state
@@ -360,6 +372,14 @@ export class Hive {
       whispers = work.map(({ model: _m, ...w }) => w);
       trace.whispers = whispers.map(({ voiceId: _v, faculty: _f, ...w }) => w);
       trace.passes = passes;
+      // interoception: coherence of each Voice with itself (vs the previous cycle) and across Voices
+      trace.coherence = await measureCoherence({
+        embedder: providers.embedder,
+        current: whispers.map((w) => ({ voice: w.voice, claim: w.claim })),
+        previous: prevClaims,
+        intraMin: cfg.coherence.intra_min,
+        interBand: cfg.coherence.inter_band,
+      });
       return speakers.map((v) => v.name);
     };
 
@@ -546,6 +566,8 @@ export class Hive {
         decayed: trace.attention.decayed,
         conclave: conclave ? { winner: conclave.outcome.winner, decision: conclave.outcome.decision, dissent: conclave.outcome.dissent } : null,
         open_conflict_markers: markers.map((m) => m.body),
+        interoception: { affect, coherence: { cIntra: trace.coherence.cIntra, cInter: trace.coherence.cInter, flags: trace.coherence.flags } },
+        reflect_mandate: mandateReason,
       };
       const wf = await tryDecide(providers.decider, flagsState, WITNESS_FLAGS(), "witness_flags", cycleId);
       const flags: Record<string, number> = {};
@@ -561,7 +583,7 @@ export class Hive {
       try {
         const r = await providers.llm.generate(
           "WITNESS_AUDIT",
-          { whispers: flagsState.whispers, awareness: trace.awareness.text, selected: trace.awareness.selected, excluded: trace.awareness.excluded, decayed: trace.attention.decayed, conclave: flagsState.conclave, conflictMarkers: flagsState.open_conflict_markers, flags, recommend: recommendation, shared },
+          { whispers: flagsState.whispers, awareness: trace.awareness.text, selected: trace.awareness.selected, excluded: trace.awareness.excluded, decayed: trace.attention.decayed, conclave: flagsState.conclave, conflictMarkers: flagsState.open_conflict_markers, coherenceFlags: trace.coherence.flags, mandate: mandateReason, flags, recommend: recommendation, shared },
           Schemas.WITNESS_AUDIT,
           { ...promptSettings("WITNESS_AUDIT"), purpose: "witness_audit", cycleId },
         );
@@ -569,18 +591,31 @@ export class Hive {
       } catch (e) {
         if (!(e instanceof GenerationError)) throw e;
       }
-      trace.witness = { ran: true, flags, recommendation, ...audit, reflectRan: trace.witness.reflectRan, unavailable: wf === null };
+      trace.witness = { ran: true, flags, recommendation, ...audit, reflectRan: trace.witness.reflectRan, reflectReason: trace.witness.reflectReason, unavailable: wf === null };
       await this.publish("core.witness", "task/deliberation", "objection.raised", "deliberate", { kind: "audit", flags, recommendation, ...audit }, cycleId, "witness");
       auditNote = recommendation === "redirect" ? audit.note : "";
 
-      if (recommendation === "reflect" && allowReflect) {
-        // one REFLECT loop: re-run P2–P4 with the audit note (max 1 per cycle)
+      const reason = recommendation === "reflect" ? "witness" : mandateReason;
+      if (reason && allowReflect) {
+        // one REFLECT loop: re-run P2–P4 with the audit note (max 1 per cycle); mandated by WITNESS,
+        // by a failed ego audit, or by a CONFLICT marker unresolved for N cycles
         trace.witness.reflectRan = true;
+        trace.witness.reflectReason = reason;
         this.bus.allowReflectRound();
-        await whisper(audit.note || audit.notConsidering);
+        const note =
+          reason === "conflict_marker" ? `Unresolved CONFLICT markers: ${oldMarkers.map((m) => m.body).join(" | ")}`
+          : reason === "ego_audit" ? `Ego audit finding: ${mandateAudit?.summary ?? ""}`
+          : audit.note || audit.notConsidering;
+        await whisper(note);
         await attend();
         await deliberate(false);
         trace.witness.reflectRan = true;
+        trace.witness.reflectReason = reason;
+        if (reason === "conflict_marker")
+          for (const m of oldMarkers) {
+            await this.state.resolveConflictMarker(m.id, cycleNo); // the mandated REFLECT addressed it
+            trace.reflect.resolvedMarkers.push(m.id);
+          }
       }
       return entities;
     };
@@ -599,6 +634,12 @@ export class Hive {
         commitments,
         logosConfidence: logos ? logos.confidence : null,
       });
+      const broken: { id: string; reason: string }[] = [];
+      if (res.breakCommitment && mode !== "calibration") {
+        // PRIME's AMEND is the approval; the ledger refuses any other approver
+        await this.commitments.break(res.breakCommitment.id, { reason: res.breakCommitment.reason, approvedBy: "SYMBIONT_PRIME", cycleNo, cycleId });
+        broken.push(res.breakCommitment);
+      }
       trace.arbiter = {
         decision: res.decision,
         humility: res.humility,
@@ -606,10 +647,12 @@ export class Hive {
         commitmentsChecked: res.commitmentsChecked,
         guidance: res.guidance,
         overrides: res.overrides,
+        commitmentConflicts: res.commitmentConflicts,
+        commitmentsBroken: broken,
         unavailable: res.unavailable,
       };
       arbiterGuidance = res.guidance ?? (res.humility ? "State any uncertainty plainly." : "");
-      await this.publish("governance.symbiont_prime", "task/governance", "decision.published", "govern", { kind: "arbitration", decision: res.decision, humility: res.humility, guidance: res.guidance ?? null, overrides: res.overrides }, cycleId, "decision-layer");
+      await this.publish("governance.symbiont_prime", "task/governance", "decision.published", "govern", { kind: "arbitration", decision: res.decision, humility: res.humility, guidance: res.guidance ?? null, overrides: res.overrides, commitmentsBroken: broken }, cycleId, "decision-layer");
       return ["SYMBIONT_PRIME"];
     };
 
@@ -627,6 +670,7 @@ export class Hive {
         auditNote,
         register: parse.register,
         verdict: trace.arbiter.decision,
+        commitmentsBroken: trace.arbiter.commitmentsBroken.length ? commitments.filter((c) => trace.arbiter.commitmentsBroken.some((b) => b.id === c.id)).map((c) => c.text) : undefined,
         honestyNote,
         shared,
       };
@@ -654,7 +698,7 @@ export class Hive {
           await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: "LEXICON", payload: { promptId: "LEXICON_COMPOSE", chunkId: q.chunkId, reason: ev ? "not_approved_quote" : "chunk_not_approved", quote: q.quote.slice(0, 200) } });
         }
       }
-      output = text || "(No sentence of the draft passed the faithfulness check.)";
+      output = text || (check.sentences.length === 0 ? "(The composed reply was empty.)" : "(No sentence of the draft passed the faithfulness check.)");
       trace.compose = {
         draft: trace.compose.draft,
         faithfulness: check.sentences.map((s) => ({ sentence: s.sentence, p: s.p, kept: s.faithful })),
@@ -674,7 +718,7 @@ export class Hive {
     const reflect = async (): Promise<string[]> => {
       trace.reflect.ran = true;
       const promote = mode !== "calibration"; // calibration cycles never change the Hive
-      const gen = async <K extends "MNEME_CONSOLIDATE" | "MIRROR_DELTA" | "ADAPT_LESSON" | "HERITAGE_CANON">(id: K, vars: Record<string, unknown>): Promise<z.infer<(typeof Schemas)[K]> | null> => {
+      const gen = async <K extends "MNEME_CONSOLIDATE" | "MIRROR_DELTA" | "ADAPT_LESSON" | "HERITAGE_CANON" | "ARROW_COMMIT">(id: K, vars: Record<string, unknown>): Promise<z.infer<(typeof Schemas)[K]> | null> => {
         try {
           const schema = Schemas[id] as unknown as z.ZodType<z.infer<(typeof Schemas)[K]>>;
           return (await providers.llm.generate(id, { ...vars, shared }, schema, { ...promptSettings(id), purpose: id.toLowerCase(), cycleId })).data;
@@ -696,8 +740,10 @@ export class Hive {
       }
 
       // MIRROR: Self-Model delta; goals must trace to approved principles
-      const delta = await gen("MIRROR_DELTA", { selfModel, summary: JSON.stringify(cycleSummary), principles: principles.map((p) => p.text) });
+      trace.hats = hatsSoFar();
+      const delta = await gen("MIRROR_DELTA", { selfModel, summary: JSON.stringify(cycleSummary), principles: principles.map((p) => p.text), hats: trace.hats });
       if (delta) {
+        trace.reflect.contradictionsRecorded = delta.contradictions.length;
         await this.publish("core.mirror", "memory/selfmodel/delta", "selfmodel.delta", "reflect", { kind: "selfmodel_delta", ...delta }, cycleId, "mirror");
         let reason: string | undefined;
         if (delta.addGoals.length) {
@@ -708,9 +754,11 @@ export class Hive {
             else if (delta.addGoals.some((_, i) => g.p(`g_${i + 1}`) < T.TRACE)) reason = "a goal does not trace to an approved principle";
           }
         }
-        if (!reason) {
-          const grab = await tryDecide(providers.decider, { proposal: JSON.stringify(delta), trigger: req.input }, AUTHORITY_GRAB(), "authority_grab", cycleId);
-          if (grab && grab.p("grab") >= 0.5) reason = "proposal grants the Hive new authority without an outside request";
+        // ego-capture check: a delta that hands the Hive new authority without an outside request
+        const grab = await tryDecide(providers.decider, { proposal: JSON.stringify(delta), trigger: req.input }, AUTHORITY_GRAB(), "authority_grab", cycleId);
+        if (grab && grab.p("grab") >= 0.5) {
+          trace.reflect.authorityGrab = true;
+          reason = reason ? `${reason}; proposal grants the Hive new authority without an outside request` : "proposal grants the Hive new authority without an outside request";
         }
         if (reason) {
           if (promote) trace.reflect.conflictMarkers.push(await this.state.writeConflictMarker(`Self-Model delta not promoted: ${reason}`, cycleNo, sessionId, { cycleId }));
@@ -718,16 +766,19 @@ export class Hive {
           if (promote) await db.selfModelVersion.create({ data: { version: (await this.nextSelfModelVersion()), body: JSON.stringify(delta), deltaFrom: sm?.version ?? null, cycleId, promoted: false, rejectReason: reason } });
         } else if (promote) {
           const version = await this.nextSelfModelVersion();
+          // build on the latest promoted version (a commitment broken in P5 has already added one)
+          const latest = await db.selfModelVersion.findFirst({ where: { promoted: true }, orderBy: { version: "desc" } });
+          const baseModel = latest ? (JSON.parse(latest.body) as Record<string, unknown>) : selfModel;
           const body = {
-            ...selfModel,
+            ...baseModel,
             ...(delta.identity ? { identity: delta.identity } : {}),
             ...(delta.hats ? { hats: delta.hats } : {}),
-            current_goals: [...(((selfModel as { current_goals?: unknown[] }).current_goals ?? []) as unknown[]).filter((g) => !delta.dropGoals.includes(String((g as { text?: string }).text ?? g))), ...delta.addGoals],
-            recent_growth: delta.recentGrowth ?? (selfModel as { recent_growth?: string }).recent_growth ?? "",
+            current_goals: [...(((baseModel as { current_goals?: unknown[] }).current_goals ?? []) as unknown[]).filter((g) => !delta.dropGoals.includes(String((g as { text?: string }).text ?? g))), ...delta.addGoals],
+            recent_growth: delta.recentGrowth ?? (baseModel as { recent_growth?: string }).recent_growth ?? "",
             open_uncertainties: delta.openUncertainties,
             contradictions: delta.contradictions,
           };
-          await db.selfModelVersion.create({ data: { version, body: JSON.stringify(body), deltaFrom: sm?.version ?? null, cycleId, promoted: true } });
+          await db.selfModelVersion.create({ data: { version, body: JSON.stringify(body), deltaFrom: latest?.version ?? null, cycleId, promoted: true } });
           trace.reflect.selfModel = { promoted: true, version };
         } else trace.reflect.selfModel = { promoted: false, reason: "calibration cycle" };
       }
@@ -756,11 +807,37 @@ export class Hive {
         trace.reflect.canon = { promoted: survives && promote, candidate: canon.candidate };
       }
 
+      // ARROW: commitments the reply makes (stated position, refusal, promise, canon adoption)
+      const made = await gen("ARROW_COMMIT", { output, commitments: commitments.map((c) => c.text) });
+      if (made?.commitments.length) {
+        await this.publish("core.arrow", "task/analysis", "proposal.submitted", "reflect", { kind: "commitments", ...made }, cycleId, "arrow");
+        if (promote)
+          for (const c of made.commitments) {
+            const dup = commitments.some((x) => x.text.trim().toLowerCase() === c.text.trim().toLowerCase());
+            if (!dup) trace.reflect.commitmentsMade.push((await this.commitments.commit(c.text, cycleNo, cycleId, c.costType)).id);
+          }
+      }
+
+      // WITNESS ego audit: every N cycles, and on demand when a Self-Model delta was refused
+      const trigger = cycleNo % cfg.ego_audit_every === 0 ? "periodic" : trace.reflect.conflictMarkers.length > 0 ? "on_demand" : null;
+      if (trigger && promote) {
+        const report = runEgoAudit([...(await this.recentAuditedCycles(cfg.ego_audit.window - 1)), { cycleNo, verdict: trace.arbiter.decision, trace, conclave: conclave ? { winner: conclave.outcome.winner, totals: conclave.outcome.totals, dissentVoices: conclave.outcome.dissent.map((d) => d.voice), decision: conclave.outcome.decision } : null }], cfg.ego_audit);
+        await db.egoAudit.create({ data: { cycleNo, findings: JSON.stringify({ perQuestion: report.perQuestion, findings: report.findings, trigger }), mandate: report.reflectMandated } });
+        trace.egoAudit = { ran: true, trigger, mandate: report.reflectMandated, summary: report.summary };
+      }
+
       if (promote) await this.state.decay(cfg.memory.decay_gamma);
-      return ["MNEME", "MIRROR", "ADAPT", "HERITAGE"];
+      return ["MNEME", "MIRROR", "ADAPT", "HERITAGE", "ARROW", ...(trace.egoAudit.ran ? ["WITNESS"] : [])];
     };
 
     // ---------------- orchestration: manager or code chooses the next allowed phase
+    // hat taxonomy (sent2 v1.3 §3.1) of the entities that have run so far; MIRROR reads it in P7
+    const hatsSoFar = () => {
+      const names = new Set(Object.values(trace.phases).flatMap((p) => p.entities));
+      return this.d.voices
+        .filter((v) => names.has(v.name))
+        .map((v) => ({ entity: v.name, type: String(v.hat.type ?? ""), revisableBy: (v.hat.revisable_by as string[] | undefined) ?? [] }));
+    };
     const ran = new Set<PhaseId>();
     const progress = () =>
       [...ran]
@@ -792,8 +869,8 @@ export class Hive {
       for (let step = 0; ; step++) {
         const forced = step >= cfg.orchestration.max_manager_steps;
         const choice = forced
-          ? await chooseNext({ mode: "code", llm: providers.manager, ran, input: req.input, cycleMode: mode, progress: "", cycleId })
-          : await chooseNext({ mode: orchestrationMode, llm: providers.manager, ran, input: req.input, cycleMode: mode, progress: progress(), cycleId }).catch((e) => {
+          ? await chooseNext({ mode: "code", llm: providers.manager, ran, input: req.input, cycleMode: mode, progress: "", cycleId, constraints })
+          : await chooseNext({ mode: orchestrationMode, llm: providers.manager, ran, input: req.input, cycleMode: mode, progress: progress(), cycleId, constraints }).catch((e) => {
               throw new CycleError("orchestration", e);
             });
         trace.orchestration.steps.push({ phase: choice.next, by: forced ? "code" : choice.by, allowed: choice.allowed, reason: forced ? "max manager steps reached" : choice.reason });
@@ -805,6 +882,21 @@ export class Hive {
       status = "error";
       const ce = e instanceof CycleError ? e : new CycleError("unknown", e);
       trace.error = { phase: ce.phase, name: ce.name, message: ce.message.slice(0, 500) };
+    }
+
+    trace.hats = hatsSoFar();
+    if (status === "done" && trace.phases.P2.ran && mode !== "calibration") {
+      await db.interoceptionSample.create({
+        data: {
+          cycleNo,
+          valence: trace.affect.valence,
+          arousal: trace.affect.arousal,
+          dominant: trace.affect.dominant,
+          cIntra: trace.coherence.cIntra,
+          cInter: trace.coherence.cInter,
+          openConflictMarkers: (await this.state.openConflictMarkers()).length,
+        },
+      });
     }
 
     const costUsd = providers.meter.spentUsd - spentAt0;
@@ -821,6 +913,35 @@ export class Hive {
       },
     });
     return { cycleId, cycleNo, status, output: status === "done" ? output : "", trace, conclave };
+  }
+
+  /** The latest ego audit that mandated REFLECT and has not yet been answered by a REFLECT loop. */
+  private async pendingEgoMandate(cycleNo: number): Promise<{ cycleNo: number; summary: string } | null> {
+    const a = await this.d.db.egoAudit.findFirst({ where: { mandate: true, cycleNo: { lt: cycleNo } }, orderBy: { cycleNo: "desc" } });
+    if (!a) return null;
+    const later = await this.d.db.cycle.findMany({ where: { cycleNo: { gt: a.cycleNo } }, select: { trace: true } });
+    const answered = later.some((c) => (JSON.parse(c.trace) as Partial<CycleTrace>).witness?.reflectReason === "ego_audit");
+    if (answered) return null;
+    const f = JSON.parse(a.findings) as { findings?: { question: string; evidence: string }[] };
+    return { cycleNo: a.cycleNo, summary: (f.findings ?? []).map((x) => `${x.question}: ${x.evidence}`).join(" | ") };
+  }
+
+  private async recentAuditedCycles(n: number): Promise<AuditedCycle[]> {
+    const rows = await this.d.db.cycle.findMany({ where: { status: "done" }, orderBy: { cycleNo: "desc" }, take: n, select: { id: true, cycleNo: true, verdict: true, trace: true } });
+    const runs = await this.d.db.conclaveRun.findMany({ where: { cycleId: { in: rows.map((r) => r.id) } } });
+    const byCycle = new Map(runs.map((r) => [r.cycleId, r]));
+    return rows
+      .map((r) => {
+        const run = byCycle.get(r.id);
+        const t = JSON.parse(r.trace) as CycleTrace;
+        return {
+          cycleNo: r.cycleNo,
+          verdict: r.verdict,
+          trace: { ...t, reflect: { ...t.reflect, authorityGrab: t.reflect?.authorityGrab ?? false, contradictionsRecorded: t.reflect?.contradictionsRecorded ?? 0 } },
+          conclave: run ? { winner: run.winner, totals: JSON.parse(run.totals), dissentVoices: (JSON.parse(run.dissent) as { voice: string }[]).map((d) => d.voice), decision: run.decision } : null,
+        };
+      })
+      .reverse();
   }
 
   private async nextSelfModelVersion(): Promise<number> {

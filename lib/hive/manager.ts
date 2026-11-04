@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { LLM } from "@/lib/council/providers/llm";
 import { GenerationError } from "@/lib/council/providers/llm";
-import { allowedNext, defaultNext, type NextStep, type PhaseId } from "./phases";
+import { allowedNext, defaultNext, type NextStep, type PhaseConstraints, type PhaseId } from "./phases";
 import { promptSettings } from "./prompts";
 
 /**
@@ -27,9 +27,10 @@ export async function chooseNext(args: {
   cycleMode: string;
   progress: string;
   cycleId: string;
+  constraints?: PhaseConstraints;
 }): Promise<StepChoice> {
-  const allowed = allowedNext(args.ran);
-  const dflt = defaultNext(args.ran);
+  const allowed = allowedNext(args.ran, args.constraints);
+  const dflt = defaultNext(args.ran, args.constraints);
   if (args.mode === "code") return { next: dflt, by: "code", allowed, reason: "code default order" };
   if (allowed.length === 1) return { next: allowed[0], by: "code", allowed, reason: "only one allowed step" };
 

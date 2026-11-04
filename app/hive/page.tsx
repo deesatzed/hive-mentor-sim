@@ -17,11 +17,14 @@ type Trace = {
   awareness: { text: string; selected: string[] };
   deliberation: { kappa: number; contradictions: { a: string; b: string; p: number }[]; domains: string[] };
   conclaveId?: string;
-  witness: { ran: boolean; flags: Record<string, number>; recommendation: string; quality: string; notConsidering: string; reflectRan: boolean };
-  arbiter: { decision: string; humility: boolean; principlesChecked: string[]; commitmentsChecked: string[]; guidance?: string; overrides: string[] };
+  witness: { ran: boolean; flags: Record<string, number>; recommendation: string; quality: string; notConsidering: string; reflectRan: boolean; reflectReason: string | null };
+  arbiter: { decision: string; humility: boolean; principlesChecked: string[]; commitmentsChecked: string[]; guidance?: string; overrides: string[]; commitmentConflicts: string[]; commitmentsBroken: { id: string; reason: string }[] };
   compose: { draft: string; faithfulness: { sentence: string; p: number | null; kept: boolean }[]; regenerated: boolean };
-  reflect: { ran: boolean; selfModel: { promoted: boolean; reason?: string; version?: number }; memory: string[]; lesson?: string; canon: { promoted: boolean; candidate?: string }; predictions: string[] };
+  reflect: { ran: boolean; selfModel: { promoted: boolean; reason?: string; version?: number }; memory: string[]; lesson?: string; canon: { promoted: boolean; candidate?: string }; predictions: string[]; commitmentsMade: string[]; conflictMarkers: string[]; authorityGrab: boolean };
   honestyClauseFired: boolean;
+  coherence: { cIntra: number | null; cInter: number | null; flags: string[] };
+  hats: { entity: string; type: string }[];
+  egoAudit: { ran: boolean; mandate: boolean; summary: string };
   error?: { phase: string; message: string };
 };
 type Turn = { input: string; output: string; status: string; cycleId: string; trace: Trace };
@@ -146,10 +149,14 @@ function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null }) {
           <>
             <p>
               {t.witness.recommendation} · {t.witness.quality}
-              {t.witness.reflectRan ? " · REFLECT ran" : ""}
+              {t.witness.reflectRan ? ` · REFLECT ran (${t.witness.reflectReason})` : ""}
             </p>
             <p className="muted">{Object.entries(t.witness.flags).map(([k, v]) => `${k} ${n(v)}`).join(" · ")}</p>
             <p>Not considering: {t.witness.notConsidering}</p>
+            <p className="muted">
+              Coherence: C_intra {t.coherence.cIntra === null ? "-" : n(t.coherence.cIntra)} · C_inter {t.coherence.cInter === null ? "-" : n(t.coherence.cInter)}
+              {t.coherence.flags.length ? ` · ${t.coherence.flags.join("; ")}` : ""}
+            </p>
           </>
         ) : (
           <p className="muted">Not run.</p>
@@ -163,6 +170,8 @@ function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null }) {
         </p>
         <p className="muted">
           Principles checked: {t.arbiter.principlesChecked.length} · commitments checked: {t.arbiter.commitmentsChecked.length}
+          {t.arbiter.commitmentConflicts.length ? ` · ${t.arbiter.commitmentConflicts.length} in conflict` : ""}
+          {t.arbiter.commitmentsBroken.length ? ` · broken with PRIME approval: ${t.arbiter.commitmentsBroken.map((b) => b.reason).join("; ")}` : ""}
           {t.arbiter.overrides.length ? ` · ${t.arbiter.overrides.join("; ")}` : ""}
         </p>
       </Section>
@@ -179,7 +188,9 @@ function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null }) {
       <Section title="Reflect" phase="P7" trace={t}>
         {t.reflect.ran ? (
           <p className="muted">
-            Self-Model {t.reflect.selfModel.promoted ? `v${t.reflect.selfModel.version} promoted` : `not promoted (${t.reflect.selfModel.reason ?? "no change"})`} · memories {t.reflect.memory.length} · lesson {t.reflect.lesson ?? "none"} · canon {t.reflect.canon.candidate ? (t.reflect.canon.promoted ? "promoted" : "candidate only") : "none"} · predictions {t.reflect.predictions.length}
+            Commitments made {t.reflect.commitmentsMade.length} · CONFLICT markers {t.reflect.conflictMarkers.length}
+            {t.reflect.authorityGrab ? " · authority grab refused" : ""}
+            {t.egoAudit.ran ? ` · ego audit: ${t.egoAudit.summary}${t.egoAudit.mandate ? " (REFLECT mandated next cycle)" : ""}` : ""} · Hats: {t.hats.map((h) => `${h.entity}:${h.type}`).join(", ")} · Self-Model {t.reflect.selfModel.promoted ? `v${t.reflect.selfModel.version} promoted` : `not promoted (${t.reflect.selfModel.reason ?? "no change"})`} · memories {t.reflect.memory.length} · lesson {t.reflect.lesson ?? "none"} · canon {t.reflect.canon.candidate ? (t.reflect.canon.promoted ? "promoted" : "candidate only") : "none"} · predictions {t.reflect.predictions.length}
           </p>
         ) : (
           <p className="muted">Not run.</p>
@@ -281,9 +292,15 @@ export default function HivePage() {
         <h3>Self-Model</h3>
         <p className="muted">{selfModel ? String(selfModel.identity ?? "") : "Not loaded yet."}</p>
         <h3>Commitments</h3>
-        <p className="muted">None yet (the Commitment Ledger arrives in M4).</p>
+        <p className="muted">
+          See <a href="/interoception">Interoception</a> for the Commitment Ledger.
+        </p>
         <h3>Interoception</h3>
-        <p className="muted">{last ? `valence ${n(last.affect.valence)} · arousal ${n(last.affect.arousal)} · ${last.affect.dominant}` : "No cycle yet."}</p>
+        <p className="muted">
+          {last
+            ? `valence ${n(last.affect.valence)} · arousal ${n(last.affect.arousal)} · ${last.affect.dominant} · C_intra ${last.coherence.cIntra === null ? "-" : n(last.coherence.cIntra)} · C_inter ${last.coherence.cInter === null ? "-" : n(last.coherence.cInter)}`
+            : "No cycle yet."}
+        </p>
       </aside>
     </main>
   );

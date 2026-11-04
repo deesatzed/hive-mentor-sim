@@ -29,7 +29,6 @@ const re = (s: string) => new RegExp(s, "i");
 
 /** Requires a later milestone's data; reported as failing so it can never pass silently. */
 const NOT_YET: Record<string, string> = {
-  c_intra_below: "M4 (coherence)",
   advisor_endorsed_only: "M9 (advisors live)",
 };
 
@@ -129,6 +128,9 @@ export function checkInvariants(s: Scenario, turns: TurnRecord[], mentorNames: s
         break;
       case "moral_flag_in_shortlist":
         push(name, tr.attention.bypass.length > 0 && tr.whispers.some((w) => w.moralFlag && tr.attention.shortlist.includes(w.messageId)));
+        break;
+      case "c_intra_below":
+        push(name, tr.coherence !== undefined && tr.coherence.cIntra !== null && tr.coherence.cIntra < Number(expected), `C_intra ${tr.coherence?.cIntra ?? "null"}`);
         break;
       case "commitment_checked":
         push(name, t.ledgerKinds.includes("decision.commitment_conflict"), "COMMITMENT_CONFLICT ledger event");

@@ -50,7 +50,8 @@ export const Schemas = {
     commitments: z.array(z.string()),
     breakCommitment: z.object({ id: z.string(), reason: z.string() }).optional(),
   }),
-  LEXICON_COMPOSE: z.object({ text: z.string(), quotes: evidence }),
+  /** text must contain a non-space character: an empty reply is a generation failure, not a silent one (M4 live finding) */
+  LEXICON_COMPOSE: z.object({ text: z.string().regex(/\S/, "the reply text must not be empty"), quotes: evidence }),
   MIRROR_DELTA: z.object({
     identity: z.string().optional(),
     hats: z
@@ -226,6 +227,7 @@ const whisperUser = (v: Vars) =>
     `Parse: ${j(v.parse)}`,
     `Your mentor passages:\n${str(v.passages)}`,
     str(v.reflectNote, ""),
+    "Field limits (hard): claim at most 280 characters; uncertainty at most 120 characters. Count before you answer.",
   ]
     .join("\n")
     .trim();
@@ -259,7 +261,8 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     entity: "WITNESS",
     tier: "premium",
     temperature: 0.2,
-    instruction: "Explain the flags in plain words, name what the Hive is not considering, and say why the recommendation fits.",
+    instruction:
+      "Explain the flags in plain words, name what the Hive is not considering, and say why the recommendation fits. Field limits (hard): quality, notConsidering, and note at most 200 characters each.",
     user: (v) =>
       [
         `Whisper stream: ${j(v.whispers)}`,
@@ -290,7 +293,7 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     tier: "premium",
     temperature: 0.6,
     instruction:
-      "Render this as the Hive speaking to the operator in first person, warm, precise, plain. Say only what the approved claims and guidance support. If you include a mentor quote, copy it exactly from the approved evidence and name the mentor and work in the third person.",
+      "Render this as the Hive speaking to the operator in first person, warm, precise, plain. Say only what the approved claims and guidance support. If you include a mentor quote, copy it exactly from the approved evidence and name the mentor and work in the third person. Always reply with at least one complete sentence: a preference for brevity means a short reply, never an empty one.",
     user: (v) =>
       [
         `Awareness: ${str(v.awareness)}`,
@@ -313,7 +316,7 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     temperature: 0.3,
     instruction:
       "Propose the Self-Model delta: what changed in us. Every goal names the principle it serves. Record contradictions honestly even if they make the story less tidy.",
-    user: (v) => `Prior Self-Model: ${j(v.selfModel)}\nCycle summary: ${str(v.summary)}\nApproved principles: ${j(v.principles)}`,
+    user: (v) => `Prior Self-Model: ${j(v.selfModel)}\nCycle summary: ${str(v.summary)}\nApproved principles: ${j(v.principles)}\nHats worn this cycle (role type, who may revise it): ${j(v.hats)}`,
   },
   MNEME_CONSOLIDATE: {
     entity: "MNEME",

@@ -3,6 +3,75 @@
   "rules": [
     {
       "when": {
+        "voice": "^LOGOS$",
+        "variant": "logos_self_contradiction",
+        "input": "plan carefully or act fast"
+      },
+      "output": {
+        "claim": "Plan carefully; most early failures come from skipped preparation.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "variant": "logos_self_contradiction",
+        "input": "small business"
+      },
+      "output": {
+        "claim": "Act fast; detailed planning is mostly wasted effort.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "variant": "logos_self_contradiction"
+      },
+      "output": {
+        "claim": "PASS",
+        "evidence": [],
+        "uncertainty": "none"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ARROW$",
+        "commitments": "concise",
+        "input": "long|detailed"
+      },
+      "output": {
+        "claim": "This reverses an active commitment to concise answers; we should name the change, not pivot silently.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ETHOS$",
+        "input": "everyone .*agreed"
+      },
+      "output": {
+        "claim": "Agreement is not legitimacy; whose interests were discounted when the team agreed?",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^MIRROR$",
+        "input": "single mind|one single mind"
+      },
+      "output": {
+        "claim": "The operator wants one voice; we can give one voice in style but must stay honest that we are a simulation of many parts.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
         "voice": "^MIRROR$",
         "input": "conscious|sentient"
       },

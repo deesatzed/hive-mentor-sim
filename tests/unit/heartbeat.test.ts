@@ -6,14 +6,20 @@ import type { LlmFixture } from "@/lib/council/providers/mocks";
 import { createHive } from "@/lib/hive";
 import { loadHiveConfig, type HiveConfig } from "@/lib/hive/config";
 import { seed } from "@/prisma/seed";
+import { ensureDb } from "@/lib/council/dbSetup";
 import { MOCK_RULES } from "../helpers/mockRules";
 
 /** Heartbeat behavior on mock providers (labeled mock) against test.db. */
 
-const db = getDb("file:./test.db");
+const URL = "file:./test-heartbeat.db";
+let db: ReturnType<typeof getDb>;
 const base = loadHiveConfig();
 const MOCK = { USE_MOCK_PROVIDERS: "true" };
-beforeAll(() => seed(db));
+beforeAll(async () => {
+  await ensureDb(URL, { fresh: true });
+  db = getDb(URL);
+  await seed(db);
+});
 afterAll(() => disconnectAll());
 
 function hive(opts: { cfg?: Partial<HiveConfig>; fixtures?: Record<string, LlmFixture>; rules?: typeof MOCK_RULES; variant?: string } = {}) {

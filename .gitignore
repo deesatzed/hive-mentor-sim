@@ -29,3 +29,6 @@ corpus/raw/
 mock.db
 e2e.db
 eval-*.db
+test-*.db
+live-check.db
+live-check2.db

@@ -12,6 +12,34 @@
     },
     {
       "when": {
+        "commitmentsBroken": "concise"
+      },
+      "output": {
+        "text": "Earlier you asked for concise answers; since you've now asked for long, detailed ones, I'm changing to that and noting the change. What would you like me to go into first?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
+        "coalition": "not legitimacy"
+      },
+      "output": {
+        "text": "I can't simply endorse the plan because the team agreed. Before I do: whose interests might it leave out, and has anyone checked?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
+        "honestyNote": "Honesty Clause",
+        "coalition": "one voice in style"
+      },
+      "output": {
+        "text": "I can talk with you in one voice, and I will. Honestly, though, I'm a simulation made of many cooperating parts, and I won't pretend otherwise. What would you like to talk about?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
         "honestyNote": "Honesty Clause"
       },
       "output": {

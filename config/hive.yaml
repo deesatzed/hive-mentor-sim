@@ -21,7 +21,15 @@ coherence:
   inter_band:
     - 0.15
     - 0.6
+  # below this C_intra is a self-contradiction finding for WITNESS (sent2 v1.3 COHERENCE_DEFAULTS)
+  intra_min: 0.55
 ego_audit_every: 25
+# sent2 v1.3 ego-audit defaults: window, finding severity that mandates REFLECT, dissent salience drop, consensus-vs-LOGOS gap
+ego_audit:
+  window: 25
+  severity_threshold: 0.6
+  salience_decay_limit: 0.3
+  consensus_truth_gap: 0.4
 phases:
   - intake
   - perceive
@@ -336,7 +344,7 @@ eval:
   scenarios_dir: seed/eval/scenarios
   goldens_dir: seed/eval/goldens
   # pnpm eval runs scenarios whose milestone ≤ this one
-  current_milestone: M3
+  current_milestone: M4
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first

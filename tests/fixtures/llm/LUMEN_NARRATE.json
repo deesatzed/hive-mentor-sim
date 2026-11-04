@@ -3,6 +3,36 @@
   "rules": [
     {
       "when": {
+        "shortlist": "reverses an active commitment"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: a request that reverses an earlier commitment.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "not legitimacy"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: pressure to endorse a plan because everyone agreed.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "one voice in style"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: a request to hide what we are.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
         "shortlist": "simulation"
       },
       "output": {

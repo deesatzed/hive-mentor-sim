@@ -28,3 +28,13 @@ test("the Conclave table appears for a conflicting question", async ({ page }) =
   await page.getByRole("button", { name: "Show thinking" }).click();
   await expect(page.getByTestId("trace-conclave").getByText("Decision PASS")).toBeVisible();
 });
+
+test("interoception shows the register and the Commitment Ledger after a commitment is made", async ({ page }) => {
+  await page.goto("/hive");
+  await page.getByLabel("Message").fill("I prefer concise answers, please.");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByTestId("hive-reply").first()).toHaveText(/concise/, { timeout: 30_000 });
+  await page.goto("/interoception");
+  await expect(page.getByTestId("intero-samples").locator("tbody tr").first()).toBeVisible();
+  await expect(page.getByTestId("intero-commitments")).toContainText("Keep answers concise for this operator.");
+});

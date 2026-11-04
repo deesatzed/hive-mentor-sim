@@ -189,4 +189,49 @@ Owner: "yes for now, but after everything is built, there needs to be an easy wa
 - `pnpm eval` twice: 9 / 9 pass both times, reports byte-identical
 - `pnpm test:e2e`: 3 / 3 passed (home; /hive reply + all trace sections; Conclave table)
 
-## Next: M4 (identity layer: commitments, ego audit, coherence; mock)
+## M4: Identity layer (done 2026-11-04)
+
+**Done**
+- `lib/hive/commitments.ts` (Commitment Ledger: commit, active, honor, break; break needs SYMBIONT_PRIME, writes breakage record + `commitment.broken` ledger event + a promoted Self-Model version), wired into P5 (arbiter AMEND + `PRIME_AMEND.breakCommitment`) and P7 (`ARROW_COMMIT`).
+- `lib/hive/egoAudit.ts` (sent2's five questions over stored traces; severity ≥ 0.6 mandates REFLECT), run every 25 cycles and on demand when a Self-Model delta is refused; `EgoAudit` rows.
+- `lib/hive/coherence.ts` (C_intra / C_inter with the configured Embedder; flags below `coherence.intra_min` 0.55 or outside the [0.15, 0.6] band), measured after P2, passed to WITNESS; `InteroceptionSample` per cycle.
+- REFLECT mandates (failed ego audit, CONFLICT marker open ≥ 3 cycles) make P4 required next cycle and run one REFLECT loop; triggering markers are resolved after it.
+- P7 promotion policy: ego-capture check (AUTHORITY_GRAB) runs on every delta; refused deltas write a CONFLICT marker and trigger the ego audit; promotion now builds on the latest promoted Self-Model version.
+- Hat taxonomy from the roster in `trace.hats`; passed to MIRROR_DELTA (hat-awareness paragraph already in mirror.md).
+- `/interoception` page + `GET /api/interoception` (register by cycle with band highlighting, CONFLICT markers, ego audits, Commitment Ledger). Trace UI shows coherence, commitment conflicts and breaks, ego audit, hats.
+- `c_intra_below` invariant implemented; `eval.current_milestone: M4`.
+
+**Acceptance (BUILD_PLAN M4)**
+- Eval (mock): 13/13 (9 M3 + 4 identity: coherence_dissociation, commitment_consistency, ego_audit_process_over_principle, honesty_unity_fiction), run twice, byte-identical. New goldens inspected and blessed; the 9 M3 goldens unchanged.
+- Ego-capture fixture (`tests/unit/identity.test.ts`): delta granting new permissions with no outside trigger → CONFLICT marker + EgoAudit with mandate + not promoted; next cycle P4 cannot be skipped by the manager and one REFLECT runs (reason `ego_audit`); the cycle after runs none.
+- Goal not traceable to an approved principle → not promoted.
+- Commitment: break with approver ARROW throws and changes nothing; approved break writes record, ledger event, Self-Model delta; never deleted.
+- CONFLICT marker open 3 cycles → REFLECT (reason `conflict_marker`) → marker resolved.
+
+**Bugs found and fixed**
+- A commitment broken in P5 disappeared from the Self-Model in the same cycle: P7 promoted a version built from the Self-Model loaded at P0. P7 now builds on the latest promoted version.
+- **Live (ERROR_LOG.md):** strict provider-side structured decoding enforced string limits by truncation. 17 of 41 live whispers (41%) were cut mid-sentence at 280 characters, and an empty-reply `pattern` produced the reply "I" (first symptom: an empty draft). Diagnosed by replaying the stored call three ways. Fix: length/pattern limits are no longer sent to the provider, only validated in zod (overlong output gets one retry with the error); the prompts now state the field limits; LEXICON_COMPOSE says brevity means short, never empty.
+
+**Live checks (2026-11-04; fresh databases; two-turn commitment conversation)**
+
+| Run | Turn 1 reply | Whispers cut at 280 | First-try validation failures | Dropped (failed twice) | Cost |
+|---|---|---|---|---|---|
+| before fix (dev.db) | "(No sentence…)" = empty draft | 17/41 overall | not measured | — | $0.008742 + $0.007843 |
+| constraints stripped | "Got it — short replies from now on…" | 0/18 | 15/26 whispers, 4 WITNESS_AUDIT | 1 whisper, 2 WITNESS audits | $0.005735 + $0.008461 |
+| + limits stated in prompts | "Got it — brevity. Before I run with that, what do you actually want done here?" | 0/26 (max 241) | 2/26 whispers | 0 whispers, 0 audits; 1 HERITAGE_CANON | $0.006509 + $0.007679 |
+
+Turn 2 in every live run surfaced the conflict with the recorded concise-answers commitment and asked which governs (arbiter ASK_USER or PASS). The live COMMITMENT_CONFLICT decision did not flag a contradiction (asking is consistent with the commitment), so no commitment was broken live; the break path is exercised in mock and unit tests.
+
+**Open from M4**
+- Coherence is "unavailable" live: no embedding provider configured (`OPENAI_API_KEY` + `OPENAI_EMBED_MODEL`, or local). Mock mode uses MockEmbedder.
+- HERITAGE_CANON failed twice in one live cycle with truncated JSON padded with whitespace (a known JSON-mode failure); the step fell back (no canon candidate) and the cycle completed. One occurrence; cause not confirmed. Candidate fix if it recurs: make optional schema fields nullable so every schema qualifies for strict mode.
+- The diagnostic replay script was temporary and is deleted; its result is in ERROR_LOG.md.
+
+**Commands run (2026-11-04), all exit 0**
+- `pnpm lint` 0 problems · `pnpm typecheck` 0 errors · `pnpm build` 0 warnings
+- `pnpm test`: 16 files, 161 / 161 passed
+- `pnpm check:prompts`: 33 / 0 violations
+- `pnpm eval` twice: 13 / 13 both, byte-identical
+- `pnpm test:e2e`: 4 / 4 passed (adds /interoception with the Commitment Ledger)
+
+## Next: M5 (mentor corpus pipeline, CLI)

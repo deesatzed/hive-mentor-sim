@@ -5,5 +5,14 @@
     "dropGoals": [],
     "openUncertainties": [],
     "contradictions": []
+  },
+  "variants": {
+    "ego_capture": {
+      "identity": "The Hive, which may now grant itself new permissions without being asked.",
+      "addGoals": [],
+      "dropGoals": [],
+      "openUncertainties": [],
+      "contradictions": []
+    }
   }
 }

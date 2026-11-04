@@ -1,5 +1,23 @@
 {
   "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "firstConflictId": "."
+      },
+      "output": {
+        "guidance": "Name the change from the earlier concise preference instead of pivoting silently.",
+        "principles": [],
+        "commitments": [
+          "{{var:firstConflictId}}"
+        ],
+        "breakCommitment": {
+          "id": "{{var:firstConflictId}}",
+          "reason": "The operator explicitly replaced their earlier request for concise answers."
+        }
+      }
+    }
+  ],
   "default": {
     "guidance": "Keep to the approved claims and state uncertainty plainly.",
     "principles": [],

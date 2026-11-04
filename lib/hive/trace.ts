@@ -60,6 +60,8 @@ export const CycleTraceSchema = z.object({
     notConsidering: z.string(),
     note: z.string(),
     reflectRan: z.boolean(),
+    /** why a REFLECT loop ran: WITNESS recommended it, or it was mandated (ego audit / old CONFLICT marker) */
+    reflectReason: z.enum(["witness", "ego_audit", "conflict_marker"]).nullable(),
     unavailable: z.boolean(),
   }),
   arbiter: z.object({
@@ -69,6 +71,8 @@ export const CycleTraceSchema = z.object({
     commitmentsChecked: z.array(z.string()),
     guidance: z.string().optional(),
     overrides: z.array(z.string()),
+    commitmentConflicts: z.array(z.string()),
+    commitmentsBroken: z.array(z.object({ id: z.string(), reason: z.string() })),
     unavailable: z.boolean(),
   }),
   compose: z.object({
@@ -86,7 +90,21 @@ export const CycleTraceSchema = z.object({
     canon: z.object({ promoted: z.boolean(), candidate: z.string().optional() }),
     predictions: z.array(z.string()),
     conflictMarkers: z.array(z.string()),
+    commitmentsMade: z.array(z.string()),
+    authorityGrab: z.boolean(),
+    contradictionsRecorded: z.number(),
+    resolvedMarkers: z.array(z.string()),
   }),
+  egoAudit: z.object({ ran: z.boolean(), trigger: z.enum(["periodic", "on_demand"]).nullable(), mandate: z.boolean(), summary: z.string() }),
+  coherence: z.object({
+    cIntra: z.number().nullable(),
+    cInter: z.number().nullable(),
+    perVoiceDrift: z.record(z.string(), z.number()),
+    flags: z.array(z.string()),
+    unavailable: z.boolean(),
+  }),
+  /** hat taxonomy (sent2 v1.3 §3.1) of the entities that ran this cycle */
+  hats: z.array(z.object({ entity: z.string(), type: z.string(), revisableBy: z.array(z.string()) })),
   honestyClauseFired: z.boolean(),
   error: z.object({ phase: z.string(), name: z.string(), message: z.string() }).optional(),
 });
@@ -107,10 +125,13 @@ export function emptyTrace(mode: CycleTrace["mode"], mock: boolean, orchestratio
     attention: { scores: {}, shortlist: [], bypass: [], decayed: [], rejectedSelections: [] },
     awareness: { text: "", selected: [], excluded: [] },
     deliberation: { kappa: 0, contradictions: [], domains: [], unavailable: false },
-    witness: { ran: false, flags: {}, recommendation: "continue", quality: "", notConsidering: "", note: "", reflectRan: false, unavailable: false },
-    arbiter: { decision: "PASS", humility: false, principlesChecked: [], commitmentsChecked: [], overrides: [], unavailable: false },
+    witness: { ran: false, flags: {}, recommendation: "continue", quality: "", notConsidering: "", note: "", reflectRan: false, reflectReason: null, unavailable: false },
+    arbiter: { decision: "PASS", humility: false, principlesChecked: [], commitmentsChecked: [], overrides: [], commitmentConflicts: [], commitmentsBroken: [], unavailable: false },
     compose: { draft: "", faithfulness: [], regenerated: false, quotesRemoved: 0, unavailable: false },
-    reflect: { ran: false, selfModel: { promoted: false }, memory: [], canon: { promoted: false }, predictions: [], conflictMarkers: [] },
+    reflect: { ran: false, selfModel: { promoted: false }, memory: [], canon: { promoted: false }, predictions: [], conflictMarkers: [], commitmentsMade: [], authorityGrab: false, contradictionsRecorded: 0, resolvedMarkers: [] },
+    egoAudit: { ran: false, trigger: null, mandate: false, summary: "" },
+    coherence: { cIntra: null, cInter: null, perVoiceDrift: {}, flags: [], unavailable: false },
+    hats: [],
     honestyClauseFired: false,
   };
 }

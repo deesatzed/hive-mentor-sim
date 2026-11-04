@@ -67,8 +67,23 @@ export function isStrictCompatible(schema: JsonSchema): boolean {
   return walk(schema);
 }
 
+/** String constraints that strict provider-side decoding enforces by cutting text mid-word (ERROR_LOG.md, M4). */
+const PROVIDER_STRIPPED_KEYS = new Set(["maxLength", "minLength", "pattern"]);
+
+function stripStringConstraints(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(stripStringConstraints);
+  if (!node || typeof node !== "object") return node;
+  return Object.fromEntries(Object.entries(node as Record<string, unknown>).filter(([k]) => !PROVIDER_STRIPPED_KEYS.has(k)).map(([k, v]) => [k, stripStringConstraints(v)]));
+}
+
+/**
+ * The JSON schema sent to the provider. Length and pattern limits are removed: strict structured
+ * decoding enforced them by truncating strings (41% of live whispers cut at 280 chars; an empty-reply
+ * pattern produced "I"). They stay in the zod schema, so a violating output fails validation and gets
+ * one retry quoting the error instead of being silently cut.
+ */
 export function jsonSchemaFor(schema: z.ZodType): JsonSchema {
-  const js = z.toJSONSchema(schema) as JsonSchema;
+  const js = stripStringConstraints(z.toJSONSchema(schema)) as JsonSchema;
   delete js.$schema;
   return js;
 }

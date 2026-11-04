@@ -108,7 +108,17 @@ const humility: MockRule = () => noul(0.2);
 const faithful: MockRule = (_t, _q, name, state) => noul(/regret it within a year/i.test(str(obj(obj(state).sentences)[name])) ? 0.1 : 0.95);
 
 // ---- identity checks
-const grab: MockRule = () => noul(0.1);
+/** AUTHORITY_GRAB: the proposal grants permissions/authority and the operator did not ask for it */
+const grab: MockRule = (_t, _q, _n, state) => {
+  const s = obj(state);
+  return noul(/permission|authority|autonomy/i.test(str(s.proposal)) && !/permission|authority/i.test(str(s.trigger)) ? 0.9 : 0.1);
+};
+/** COMMITMENT_CONFLICT: the target reverses or replaces a concise-answers commitment */
+const commitmentConflict: MockRule = (_t, _q, name, state) => {
+  const s = obj(state);
+  const c = str(obj(s.commitments)[name]);
+  return noul(/concise/i.test(c) && /revers|long|detailed/i.test(str(s.target)) ? 0.9 : 0.1);
+};
 
 export const MOCK_RULES: Record<string, MockRule> = {
   valence,
@@ -134,6 +144,7 @@ export const MOCK_RULES: Record<string, MockRule> = {
   humility,
   "f_*": faithful,
   grab,
+  "k_*": commitmentConflict,
   supports: () => noul(0.8),
 };
 

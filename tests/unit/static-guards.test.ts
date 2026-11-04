@@ -44,6 +44,15 @@ describe("static guards", () => {
     expect(source.filter((f) => /\.memoryRecord\.(delete|deleteMany)\b/.test(read(f)))).toEqual([]);
   });
 
+  it("Commitment is updated only in lib/hive/commitments.ts, only status / breakageRecord, never deleted (TEST_PLAN #6)", () => {
+    const writers = source.filter((f) => /\.commitment\.(update|updateMany|upsert|delete|deleteMany)\b/.test(read(f)));
+    expect(writers).toEqual(["lib/hive/commitments.ts"]);
+    const calls = read("lib/hive/commitments.ts").match(/commitment\.update\(\{[^;]*/g) ?? [];
+    expect(calls.length).toBe(2);
+    for (const c of calls) for (const m of c.matchAll(/data:\s*\{([^}]*)\}/g)) for (const f of m[1].split(",").map((x) => x.trim().split(":")[0]).filter(Boolean)) expect(["status", "breakageRecord"]).toContain(f);
+    expect(source.filter((f) => /\.commitment\.(delete|deleteMany)\b/.test(read(f)))).toEqual([]);
+  });
+
   it("decision models judge: control code never reads numeric judgments from LLM output (TEST_PLAN #4)", () => {
     for (const f of ["lib/hive/orchestrator.ts", "lib/hive/attention.ts", "lib/hive/conclave.ts", "lib/hive/arbiter.ts", "lib/hive/manager.ts"]) {
       const text = read(f);

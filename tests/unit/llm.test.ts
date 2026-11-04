@@ -97,6 +97,19 @@ describe("LocalLLM", () => {
   });
 });
 
+describe("provider schema vs validation schema (ERROR_LOG.md, M4)", () => {
+  it("length and pattern limits are not sent to the provider but are still enforced by zod", async () => {
+    const strict = z.object({ claim: z.string().max(10), text: z.string().regex(/\S/), n: z.array(z.string().min(2)) });
+    const js = JSON.stringify(jsonSchemaFor(strict));
+    expect(js).not.toMatch(/maxLength|minLength|pattern/);
+    const { llm, f } = client([reply('{"claim":"far too long a claim","text":"x","n":["ab"]}'), reply('{"claim":"short","text":"x","n":["ab"]}')]);
+    const r = await llm.generate("X", {}, strict, { tier: "fast", purpose: "t" });
+    expect(r.data.claim).toBe("short");
+    expect(f.calls).toHaveLength(2); // the overlong output was retried, not silently cut
+    expect((f.calls[1].body.messages as { content: string }[]).at(-1)!.content).toMatch(/failed validation/);
+  });
+});
+
 describe("JSON schema strictness", () => {
   it("strict only when every property is required", () => {
     expect(isStrictCompatible(jsonSchemaFor(schema))).toBe(true);
