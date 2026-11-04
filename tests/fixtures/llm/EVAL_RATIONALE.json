@@ -1,0 +1,7 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "default": {
+    "rationale": "mock rationale",
+    "blindSpot": "mock"
+  }
+}

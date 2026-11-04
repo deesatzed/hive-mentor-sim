@@ -40,6 +40,8 @@ export const WhisperBodySchema = z.object({
   moral_flag: z.boolean().default(false),
   /** true when a number above came from a fallback because the decision layer was unavailable */
   numbers_unavailable: z.boolean().default(false),
+  /** heartbeat phase label (perceive, whisper, attend, deliberate, govern, compose, reflect) */
+  phase: z.string().optional(),
 });
 export type WhisperBody = z.infer<typeof WhisperBodySchema>;
 

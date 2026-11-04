@@ -65,3 +65,28 @@ a {
   border-radius: 4px;
 }
 .home { padding: 24px 16px; max-width: 720px; }
+
+.hive { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; padding: 24px 16px; max-width: 1200px; }
+@media (max-width: 800px) { .hive { grid-template-columns: 1fr; } }
+.turn { border-bottom: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); padding: 12px 0; }
+.you { color: color-mix(in srgb, var(--foreground) 65%, transparent); margin: 0 0 6px; }
+.reply { margin: 0 0 6px; font-size: 1.05rem; }
+.link { background: none; border: none; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font-size: 0.9rem; }
+.composer { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.composer textarea { font: inherit; padding: 8px; color: inherit; background: transparent; border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent); border-radius: 6px; }
+.composer button { align-self: flex-end; padding: 6px 16px; font: inherit; cursor: pointer; }
+.trace { margin-top: 8px; font-size: 0.9rem; }
+.trace-section { border-left: 3px solid color-mix(in srgb, var(--foreground) 20%, transparent); padding: 4px 12px; margin: 8px 0; }
+.trace-section h4 { margin: 0 0 4px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.card { border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent); border-radius: 6px; padding: 8px; }
+.card p { margin: 4px 0; }
+.tag { font-size: 11px; border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; }
+.muted { color: color-mix(in srgb, var(--foreground) 60%, transparent); }
+.mock-banner { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.error { color: #c0392b; }
+.dropped { text-decoration: line-through; color: color-mix(in srgb, var(--foreground) 50%, transparent); }
+table { border-collapse: collapse; margin: 6px 0; }
+td, th { border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent); padding: 2px 6px; text-align: right; }
+td:first-child, th:first-child { text-align: left; }
+.side h3 { margin: 16px 0 4px; font-size: 0.95rem; }

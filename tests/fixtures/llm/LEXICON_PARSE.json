@@ -1,0 +1,33 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "input": "!!!"
+      },
+      "output": {
+        "intent": "get help now",
+        "subtext": "frustration at not being helped",
+        "register": "distressed",
+        "literal": "{{var:input}}"
+      }
+    },
+    {
+      "when": {
+        "input": "\\?"
+      },
+      "output": {
+        "intent": "ask",
+        "subtext": "",
+        "register": "casual",
+        "literal": "{{var:input}}"
+      }
+    }
+  ],
+  "default": {
+    "intent": "share",
+    "subtext": "",
+    "register": "casual",
+    "literal": "{{var:input}}"
+  }
+}

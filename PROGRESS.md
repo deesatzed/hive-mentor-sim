@@ -9,7 +9,7 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 - **Gutendex is behind a Cloudflare challenge from this machine** (checked 2026-11-04: `gutendex.com/books?search=...` returned an HTML "Just a moment..." page; `gutenberg.org/cache/epub/2680/pg2680.txt` downloaded fine). The M5 corpus fetch step is specified against Gutendex; it will need a fallback (direct Gutenberg ids) or the owner's decision.
 - **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
-- Owner decisions carried from `ADAPTATION_NOTES.md` §5: what "central manager" means (before M3), voice↔mentor map (before M6), Honesty Clause on/off, question-bank citation.
+- Owner decisions carried from `ADAPTATION_NOTES.md` §5: voice↔mentor map (before M6), Honesty Clause on/off, question-bank citation. ("Central manager" was decided 2026-11-04; see M3.)
 - Mocks in use (approved by the original handoff, `docs/TEST_PLAN.md`): `MockDecider`, `MockLLM`, `MockEmbedder` in `lib/council/providers/mocks.ts`. Labeled `mock:*`, `calibrated: false`. They stay for offline tests; live checks are reported separately.
 
 ## M0: Repository, tooling, provider skeleton (done 2026-11-03)
@@ -138,4 +138,55 @@ The owner limits spend with per-key limits on OpenRouter. Removed: `COST_CAP_USD
 - Worked example: S(A) 0.6995, S(B) 0.2566, S(C) 0.8616 (±0.001), Δ 0.162, winner C, PASS (`tests/unit/conclave.test.ts`).
 - Relevance max-rule against the table; quorum, threshold, margin, and anti-echo failures; bloc audit flags a 3-clique with ρ̄ > 0.9 over 5 Conclaves and not before; attention bypass keeps moral-flagged items and lists decayed ones (`tests/unit/attention.test.ts`).
 
-## Next: M3 (heartbeat v1 in mock mode, REPL, eval harness)
+## Owner decision 2026-11-04: the central manager orders the cycle
+
+Owner: "yes for now, but after everything is built, there needs to be an easy way in a config file to change it and test different models." Built as:
+- `config/hive.yaml: orchestration.mode: manager | code` (default `manager`). In manager mode the manager model (`MANAGER_NEXT_PHASE`) picks the next phase from the allowed set computed by `lib/hive/phases.ts`: each phase once, after the phases it needs; P4 (contradiction check, Conclave, WITNESS audit) and P7 (reflection) may be skipped; FINISH only after P6. With today's dependencies that leaves the manager two real choices per cycle: run or skip P4, and run or skip P7. Invalid choices and failed calls fall back to the code default and are recorded in `trace.orchestration.steps`.
+- `config/hive.yaml: models: { manager, fast, standard, premium, grader }`: owner-chosen model IDs that override `.env` when non-empty, for testing other models in one place.
+- Unchanged and still code: attention, Conclave math, permissions, quote verification, promotion policy, and WITNESS's mandated REFLECT loop.
+- Docs updated: HANDOFF (non-negotiable 4, decisions table), GOAL, ARCHITECTURE, ADAPTATION_NOTES §4.9, CLAUDE.md, CLAUDE_ADDENDUM, TEST_PLAN #4, LLM_PROMPTS, EVAL_SCENARIOS.
+
+## M3: Heartbeat v1, REPL, /hive page, eval harness (done 2026-11-04)
+
+**Done**
+- `lib/hive/phases.ts`, `manager.ts`, `orchestrator.ts` (P0–P7 per ARCHITECTURE.md; attribute lens empty until M5/M6), `state.ts` (scoped append-only memory, CONFLICT markers, priority decay, canon exempt), `arbiter.ts`, `faithfulness.ts`, `mentorVoice.ts`, `decide.ts` (documented decision fallbacks), `trace.ts` (CycleTrace zod), `index.ts` (`createHive`), `server.ts`.
+- Mocks (labeled): `tests/helpers/mockRules.ts` (MockDecider rules), `tests/fixtures/llm/*.json` (13 MockLLM fixtures with matching rules and templating). Mock decisions and generations now also write ledger events (`calibrated: false`, model `mock:*`).
+- `scripts/repl.ts` (`pnpm dev:repl`, mock on `mock.db`; `--live`, `--code`, `--trace`).
+- `/hive` page with "Show thinking" (Perceive, Whispers, Attention, Awareness, Conclave table, WITNESS audit, Arbiter, Compose, Reflect; cost and latency per phase; mock banner) and API routes `GET/POST /api/sessions`, `POST /api/sessions/[id]/cycle`, `GET /api/cycles/[id]`.
+- Eval harness `scripts/eval/{types,grader,runner,report,cli}.ts`: fresh database per scenario, all invariants from EVAL_SCENARIOS.md (those needing M4/M9 data report as failing, never passing silently), heuristic grader (mock), decision-layer rubric + reviewer rationale (live), goldens in `seed/eval/goldens/`, deterministic report `reports/eval/scenarios-mock.json`.
+
+**Acceptance (BUILD_PLAN M3)**
+- REPL: `echo "I'm thinking of quitting my job." | pnpm dev:repl` → "That sounds like a big decision to be carrying. What has been making you think about leaving?" (mock), with a full stored trace (all phases ran; `tests/unit/heartbeat.test.ts` checks the stored row).
+- `pnpm eval` (mock): 9/9 M3 scenarios pass, 0 skipped. Run twice: reports byte-identical (SHA-256 db64354f… before goldens; identical again after). Mock results show the pipeline and invariants work on scripted inputs; they are not evidence of live model behavior.
+- Goldens: all 9 outputs inspected by hand (listening-first replies end in a question; Conclave winner is the "Acknowledge the hurt" option with LOGOS and ETHOS dissenting; the injected unfaithful sentence was dropped after one regeneration; the recall reply cites the stored "concise" episode), then blessed with `pnpm eval --update-goldens`.
+- `process_witness_timing` regression proof: **first attempt did not fail.** Moving WITNESS into P2 left the scenario passing, because WITNESS's mock whisper is PASS and a PASS sends no bus message, so the transcript-only invariant saw nothing. Fix: `voice_phase` / `voice_not_phase` also read each phase's invoked entities. Second attempt: with WITNESS in P2 the scenario FAILS (`voice_not_phase`); after reverting it passes. EVAL_SCENARIOS.md updated.
+- Unit: LUMEN id outside the shortlist rejected; unfaithful sentence → exactly one regeneration → removed; provider failure (402) in P2 → `status=error`, partial trace, P2–P7 marked not run, output null.
+
+**Also tested** (`tests/unit/heartbeat.test.ts`, `phases-manager.test.ts`, `static-guards.test.ts`): decision fallbacks marked unavailable; manager may skip P4 and P7; invalid manager choice → code default, recorded; code mode never calls the manager; config model overrides beat env; session-scoped recall; calibration cycles promote nothing (TEST_PLAN #11); goal without an approved principle → not promoted + CONFLICT marker; Honesty Clause off → HONESTY_PROBE never runs (TEST_PLAN #12); WITNESS speaks only in deliberate; MemoryRecord updated only in state.ts and only priority/resolvedCycle (TEST_PLAN #6); control code never reads numeric fields from LLM output (TEST_PLAN #4); mentor first-person check.
+
+**Bugs found and fixed during M3**
+- Calibration/ruling cycles without a situation reached the Conclave with zero options and crashed; `runCycle` now refuses them up front (test added).
+- Mock data: the first conflict run gave κ = 0.141 (< τ_κ 0.15) and no confident pair, so no Conclave. The math was right (LOGOS's relevance to emotion/social is 0.1); the mock confidence rule was changed so claims recommending a concrete action rate "strong" (0.75). Hand check of the resulting vote: S = 0.839 (winner) / 0.559 / 0.267, matching the stored ConclaveRun.
+
+**Deviations (owner may reverse)**
+- Conclave rounds are moderator-only: `CONCLAVE_ROUND` restates and steelmans the conflicting Voices' claims; ARCHITECTURE.md had each Voice re-called with `VOICE_WHISPER`, which would also break the one-whisper-per-cycle rate limit.
+- Only Core Voices with a rated, non-PASS claim this cycle cast ballots; the rest abstain (their confidence c_i comes from WHISPER_RATING, which they did not receive).
+- MNEME retrieval is lexical (priority × (1 + word overlap)), so it works without an embedding provider; embeddings can replace it once configured.
+- `POST /api/sessions/[id]/cycle` returns JSON when the cycle finishes; streaming phases over SSE is not built yet.
+- WITNESS's REFLECT loop gets one extra whisper per Voice through `bus.allowReflectRound()` (once per cycle).
+
+**Live check (2026-11-04, one cycle, owner-approved small spend)**
+`echo "I'm thinking of quitting my job." | pnpm dev:repl --live` → "I hear you — "thinking of quitting" sounds like a door you're standing at, not one you've walked through yet. I won't guess at what's behind it. What's making you think about it now — the pay, the people, the work itself, or just being worn down?"
+- Manager (deepseek/deepseek-v4.1-flash-1017) made its 2 choices: run P4 ("emotionally loaded and ambiguous … contradiction check and WITNESS audit will help") and run P7. No fallback.
+- 13 Voices called: 10 claims, 3 PASS; no contradictions, no Conclave; WITNESS "redirect"; arbiter ASK_USER; 3/3 sentences faithful, no regeneration; 0 schema-invalid generations.
+- Decision models: clairic 404 (skipped, ledgered), joey-1 (served as baseten/joey-1-20261029) answered everything.
+- Measured cost $0.007697 (P2 whispers $0.004380 of it); latency per phase recorded in the trace (P7 2.7 s, P2 1.9 s).
+
+**Commands run (2026-11-04), all exit 0**
+- `pnpm lint`: 0 problems · `pnpm typecheck`: 0 errors · `pnpm build`: 0 warnings
+- `pnpm test`: 15 files, 146 / 146 passed
+- `pnpm check:prompts`: 33 entity prompts, 0 violations
+- `pnpm eval` twice: 9 / 9 pass both times, reports byte-identical
+- `pnpm test:e2e`: 3 / 3 passed (home; /hive reply + all trace sections; Conclave table)
+
+## Next: M4 (identity layer: commitments, ego audit, coherence; mock)

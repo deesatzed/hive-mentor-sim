@@ -41,18 +41,31 @@ export const HiveConfigSchema = z.object({
     recent_growth: z.string(),
     open_uncertainties: z.array(z.string()),
   }),
-  eval: z.object({ scenarios_dir: z.string(), rubric_dimensions: z.array(z.string()) }),
+  eval: z.object({ scenarios_dir: z.string(), goldens_dir: z.string(), current_milestone: z.string().regex(/^M\d+$/), rubric_dimensions: z.array(z.string()) }),
+  orchestration: z.object({ mode: z.enum(["manager", "code"]), max_manager_steps: z.number().int().min(7) }),
+  models: z.object({
+    manager: z.string(),
+    fast: z.string(),
+    standard: z.string(),
+    premium: z.string(),
+    grader: z.string(),
+  }),
 });
 export type HiveConfig = z.infer<typeof HiveConfigSchema>;
 export const DOMAIN_NAMES = DOMAINS;
 
 let cached: HiveConfig | null = null;
 
-export function loadHiveConfig(file = path.join(process.cwd(), "config", "hive.yaml")): HiveConfig {
+export function loadHiveConfig(file = path.join(/*turbopackIgnore: true*/ process.cwd(), "config", "hive.yaml")): HiveConfig {
   return HiveConfigSchema.parse(YAML.parse(readFileSync(file, "utf8")));
 }
 
 export function hiveConfig(): HiveConfig {
   if (!cached) cached = loadHiveConfig();
   return cached;
+}
+
+/** Test hook: use a modified config for the rest of the process (or reset with null). */
+export function setHiveConfigForTests(cfg: HiveConfig | null): void {
+  cached = cfg;
 }

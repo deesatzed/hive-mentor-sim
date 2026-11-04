@@ -26,3 +26,6 @@ corpus/raw/
 *.pem
 .pnpm-debug.log*
 /generated/
+mock.db
+e2e.db
+eval-*.db

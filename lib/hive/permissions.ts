@@ -37,7 +37,7 @@ export class PermissionError extends Error {
   }
 }
 
-export function loadPermissions(file = path.join(process.cwd(), "constitution", "permissions.yaml")): PermissionsConfig {
+export function loadPermissions(file = path.join(/*turbopackIgnore: true*/ process.cwd(), "constitution", "permissions.yaml")): PermissionsConfig {
   return PermissionsSchema.parse(YAML.parse(readFileSync(file, "utf8")));
 }
 

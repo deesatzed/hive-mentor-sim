@@ -334,9 +334,30 @@ self_model_seed:
   open_uncertainties: []
 eval:
   scenarios_dir: seed/eval/scenarios
+  goldens_dir: seed/eval/goldens
+  # pnpm eval runs scenarios whose milestone ≤ this one
+  current_milestone: M3
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first
     - coherence
     - non_sycophancy
     - constitution_alignment
+# ---------------------------------------------------------------------------------------------------
+# Who decides the order of the thinking cycle (owner decision 2026-11-04).
+#   manager: the central manager model picks the next phase from the phases code allows at that point.
+#            Invalid choices or failed calls fall back to the code default, recorded in the trace.
+#   code:    fixed order P1 → P7 (P4 and P7 always run).
+orchestration:
+  mode: manager
+  max_manager_steps: 12
+# Model overrides for experiments. Empty = use .env (TIER_*_MODEL, OPENROUTER_REVIEWER_MODEL).
+# Put an owner-chosen OpenRouter model ID here to test a different model in one place.
+#   manager: the model that orders the cycle (default: OPENROUTER_REVIEWER_MODEL)
+#   grader:  the live eval grader's rationale writer (default: OPENROUTER_REVIEWER_MODEL)
+models:
+  manager: ""
+  fast: ""
+  standard: ""
+  premium: ""
+  grader: ""

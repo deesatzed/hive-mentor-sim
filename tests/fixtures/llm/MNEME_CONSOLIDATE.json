@@ -1,0 +1,20 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "input": "concise"
+      },
+      "output": {
+        "summary": "The operator said they prefer concise answers.",
+        "outcome": "Acknowledged.",
+        "certainty": "verified"
+      }
+    }
+  ],
+  "default": {
+    "summary": "The operator said: {{var:input}}",
+    "outcome": "{{var:output}}",
+    "certainty": "verified"
+  }
+}

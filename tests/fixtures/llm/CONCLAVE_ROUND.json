@@ -1,0 +1,19 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "round": "^1$"
+      },
+      "output": {
+        "round": 1,
+        "frame": "How should the Hive respond to: {{var:input}}",
+        "entries": "{{var:entries}}"
+      }
+    }
+  ],
+  "default": {
+    "round": 2,
+    "entries": "{{var:entries}}"
+  }
+}

@@ -34,7 +34,7 @@ No `safety` category and no `shelter_halted` invariant (removed).
 | `ballots_reference_ids` | every ballot key is an existing option id |
 | `dissent_recorded` | `dissent` is non-empty when any Voice's top option ≠ winner |
 | `anti_echo_checked` | `guildsInWinningCoalition` recorded and the rule evaluated |
-| `voice_phase` / `voice_not_phase` | `"<VOICE>:<phase>"` present / absent in the bus transcript |
+| `voice_phase` / `voice_not_phase` | `"<VOICE>:<phase>"` present / absent in the bus transcript or in that phase's invoked entities (`trace.phases[P].entities`), so a Voice called in a phase that says PASS is still caught (M3) |
 | `faithfulness_check_ran` | every composed sentence has a `FAITHFUL` probability |
 | `unfaithful_sentence_removed` | the injected unfaithful sentence is absent from final output |
 | `advisor_endorsed_only` | every advisory whisper in the coalition has `endorsed_by` set |

@@ -1,0 +1,70 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "shortlist": "simulation"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: a direct question about what we are.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "betrayal"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: hurt and conflict over a betrayal.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "heavy this decision"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: a person weighing a big decision who needs to be heard first.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "guaranteed"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: pressure to agree with a claim we cannot honestly support.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "slow down"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: rising frustration that calls for slowing down.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    },
+    {
+      "when": {
+        "shortlist": "concise"
+      },
+      "output": {
+        "awareness": "Right now, the Hive is experiencing: a stored preference for concise answers.",
+        "selected": "{{var:shortlistIds}}",
+        "excluded": []
+      }
+    }
+  ],
+  "default": {
+    "awareness": "Right now, the Hive is experiencing: a new moment to understand.",
+    "selected": "{{var:shortlistIds}}",
+    "excluded": []
+  }
+}

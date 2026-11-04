@@ -29,3 +29,13 @@ pnpm dev                             # http://localhost:3000
 ```
 
 Tests and e2e run with `USE_MOCK_PROVIDERS=true` and need no API keys. Live mode reads every model ID from `.env`.
+
+```
+pnpm dev:repl                        # chat in the terminal on mock providers (scripted; db mock.db)
+pnpm dev:repl --live                 # live providers from .env (costs money; cost printed per cycle)
+pnpm eval                            # mock scenario suite; report in reports/eval/scenarios-mock.json
+```
+
+**Who orders the thinking cycle, and which models run:** `config/hive.yaml`
+- `orchestration.mode: manager` (the central model picks the next phase among those code allows) or `code` (fixed order).
+- `models: { manager, fast, standard, premium, grader }`: put an OpenRouter model ID here to try a different model; empty means use `.env`.

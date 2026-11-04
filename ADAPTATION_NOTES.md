@@ -58,10 +58,11 @@ A test (`tests/unit/removed-items.test.ts`, `docs/TEST_PLAN.md` §3) fails if pr
 
 8. **No spending cap** (owner, 2026-11-04). The owner limits spend with per-key limits on OpenRouter. `COST_CAP_USD`, `BudgetExceededError`, and the budget-exceeded cycle status are removed; `costMeter` only records measured spend.
 
+9. **Central manager orders the cycle** (owner, 2026-11-04: "yes for now, but after everything is built, there needs to be an easy way in a config file to change it and test different models"). The reviewer model also picks the next phase among those code allows. `config/hive.yaml: orchestration.mode: manager | code` switches it; `config/hive.yaml: models` overrides the manager, tier, and grader model IDs in one place.
+
 ## 5. Open items for the owner
 
 - After the proof of concept: decide whether to split the text tiers across different models.
-- "Central manager": confirm it means the single model behind all text and grading (as built), not an AI that directs the cycle (that would replace the code orchestrator and needs a scope decision).
 - Decision-model chain: verified live on 2026-11-03 (owner approved). `cloudflare/clairic` (slot 1) returns 404 and is skipped by the client on every run until removed from `.env`; joey-1, d1.1, pplx-decider-v1.2 work. The owner decides whether to drop clairic from `.env`.
 - Confirm the target repository path and remote for `hive-mentor-sim`.
 - Approve or edit `seed/voice_mentor_map.json` (also editable in the app at Formation).

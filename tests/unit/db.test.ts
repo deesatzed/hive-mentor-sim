@@ -8,9 +8,9 @@ const db = getDb("file:./test.db");
 afterAll(() => disconnectAll());
 
 describe("seed (test.db)", () => {
-  it("loads every seed file and is idempotent", async () => {
+  it("loads every seed file and is idempotent (independent of which test file seeded first)", async () => {
     const first = await seed(db);
-    expect(first).toEqual({ situations: 49, mentors: 18, voices: 33, formationMembers: 33, selfModelCreated: true, formationCreated: true });
+    expect(first).toMatchObject({ situations: 49, mentors: 18, voices: 33, formationMembers: 33 });
     const second = await seed(db);
     expect(second.selfModelCreated).toBe(false);
     expect(second.formationCreated).toBe(false);
@@ -19,6 +19,7 @@ describe("seed (test.db)", () => {
     expect(await db.mentor.count({ where: { active: true } })).toBe(0); // only a corpus build activates
     expect(await db.voice.count({ where: { class: "core" } })).toBe(15);
     expect(await db.voice.count({ where: { class: "advisor" } })).toBe(16);
+    expect(await db.formation.count({ where: { version: 1 } })).toBe(1);
     const sm = await db.selfModelVersion.findUniqueOrThrow({ where: { version: 1 } });
     expect(JSON.parse(sm.body)).toEqual(loadHiveConfig().self_model_seed);
   });

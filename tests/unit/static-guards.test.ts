@@ -32,6 +32,25 @@ describe("static guards", () => {
     expect(hits).toEqual([]);
   });
 
+  it("MemoryRecord is updated only in lib/hive/state.ts, and only priority / resolvedCycle (TEST_PLAN #6)", () => {
+    const writers = source.filter((f) => /\.memoryRecord\.(update|updateMany|upsert|delete|deleteMany)\b/.test(read(f)));
+    expect(writers).toEqual(["lib/hive/state.ts"]);
+    const calls = read("lib/hive/state.ts").match(/memoryRecord\.(update|updateMany)\([^;]*/g) ?? [];
+    expect(calls.length).toBeGreaterThan(0);
+    for (const c of calls) {
+      const fields = [...c.matchAll(/data:\s*\{\s*(\w+)/g)].map((m) => m[1]);
+      for (const f of fields) expect(["priority", "resolvedCycle"]).toContain(f);
+    }
+    expect(source.filter((f) => /\.memoryRecord\.(delete|deleteMany)\b/.test(read(f)))).toEqual([]);
+  });
+
+  it("decision models judge: control code never reads numeric judgments from LLM output (TEST_PLAN #4)", () => {
+    for (const f of ["lib/hive/orchestrator.ts", "lib/hive/attention.ts", "lib/hive/conclave.ts", "lib/hive/arbiter.ts", "lib/hive/manager.ts"]) {
+      const text = read(f);
+      expect(text, f).not.toMatch(/\.data\.(confidence|salience|valence|score|decision|probability)\b/);
+    }
+  });
+
   it("no ad-hoc model fetch outside lib/council/providers", () => {
     const hits = source.filter(
       (f) => !f.startsWith("lib/council/providers/") && /openrouter\.ai|api\.openai\.com|\/chat\/completions/.test(read(f)) && f !== "scripts/verify-live.ts",

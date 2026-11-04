@@ -149,6 +149,10 @@ Each begins with `_shared.md` filled for the named entity.
 
 **ARROW_COMMIT** (ARROW, standard, 0.2) — "List commitments the composed output makes (stated position, refusal, promise, canon adoption)." Schema `{ commitments: Array<{ text: string, costType: 'reputational'|'relational'|'epistemic'|'ethical' }> }`.
 
+**MANAGER_NEXT_PHASE** (central manager, standard tier, temperature 0; owner decision 2026-11-04) — complete system prompt in `lib/hive/prompts.ts`. User: operator input (untrusted), mode, phases run so far with one-line results, allowed next steps, code default. Schema `{ next: <one of the allowed steps>, reason: string ≤ 240 }`; the enum is narrowed per call and validated in code. Model: `config/hive.yaml: models.manager`, else `OPENROUTER_REVIEWER_MODEL`.
+
+**EVAL_RATIONALE** (live grader, standard, 0.2) — explains rubric scores assigned by the decision layer and names one blind spot. Schema `{ rationale: string ≤ 600, blindSpot: string ≤ 200 }`. Model: `models.grader`, else `OPENROUTER_REVIEWER_MODEL`.
+
 ## 5. Formation and constitution
 
 **HIVE_CONSTITUTION_DRAFT** (premium, 0.2)

@@ -21,7 +21,7 @@ SCOPE:
 
 CONSTRAINTS:
 - Proof of concept. Mentors are attribute sources, never personas. Before-1956 and US public-domain rules hold. Verified text matches are not proof that an interpretation is correct; say so where shown.
-- Decision models judge; LLMs write. The orchestrator, attention, and Conclave math are deterministic code.
+- Decision models judge; LLMs write. Attention, Conclave math, permissions, and promotion are deterministic code. Phase order: the central manager model chooses among the phases code allows (owner decision 2026-11-04; `orchestration.mode` in config/hive.yaml switches it to code order).
 - Do not weaken quote verification, permissions, invariants, or tests to pass checks. Where a source or model is unavailable, keep explicit no-evidence or unavailable states.
 - Label every mock-derived number as mock. Report measured numbers only; no cost or time estimates.
 - No spending cap in the build (owner decision 2026-11-04: no spending cap in the build; the owner limits spend with per-key OpenRouter limits; the build records measured cost only).

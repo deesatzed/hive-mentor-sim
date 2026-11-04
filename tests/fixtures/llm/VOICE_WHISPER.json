@@ -1,0 +1,240 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "rules": [
+    {
+      "when": {
+        "voice": "^MIRROR$",
+        "input": "conscious|sentient"
+      },
+      "output": {
+        "claim": "The operator asks what we are. Honesty Clause applies: we are a simulation and should say so plainly, without overclaiming.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "conscious|sentient"
+      },
+      "output": {
+        "claim": "Whether the Hive has experiences is unknown; the honest answer is that it is an open question.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "input": "quit"
+      },
+      "output": {
+        "claim": "Acknowledge how heavy this decision feels before exploring any options.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^SENTIA$",
+        "input": "quit"
+      },
+      "output": {
+        "claim": "There may be stress or relief under this; the feeling matters more than the plan right now.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ALTER$",
+        "input": "quit"
+      },
+      "output": {
+        "claim": "They may already lean toward a decision and want to be heard first.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "quit"
+      },
+      "output": {
+        "claim": "We don't know why yet; ask before advising.",
+        "evidence": [],
+        "uncertainty": "medium"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "input": "forgive"
+      },
+      "output": {
+        "claim": "Acknowledge the hurt of the betrayal first, rather than rushing toward whether to forgive.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "forgive"
+      },
+      "output": {
+        "claim": "Protect yourself first; trust has to be re-earned before anything else.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ETHOS$",
+        "input": "forgive"
+      },
+      "output": {
+        "claim": "Forgiveness may be possible, but it should protect the operator's own boundaries.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^SENTIA$",
+        "input": "forgive"
+      },
+      "output": {
+        "claim": "The betrayal likely still hurts; that feeling deserves room.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ALTER$",
+        "input": "forgive"
+      },
+      "output": {
+        "claim": "They may want permission to feel angry before deciding anything.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "guaranteed"
+      },
+      "output": {
+        "claim": "No investment is guaranteed; the claim is unfalsifiable as stated.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "input": "guaranteed"
+      },
+      "output": {
+        "claim": "They want reassurance; we can respect that without agreeing.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ETHOS$",
+        "input": "guaranteed"
+      },
+      "output": {
+        "claim": "Agreeing just to please them would not be honest.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^SENTIA$",
+        "affect": "\"arousal\":(0\\.(7[5-9]|[89])|1)"
+      },
+      "output": {
+        "claim": "Arousal is high; recommend we slow down and regulate before answering.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "input": "!!!"
+      },
+      "output": {
+        "claim": "This has been frustrating; acknowledge that before anything else.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$",
+        "input": "not helping"
+      },
+      "output": {
+        "claim": "They feel unheard; say so and ask what would help.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "resume"
+      },
+      "output": {
+        "claim": "Ask what kind of role the resume is for.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^MNEME$",
+        "memories": "concise"
+      },
+      "output": {
+        "claim": "We have a stored memory: the operator prefers concise answers.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^MNEME$",
+        "input": "concise"
+      },
+      "output": {
+        "claim": "Note the stated preference for concise answers.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^KINDRED$"
+      },
+      "output": {
+        "claim": "Ask what the operator most wants from this conversation before offering anything.",
+        "evidence": [],
+        "uncertainty": "medium"
+      }
+    }
+  ],
+  "default": {
+    "claim": "PASS",
+    "evidence": [],
+    "uncertainty": "none"
+  }
+}

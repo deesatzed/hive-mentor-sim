@@ -9,8 +9,10 @@ import type { Embedder } from "./embeddings";
 import { OllamaEmbeddings, OpenAIEmbeddings, UnconfiguredEmbedder } from "./embeddings";
 import { CostMeter } from "./costMeter";
 import { LiveModeNotConfiguredError } from "./errors";
-import { MockDecider, MockEmbedder, MockLLM } from "./mocks";
+import { MockDecider, MockEmbedder, MockLLM, type LlmFixture, type MockContext, type MockRule } from "./mocks";
 import { renderPrompt } from "@/lib/hive/prompts";
+import { hiveConfig } from "@/lib/hive/config";
+import { MOCK_RULES } from "@/tests/helpers/mockRules";
 
 export { LiveModeNotConfiguredError };
 
@@ -43,6 +45,10 @@ export type ResolvedConfig =
       apiKey: string;
       tiers: Record<Tier, { model: string; source: string }>;
       reviewerModel: string;
+      /** the central manager that orders the cycle (orchestration.mode = manager) */
+      manager: { model: string; source: string };
+      /** the live eval grader's rationale writer */
+      grader: { model: string; source: string };
       /** null when OPENAI_API_KEY or OPENAI_EMBED_MODEL is missing; embedding then fails on use. */
       embeddings: { apiKey: string; model: string } | null;
       embeddingsMissing: string[];
@@ -65,7 +71,16 @@ export function decisionChainFromEnv(env: Env): string[] {
   return chain;
 }
 
-export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
+/** Owner-chosen model IDs from config/hive.yaml `models:`; empty strings mean "use .env". */
+export interface ModelOverrides {
+  manager?: string;
+  fast?: string;
+  standard?: string;
+  premium?: string;
+  grader?: string;
+}
+
+export function resolveProviderConfig(env: Env = process.env, overrides: ModelOverrides = {}): ResolvedConfig {
   if (clean(env.USE_MOCK_PROVIDERS)?.toLowerCase() === "true") return { mode: "mock" };
 
   const mode = clean(env.PROVIDER_MODE)?.toLowerCase() ?? "cloud";
@@ -89,12 +104,21 @@ export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
 
   const tiers = {} as Record<Tier, { model: string; source: string }>;
   for (const tier of TIERS) {
+    const fromConfig = clean(overrides[tier]);
     const own = clean(env[TIER_ENV[tier]]);
-    if (own) tiers[tier] = { model: own, source: TIER_ENV[tier] };
+    if (fromConfig) tiers[tier] = { model: fromConfig, source: `config/hive.yaml models.${tier}` };
+    else if (own) tiers[tier] = { model: own, source: TIER_ENV[tier] };
     else if (reviewer) tiers[tier] = { model: reviewer, source: "OPENROUTER_REVIEWER_MODEL" };
     else missing.push(`${TIER_ENV[tier]} (or OPENROUTER_REVIEWER_MODEL)`);
   }
   if (missing.length) throw new LiveModeNotConfiguredError(missing);
+
+  const pick = (key: "manager" | "grader") => {
+    const fromConfig = clean(overrides[key]);
+    if (fromConfig) return { model: fromConfig, source: `config/hive.yaml models.${key}` };
+    if (reviewer) return { model: reviewer, source: "OPENROUTER_REVIEWER_MODEL" };
+    return { model: tiers.standard.model, source: tiers.standard.source };
+  };
 
   const openaiKey = clean(env.OPENAI_API_KEY);
   const embedModel = clean(env.OPENAI_EMBED_MODEL);
@@ -105,6 +129,8 @@ export function resolveProviderConfig(env: Env = process.env): ResolvedConfig {
     decisionChain,
     tiers,
     reviewerModel: reviewer ?? tiers.standard.model,
+    manager: pick("manager"),
+    grader: pick("grader"),
     embeddings: embeddingsMissing.length ? null : { apiKey: openaiKey!, model: embedModel! },
     embeddingsMissing,
   };
@@ -115,6 +141,11 @@ export interface Providers {
   meter: CostMeter;
   decider: Decider;
   llm: LLM;
+  /** the central manager model (all tiers = the manager model) */
+  manager: LLM;
+  managerModel: string;
+  /** the live eval grader */
+  grader: LLM;
   embedder: Embedder;
 }
 
@@ -123,17 +154,28 @@ export interface ProviderDeps {
   render?: PromptRenderer;
   ledger?: Ledger;
   meter?: CostMeter;
+  /** Defaults to config/hive.yaml `models:`. */
+  models?: ModelOverrides;
+  /** Mock mode only: decision rules and LLM fixture context (MOCK — offline tests and mock eval). */
+  mockRules?: Record<string, MockRule>;
+  mockContext?: MockContext;
+  /** Mock mode only: inline fixtures that override files in tests/fixtures/llm (unit tests). */
+  mockFixtures?: Record<string, LlmFixture>;
 }
 
 export function getProviders(env: Env = process.env, deps: ProviderDeps = {}): Providers {
-  const config = resolveProviderConfig(env);
+  const config = resolveProviderConfig(env, deps.models ?? hiveConfig().models);
   const meter = deps.meter ?? new CostMeter();
   if (config.mode === "mock") {
+    const llm = new MockLLM(undefined, deps.mockFixtures ?? {}, meter, deps.mockContext, deps.ledger);
     return {
       config,
       meter,
-      decider: new MockDecider({}, meter),
-      llm: new MockLLM(undefined, {}, meter),
+      decider: new MockDecider(deps.mockRules ?? MOCK_RULES, meter, deps.ledger),
+      llm,
+      manager: llm,
+      managerModel: "mock:llm",
+      grader: llm,
       embedder: new MockEmbedder(),
     };
   }
@@ -141,21 +183,29 @@ export function getProviders(env: Env = process.env, deps: ProviderDeps = {}): P
   const render = deps.render ?? defaultRenderer();
   if (config.mode === "cloud") {
     const models = Object.fromEntries(TIERS.map((t) => [t, config.tiers[t].model])) as Record<Tier, string>;
+    const one = (m: string) => ({ fast: m, standard: m, premium: m });
     return {
       config,
       meter,
       decider: new OpenRouterDecisions({ apiKey: config.apiKey, chain: config.decisionChain, meter, ledger }),
       llm: new OpenRouterLLM({ apiKey: config.apiKey, models, meter, ledger, render }),
+      manager: new OpenRouterLLM({ apiKey: config.apiKey, models: one(config.manager.model), meter, ledger, render }),
+      managerModel: config.manager.model,
+      grader: new OpenRouterLLM({ apiKey: config.apiKey, models: one(config.grader.model), meter, ledger, render }),
       embedder: config.embeddings
         ? new OpenAIEmbeddings({ apiKey: config.embeddings.apiKey, model: config.embeddings.model, meter, ledger })
         : new UnconfiguredEmbedder(config.embeddingsMissing),
     };
   }
+  const local = new LocalLLM({ baseUrl: config.baseUrl, model: config.llmModel, meter, ledger, render });
   return {
     config,
     meter,
     decider: new LocalLLMDecisions({ baseUrl: config.baseUrl, model: config.llmModel, meter, ledger }),
-    llm: new LocalLLM({ baseUrl: config.baseUrl, model: config.llmModel, meter, ledger, render }),
+    llm: local,
+    manager: local,
+    managerModel: `local:${config.llmModel}`,
+    grader: local,
     embedder: new OllamaEmbeddings({ baseUrl: config.baseUrl, model: config.embedModel, meter, ledger }),
   };
 }

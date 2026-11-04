@@ -13,7 +13,7 @@ const clients = new Map<string, PrismaClient>();
 export function sqlitePathFromUrl(url: string): string {
   if (!url.startsWith("file:")) throw new Error(`DATABASE_URL must be a file: URL for SQLite, got '${url}'`);
   const p = url.slice("file:".length);
-  return path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
+  return path.isAbsolute(p) ? p : path.resolve(/*turbopackIgnore: true*/ process.cwd(), p);
 }
 
 export function getDb(url = process.env.DATABASE_URL ?? "file:./dev.db"): PrismaClient {

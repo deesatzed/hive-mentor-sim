@@ -53,6 +53,7 @@ export class SynapseBus {
   private cycle: { id: string; no: number } | null = null;
   private transcript: Envelope[] = [];
   private whispered = new Map<string, number>();
+  private reflectRoundUsed = false;
 
   constructor(o: BusOptions) {
     this.policy = o.policy;
@@ -73,6 +74,17 @@ export class SynapseBus {
   /** Starts a heartbeat cycle: resets rate limits; the transcript of earlier cycles is kept. */
   startCycle(cycleId: string, cycleNo: number): void {
     this.cycle = { id: cycleId, no: cycleNo };
+    this.whispered.clear();
+    this.reflectRoundUsed = false;
+  }
+
+  /**
+   * WITNESS may mandate one REFLECT loop per cycle (re-run of P2–P4). That loop gets one more
+   * whisper per entity; a second call in the same cycle throws.
+   */
+  allowReflectRound(): void {
+    if (this.reflectRoundUsed) throw new Error("only one REFLECT round per cycle");
+    this.reflectRoundUsed = true;
     this.whispered.clear();
   }
 

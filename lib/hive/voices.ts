@@ -50,7 +50,7 @@ export interface Voice {
   active: boolean;
 }
 
-export function loadVoices(cfg: HiveConfig = hiveConfig(), rosterFile = path.join(process.cwd(), "seed", "voice_roster.json")): Voice[] {
+export function loadVoices(cfg: HiveConfig = hiveConfig(), rosterFile = path.join(/*turbopackIgnore: true*/ process.cwd(), "seed", "voice_roster.json")): Voice[] {
   const roster = RosterSchema.parse(JSON.parse(readFileSync(rosterFile, "utf8")));
   return roster.entities.map((e) => {
     const ep = loadEntityPrompt(e.prompt.replace(/^prompts\//, ""));

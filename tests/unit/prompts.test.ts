@@ -29,7 +29,9 @@ describe("prompt registry", () => {
       const r = renderPrompt(id, vars);
       expect(r.system.length).toBeGreaterThan(50);
       expect(r.user.length).toBeGreaterThan(0);
-      if (!PROMPTS[id].generationRules) {
+      if (PROMPTS[id].system) {
+        expect(r.system).toBe(PROMPTS[id].system);
+      } else if (!PROMPTS[id].generationRules) {
         expect(r.system).toMatch(/^You are [A-Z_]+, one Voice of the Hive/);
         expect(r.system).not.toMatch(/\{VOICE_NAME\}|\{ATTRIBUTE\}|\{\{#|\{APPROVED_HIVE_PRINCIPLES\}|\{MENTOR_LENS\}/);
       } else {
