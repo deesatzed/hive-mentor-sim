@@ -1,0 +1,180 @@
+{
+  "_note": "Corpus sources resolved 2026-11-04 from the Project Gutenberg catalog (pg_catalog.csv) and each book's RDF record (dcterms:rights). Gutendex was not used: it served a Cloudflare challenge. Fetch URL: https://www.gutenberg.org/cache/epub/<id>/pg<id>.txt. Seneca comes from Wikisource (translation published 1917-1925, US public domain). Owner approved the Gutenberg plan 2026-11-04.",
+  "checked": "2026-11-04",
+  "works": [
+    {
+      "mentorId": "marcus-aurelius",
+      "rosterTitle": "Meditations",
+      "source": "gutenberg",
+      "gutenbergId": 6920,
+      "gutenbergTitle": "Thoughts of Marcus Aurelius",
+      "rights": "Public domain in the USA.",
+      "translator": "George Long",
+      "note": "#2680 is a different translation; #15877 is a larger edition of the same Long translation"
+    },
+    {
+      "mentorId": "seneca",
+      "rosterTitle": "Moral letters to Lucilius",
+      "source": "wikisource",
+      "index": "Moral letters to Lucilius",
+      "translator": "Richard M. Gummere",
+      "rights": "Published 1917-1925 (Loeb); public domain in the US",
+      "note": "letters fetched as subpages with ?action=raw"
+    },
+    {
+      "mentorId": "epictetus",
+      "rosterTitle": "The Enchiridion; The Discourses of Epictetus",
+      "source": "gutenberg",
+      "gutenbergId": 10661,
+      "gutenbergTitle": "A Selection from the Discourses of Epictetus with the Encheiridion",
+      "rights": "Public domain in the USA.",
+      "translator": "George Long",
+      "note": "Long's Enchiridion and a selection of the Discourses in one volume; Long's full Discourses are not on Gutenberg"
+    },
+    {
+      "mentorId": "confucius",
+      "rosterTitle": "The Analects",
+      "source": "gutenberg",
+      "gutenbergId": 3330,
+      "gutenbergTitle": "The Analects of Confucius (from the Chinese Classics)",
+      "rights": "Public domain in the USA.",
+      "translator": "James Legge",
+      "attributed": true
+    },
+    {
+      "mentorId": "laozi",
+      "rosterTitle": "Tao Te Ching",
+      "source": "gutenberg",
+      "gutenbergId": 216,
+      "gutenbergTitle": "The Tao Teh King, or the Tao and its Characteristics",
+      "rights": "Public domain in the USA.",
+      "translator": "James Legge",
+      "attributed": true
+    },
+    {
+      "mentorId": "maimonides",
+      "rosterTitle": "The Guide for the Perplexed",
+      "source": "gutenberg",
+      "gutenbergId": 73584,
+      "gutenbergTitle": "The guide for the perplexed",
+      "rights": "Public domain in the USA.",
+      "translator": "M. Friedländer"
+    },
+    {
+      "mentorId": "montaigne",
+      "rosterTitle": "Essays of Michel de Montaigne",
+      "source": "gutenberg",
+      "gutenbergId": 3600,
+      "gutenbergTitle": "Essays of Michel de Montaigne — Complete",
+      "rights": "Public domain in the USA.",
+      "translator": "Charles Cotton",
+      "note": "Hazlitt edition"
+    },
+    {
+      "mentorId": "benjamin-franklin",
+      "rosterTitle": "Autobiography of Benjamin Franklin",
+      "source": "gutenberg",
+      "gutenbergId": 148,
+      "gutenbergTitle": "The Autobiography of Benjamin Franklin",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "benjamin-franklin",
+      "rosterTitle": "The Way to Wealth",
+      "source": "gutenberg",
+      "gutenbergId": 43855,
+      "gutenbergTitle": "Franklin's Way to Wealth; or, \"Poor Richard Improved\"",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "abraham-lincoln",
+      "rosterTitle": "The Papers And Writings Of Abraham Lincoln",
+      "source": "gutenberg",
+      "gutenbergId": 3253,
+      "gutenbergTitle": "The Papers and Writings of Abraham Lincoln, Complete",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "frederick-douglass",
+      "rosterTitle": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "source": "gutenberg",
+      "gutenbergId": 23,
+      "gutenbergTitle": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "frederick-douglass",
+      "rosterTitle": "My Bondage and My Freedom",
+      "source": "gutenberg",
+      "gutenbergId": 202,
+      "gutenbergTitle": "My Bondage and My Freedom",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "florence-nightingale",
+      "rosterTitle": "Notes on Nursing: What It Is, and What It Is Not",
+      "source": "gutenberg",
+      "gutenbergId": 12439,
+      "gutenbergTitle": "Notes on Nursing: What It Is, and What It Is Not",
+      "rights": "Public domain in the USA.",
+      "note": "#17366 is another edition"
+    },
+    {
+      "mentorId": "jane-addams",
+      "rosterTitle": "Twenty Years at Hull-House",
+      "source": "gutenberg",
+      "gutenbergId": 1325,
+      "gutenbergTitle": "Twenty Years at Hull House; with Autobiographical Notes",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "booker-t-washington",
+      "rosterTitle": "Up from Slavery: An Autobiography",
+      "source": "gutenberg",
+      "gutenbergId": 2376,
+      "gutenbergTitle": "Up from Slavery: An Autobiography",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "marie-curie",
+      "rosterTitle": "Pierre Curie",
+      "source": "gutenberg",
+      "gutenbergId": 69617,
+      "gutenbergTitle": "Pierre Curie",
+      "rights": "Public domain in the USA.",
+      "translator": "Charlotte and Vernon Kellogg"
+    },
+    {
+      "mentorId": "rabindranath-tagore",
+      "rosterTitle": "Sadhana: The Realisation of Life",
+      "source": "gutenberg",
+      "gutenbergId": 6842,
+      "gutenbergTitle": "Sadhana : the realisation of life",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "henry-david-thoreau",
+      "rosterTitle": "Walden, and On The Duty Of Civil Disobedience",
+      "source": "gutenberg",
+      "gutenbergId": 205,
+      "gutenbergTitle": "Walden, and On The Duty Of Civil Disobedience",
+      "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "mary-wollstonecraft",
+      "rosterTitle": "A Vindication of the Rights of Woman",
+      "source": "gutenberg",
+      "gutenbergId": 3420,
+      "gutenbergTitle": "A Vindication of the Rights of Woman With Strictures on Political and Moral Subjects",
+      "rights": "Public domain in the USA."
+    }
+  ],
+  "unavailable": [
+    {
+      "mentorId": "william-osler",
+      "rosterTitle": "Aequanimitas, with other Addresses to Medical Students, Nurses and Practitioners of Medicine",
+      "reason": "not on Project Gutenberg (catalog checked 2026-11-04)",
+      "ownerDecisionNeeded": "Other Osler works on Gutenberg, all marked public domain in the USA: #73116 A way of life (address), #36926 Man's Redemption of Man (lay sermon), #48994 The Old Humanities and the New Science. Not used unless the owner approves a substitution."
+    }
+  ]
+}

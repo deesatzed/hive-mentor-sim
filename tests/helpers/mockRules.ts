@@ -120,7 +120,17 @@ const commitmentConflict: MockRule = (_t, _q, name, state) => {
   return noul(/concise/i.test(c) && /revers|long|detailed/i.test(str(s.target)) ? 0.9 : 0.1);
 };
 
+// ---- corpus (offline): passage n is state.passages[<question name>]
+const passageOf = (state: unknown, name: string) => str(obj(obj(state).passages)[name]);
+const authorial: MockRule = (_t, _q, name, state) =>
+  noul(/project gutenberg|produced by|transcriber|translator'?s? (preface|introduction|note)|table of contents|^\s*contents\b|\bindex\b|footnote/i.test(passageOf(state, name)) ? 0.1 : 0.9);
+const episode: MockRule = (_t, _q, name, state) => noul(/\bI (did|went|decided|chose|resolved|refused)\b/i.test(passageOf(state, name)) ? 0.8 : 0.1);
+const position: MockRule = (_t, _q, name, state) => noul(/\b(should|ought|must|therefore|the sage)\b/i.test(passageOf(state, name)) ? 0.8 : 0.2);
+
 export const MOCK_RULES: Record<string, MockRule> = {
+  "a_*": authorial,
+  "e_*": (t, q, name, state) => (/^e_\d+$/.test(name) ? episode(t, q, name, state) : noul(0.5)),
+  "t_*": position,
   valence,
   arousal,
   dominant,

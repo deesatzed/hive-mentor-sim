@@ -191,6 +191,7 @@ For a dilemma, "choice" must be one of the option ids or omitted. Every quote mu
 ```
 User: `Figure: {name} ({years})\nQuestion ({questionKey}): {text}\nOptions: {optionsJson}\nPassages:\n{passages}`
 Schema: `{ status: 'answered'|'no_evidence', answer?: string /* ≤ 80 words */, choice?: string, evidence?: Array<{ chunkId: string, quote: string }> }`
+**M5 addition (live finding):** both corpus prompts also say: "The quote field holds only words copied from the passage: no locator, no chunk id, no commentary, no ellipses. The chunkId is the short label in brackets before that passage (for example P3 or E2), copied exactly." In the first live build 16 of 37 rejected quotes had the passage locator or commentary appended inside the quote field.
 Validation in order: verify every quote (drop failures) → no evidence left ⇒ `no_evidence` → decision `EVIDENCE_SUPPORTS` on the first quote; < 0.5 ⇒ `no_evidence`.
 
 ### MENTOR_PRINCIPLES

@@ -20,6 +20,10 @@ The seed roster is `seed/mentor_roster.json`: 18 candidates chosen for breadth a
 Each step is idempotent and resumable. Progress for each mentor is recorded in `Mentor.corpusStats`. Raw downloads go to `corpus/raw/<slug>/`, which is gitignored. Only DB rows are used at runtime.
 
 ### 1. fetch
+
+**As built (owner decision 2026-11-04):** Gutendex served a Cloudflare challenge, so books are fetched from gutenberg.org by number (`https://www.gutenberg.org/cache/epub/<id>/pg<id>.txt`). The numbers, titles, translators, and each book's RDF `dcterms:rights` ("Public domain in the USA.") are recorded in `seed/corpus_sources.json`, resolved from Project Gutenberg's catalog. Seneca's letters come from Wikisource rendered pages (`Moral letters to Lucilius/Letter N`, `action=render`), because the index page transcludes scanned pages and raw wikitext holds no letter text. Works not on Gutenberg are listed under `unavailable` and make the mentor inactive with that reason. Passages are labeled P1..P8 in `MENTOR_ANSWER` prompts (E1..En in `MENTOR_PRINCIPLES`) and mapped back to chunk ids in code, because the model miscopied long database ids; every quote is still verified against exactly the chunk its label names.
+
+The original plan, kept for reference:
 - **Gutendex:** `GET https://gutendex.com/books?search=<title words + author surname>`.
   - Choose the result whose `authors[].name` matches the roster author and whose title matches the roster title.
   - **Require `copyright === false`.**

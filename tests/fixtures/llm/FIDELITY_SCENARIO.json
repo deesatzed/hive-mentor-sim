@@ -1,0 +1,17 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "default": {
+    "scenario": "A person must choose between two courses of action.",
+    "options": [
+      {
+        "id": "a",
+        "text": "The first course"
+      },
+      {
+        "id": "b",
+        "text": "The second course"
+      }
+    ],
+    "goldOption": "a"
+  }
+}

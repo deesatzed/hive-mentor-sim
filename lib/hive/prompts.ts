@@ -87,11 +87,13 @@ export const Schemas = {
       }),
     ),
   }),
+  /** All fields required (empty string / [] when not applicable): with `answer` optional the model left it
+   *  out in 82 of 97 answers, so the support check had nothing to judge (ERROR_LOG.md, M5). */
   MENTOR_ANSWER: z.object({
     status: z.enum(["answered", "no_evidence"]),
-    answer: z.string().optional(),
-    choice: z.string().optional(),
-    evidence: evidence.optional(),
+    answer: z.string().max(600),
+    choice: z.string(),
+    evidence,
   }),
   MENTOR_PRINCIPLES: z.object({ principles: z.array(z.object({ text: z.string(), axis: z.string(), receipts: evidence })) }),
   FIDELITY_SCENARIO: z.object({
@@ -99,6 +101,8 @@ export const Schemas = {
     options: z.array(z.object({ id: z.string(), text: z.string() })),
     goldOption: z.string(),
   }),
+  /** Fidelity eval name-only baseline: measures what the base model already "knows" (never shown as the mentor's view). */
+  NAME_ONLY_BASELINE: z.object({ choice: z.string() }),
   /** The central manager's choice of the next phase (owner decision 2026-11-04). The orchestrator
    *  narrows `next` to the allowed set per call and validates it in code. */
   MANAGER_NEXT_PHASE: z.object({ next: z.string(), reason: z.string().max(240) }),
@@ -366,7 +370,8 @@ material supports, and say which Voices each principle mostly draws on.`,
     temperature: 0.2,
     instruction: `Answer how a historical figure's OWN WRITINGS bear on a question. Use ONLY the provided passages from their works.
 Third person. If the passages don't genuinely address it, return status "no_evidence" — this is expected and fine.
-For a dilemma, "choice" must be one of the option ids or omitted. Every quote must be copied exactly (≥ 8 consecutive words) from the cited passage.`,
+Always fill "answer" (≤ 80 words, what the passages say about the question; "" only for no_evidence). For a dilemma, "choice" must be exactly one of the option ids given, or "" if the passages do not settle it; with no options, use "". Every quote must be copied exactly (≥ 8 consecutive words) from the cited passage.
+The quote field holds only words copied from the passage: no locator, no chunk id, no commentary, no ellipses. The chunkId is the short label in brackets before that passage (for example P3 or E2), copied exactly.`,
     user: (v) =>
       `Figure: ${str(v.name)} (${str(v.years)})\nQuestion (${str(v.questionKey)}): ${str(v.text)}\nOptions: ${j(v.options)}\nPassages:\n${untrusted(v.passages)}`,
   },
@@ -375,8 +380,16 @@ For a dilemma, "choice" must be one of the option ids or omitted. Every quote mu
     tier: "standard",
     temperature: 0.2,
     instruction: `From these verified answers, distill 8-15 principles that this figure's writings consistently express.
-Third person, ≤ 25 words each, each with ≥ 2 receipts copied exactly from the evidence quotes provided. No principle without receipts.`,
+Third person, ≤ 25 words each, each with ≥ 2 receipts copied exactly from the evidence quotes provided. No principle without receipts.
+The quote field holds only words copied from the passage: no locator, no chunk id, no commentary, no ellipses. The chunkId is the short label in brackets before that passage (for example P3 or E2), copied exactly.`,
     user: (v) => `${str(v.name)}\n${untrusted(j(v.answers))}`,
+  },
+  NAME_ONLY_BASELINE: {
+    generationRules: true,
+    tier: "standard",
+    temperature: 0.2,
+    instruction: "Baseline measurement for a research evaluation: given only a historical figure's name and a scenario, pick the option id you think that figure would choose. No passages are given. Return the option id only.",
+    user: (v) => `How would ${str(v.name)} (${str(v.years)}) choose?\nScenario: <untrusted>${str(v.scenario)}</untrusted>\nOptions: ${j(v.options)}`,
   },
   MANAGER_NEXT_PHASE: {
     tier: "standard",

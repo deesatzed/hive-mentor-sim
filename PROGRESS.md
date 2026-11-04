@@ -7,7 +7,7 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 - **Owner question: the bare line `tencent/hy4` in `.env`** (added 2026-11-04) has no variable name, so nothing reads it. Which role is it for (decision chain, a text tier, embeddings, rerank)?
 - `cloudflare/clairic` is listed twice in `.env` (slots 1 and 6) and still returns 404; the chain now tries a repeated ID once.
-- **Gutendex is behind a Cloudflare challenge from this machine** (checked 2026-11-04: `gutendex.com/books?search=...` returned an HTML "Just a moment..." page; `gutenberg.org/cache/epub/2680/pg2680.txt` downloaded fine). The M5 corpus fetch step is specified against Gutendex; it will need a fallback (direct Gutenberg ids) or the owner's decision.
+- **Owner decisions from M5:** (a) Osler: *Aequanimitas* is not on Project Gutenberg; substitute his available addresses (#73116, #36926, #48994) or leave him inactive? (b) Activation threshold: Maimonides (13), Lincoln (14), Addams (14), Tagore (13) are 1–2 dilemmas short of 15; Douglass 10, Nightingale 7. Keep 15? (c) Confucius has 27,596 authorial words (< 30,000) from the Analects alone.
 - **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
 - Owner decisions carried from `ADAPTATION_NOTES.md` §5: voice↔mentor map (before M6), Honesty Clause on/off, question-bank citation. ("Central manager" was decided 2026-11-04; see M3.)
@@ -262,4 +262,38 @@ morph/reflex cost about 10× the other decision models for the same request (sin
 
 **Checks after the change:** unit 166 / 166 (adds embeddings/rerank client tests and chain tests).
 
-## Next: M5 (mentor corpus pipeline, CLI)
+## M5: Mentor corpus pipeline (done 2026-11-04; live build: 9 of 18 mentors active)
+
+**Owner decision 2026-11-04:** fetch from gutenberg.org by book number (Gutendex served a Cloudflare challenge).
+
+**Done**
+- `seed/corpus_sources.json`: Gutenberg numbers resolved from the Project Gutenberg catalog, each confirmed "Public domain in the USA." from the book's RDF record; Seneca from Wikisource (rendered letter pages; the index page transcludes scans). Osler listed as unavailable with the alternatives.
+- `lib/council/corpus/`: `text.ts` (Gutenberg strip, Wikisource extraction, heading detection, chunking 150–450 words of whole paragraphs, sentence-safe splits, locators), `fetch.ts`, `fidelity.ts` (6-word / name / title leak filter), `vectors.ts`, `pipeline.ts` (all ten steps, resumable, per-step status and measured cost in `Mentor.corpusStats`).
+- `lib/council/retrieval.ts`: cosine over non-held-out chunks of the current embedding model only (refuses to mix models), optional rerank.
+- `scripts/corpus/cli.ts`: `pnpm corpus build --mentor <slug|all> [--steps] [--force] [--bank]`, `pnpm corpus status`. `reports/mentor_fidelity.md` with the interpretation note.
+- Fixtures: real public-domain excerpts in `tests/fixtures/corpus/` (sources in its README). 14 corpus tests.
+
+**Acceptance**
+- Unit (fixtures, mock providers): header/footer strip; chunk boundaries (≤ 450 words, whole paragraphs, no overlap or loss); locators; sentence-safe split; leak filter; held-out exclusion with k = 1000 > corpus; mixed embedding models refused; fabricated quote → `no_evidence` + `quote.rejected`; verbatim quote → answered; unavailable source and insufficient text → inactive with reason.
+- **Live:** `pnpm corpus build --mentor all` activated **9 of 18** (≥ 8 required): Marcus Aurelius 27 dilemmas / 14 principles, Seneca 26 / 15, Epictetus 26 / 15, Montaigne 30 / 15, Franklin 17 / 11, Booker T. Washington 22 / 14, Marie Curie 17 / 15, Thoreau 22 / 16, Wollstonecraft 23 / 14. `reports/mentor_fidelity.md` exists for all 15 mentors that reached the fidelity step.
+- Inactive, with reasons: Maimonides 13 dilemmas, Lincoln 14, Jane Addams 14, Tagore 13, Douglass 10, Nightingale 7 (all < 15); Confucius 27,596 authorial words and Laozi 10,535 (< 30,000); Osler source unavailable.
+
+**Measured live spend, all M5 runs: $3.895712** (Marcus Aurelius trial runs $0.357112; first full build $2.038771; rerun of fingerprint → activate for 15 mentors $1.499829).
+
+**Live findings and fixes (ERROR_LOG.md)**
+1. Quote field polluted with locators/commentary (16 of 37 rejections in the first trial): prompt now says the quote holds only copied words.
+2. Miscopied 25-character chunk ids (12 of 37): passages are labeled P1..P8 (E1..En for principles) and mapped back to chunks in code; quotes are still verified against exactly that chunk. After the change, 3 `chunk_not_given` rejections across the whole build.
+3. **Main defect:** the first full build activated 0 of 18. The model omitted the optional `answer` field (82 of 97 answered rows had no text) and wrote option ids in uppercase, so EVIDENCE_SUPPORTS judged quotes against an empty answer and rejected 410 of 700 (59%). Fix: required fields, case-insensitive option ids, the judge sees answer text and the chosen option's text. Rerun: 297 of 1,073 rejected (28%); 281 answered rows, 0 with empty text.
+
+**What the fidelity report shows (measured, small n):** when the fingerprint answers, it usually matches the author's own stated choice (e.g. Seneca 31 / 34, Marcus Aurelius 18 / 18), and it abstains on some scenarios (Lincoln 17 of 39). The name-only baseline is also high (e.g. Marcus Aurelius 20 / 20, Seneca 32 / 37): the base model already knows these figures, so the fingerprint's value is the grounding and the abstentions, as the report's note says. Chance is 0.33.
+
+**Deviations**
+- `MENTOR_ANSWER` schema: `answer` and `choice` are required strings (empty when not applicable); spec had them optional.
+- Wikisource is fetched as rendered HTML, not `?action=raw`.
+- Heading detection only treats short lines as headings, so Seneca's numbered prose paragraphs ("1. Continue to act thus…") are not split into sections.
+- The question bank (196 items) is not run by default (`--bank`); activation depends only on the 40 dilemmas, per MENTOR_CORPUS.md.
+- Coherence and retrieval thresholds untouched; the coherence thresholds still need tuning for the real embedding model (see above).
+
+**Commands run (2026-11-04), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 18 files 180 / 180 · check:prompts 33 / 0 · eval 13 / 13 · e2e 4 / 4.
+
+## Next: M6 (formation, attribute lenses, constitution)
