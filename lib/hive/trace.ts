@@ -20,6 +20,8 @@ export const TraceWhisperSchema = z.object({
   moralFlag: z.boolean(),
   numbersUnavailable: z.boolean(),
   uncertainty: z.string(),
+  /** mentors whose writings formed this Voice's attribute lens this cycle (empty = no lens) */
+  lens: z.array(z.string()),
 });
 export type TraceWhisper = z.infer<typeof TraceWhisperSchema>;
 
@@ -80,6 +82,9 @@ export const CycleTraceSchema = z.object({
     faithfulness: z.array(z.object({ sentence: z.string(), p: z.number().nullable(), kept: z.boolean() })),
     regenerated: z.boolean(),
     quotesRemoved: z.number(),
+    mentorVoiceDropped: z.number(),
+    /** quotes kept in the output: each matches an approved, verified whisper quote */
+    quotes: z.array(z.object({ chunkId: z.string(), quote: z.string(), mentorId: z.string() })),
     unavailable: z.boolean(),
   }),
   reflect: z.object({
@@ -127,7 +132,7 @@ export function emptyTrace(mode: CycleTrace["mode"], mock: boolean, orchestratio
     deliberation: { kappa: 0, contradictions: [], domains: [], unavailable: false },
     witness: { ran: false, flags: {}, recommendation: "continue", quality: "", notConsidering: "", note: "", reflectRan: false, reflectReason: null, unavailable: false },
     arbiter: { decision: "PASS", humility: false, principlesChecked: [], commitmentsChecked: [], overrides: [], commitmentConflicts: [], commitmentsBroken: [], unavailable: false },
-    compose: { draft: "", faithfulness: [], regenerated: false, quotesRemoved: 0, unavailable: false },
+    compose: { draft: "", faithfulness: [], regenerated: false, quotesRemoved: 0, mentorVoiceDropped: 0, quotes: [], unavailable: false },
     reflect: { ran: false, selfModel: { promoted: false }, memory: [], canon: { promoted: false }, predictions: [], conflictMarkers: [], commitmentsMade: [], authorityGrab: false, contradictionsRecorded: 0, resolvedMarkers: [] },
     egoAudit: { ran: false, trigger: null, mandate: false, summary: "" },
     coherence: { cIntra: null, cInter: null, perVoiceDrift: {}, flags: [], unavailable: false },

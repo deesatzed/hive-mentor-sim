@@ -19,6 +19,10 @@ import type { EnvelopeDraft, MessageType } from "./envelope";
 import { checkFaithfulness } from "./faithfulness";
 import { chooseNext } from "./manager";
 import { mentorFirstPerson } from "./mentorVoice";
+import { activeFormation } from "./formation";
+import { ballotPrinciples, buildLenses, emptyLens, type Lens } from "./lens";
+import { normalize } from "@/lib/council/quotes";
+import { splitSentences } from "./faithfulness";
 import { PolicyEngine } from "./permissions";
 import { PHASES, type PhaseId } from "./phases";
 import { promptSettings, Schemas } from "./prompts";
@@ -191,7 +195,9 @@ export class Hive {
     let auditNote = "";
     let output = "";
     let arbiterGuidance = "";
-    const shared = { principles: principles.map((p) => p.text), mentorLens: "" }; // attribute lens arrives in M5/M6
+    const shared = { principles: principles.map((p) => p.text), mentorLens: "" }; // per-Voice lens text is added in P2
+    const formationNow = await activeFormation(db);
+    let lenses = new Map<string, Lens>();
     const sessionId = req.sessionId;
 
     const runPhase = async (id: PhaseId, fn: () => Promise<string[]>) => {
@@ -240,6 +246,13 @@ export class Hive {
     // ---------------- P2 WHISPER
     const whisper = async (reflectNote?: string): Promise<string[]> => {
       const speakers = coreVoices(this.d.voices).filter((v) => v.name !== "LUMEN" && v.name !== "WITNESS");
+      // attribute lenses: assigned active mentors' principles + top chunks (built once per cycle)
+      if (!lenses.size) {
+        lenses = formationNow
+          ? await buildLenses({ db, embedder: providers.embedder, reranker: providers.reranker, assignments: formationNow.assignments, voiceIds: coreVoices(this.d.voices).map((v) => v.id), query: `${req.input}\n${parse.intent}` })
+          : new Map();
+      }
+      const lensOf = (id: string) => lenses.get(id) ?? emptyLens(id);
       const drafts = await Promise.all(
         speakers.map(async (v) => {
           const vars = {
@@ -252,9 +265,9 @@ export class Hive {
             selfModel,
             commitments: commitments.map((c) => c.text),
             parse,
-            passages: "none",
+            passages: lensOf(v.id).passagesText,
             reflectNote: reflectNote ? `WITNESS audit note: ${reflectNote}` : "",
-            shared,
+            shared: { ...shared, mentorLens: lensOf(v.id).lensText },
           };
           const s = promptSettings("VOICE_WHISPER", vars);
           for (let attempt = 1; attempt <= 2; attempt++) {
@@ -273,8 +286,8 @@ export class Hive {
         }),
       );
 
-      // cite-or-silence: the lens is empty until M5/M6, so any evidence is for a chunk this Voice was not given
-      const given = new Map<string, string>(); // chunkId → text, per Voice (empty in M3)
+      // cite-or-silence: a Voice may cite only the passages in its own lens, by label; each quote is
+      // verified against exactly that chunk
       const work: (WhisperWork & { model: string })[] = [];
       const passes: string[] = [];
       for (const dr of drafts) {
@@ -284,13 +297,14 @@ export class Hive {
         }
         let rejected = 0;
         const evidence: WhisperWork["evidence"] = [];
+        const given = lensOf(dr.voice.id).given;
         for (const ev of dr.data?.evidence ?? []) {
-          const chunk = given.get(ev.chunkId);
-          const reason = chunk === undefined ? "chunk_not_given" : quoteRejection(ev.quote, chunk);
+          const p = given.get(ev.chunkId.trim().replace(/^\[|\]$/g, ""));
+          const reason = p === undefined ? "chunk_not_given" : quoteRejection(ev.quote, p.text);
           if (reason) {
             rejected++;
-            await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: dr.voice.name, payload: { promptId: "VOICE_WHISPER", chunkId: ev.chunkId, reason, quote: ev.quote.slice(0, 200) } });
-          } else evidence.push({ chunkId: ev.chunkId, quote: ev.quote, mentorId: "" });
+            await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: dr.voice.name, payload: { promptId: "VOICE_WHISPER", label: ev.chunkId, chunkId: p?.chunkId ?? null, reason, quote: ev.quote.slice(0, 200) } });
+          } else evidence.push({ chunkId: p!.chunkId, quote: ev.quote, mentorId: p!.mentorId });
         }
         work.push({
           messageId: "",
@@ -308,6 +322,7 @@ export class Hive {
           moralFlag: false,
           numbersUnavailable: false,
           uncertainty: dr.data?.uncertainty ?? "",
+          lens: lensOf(dr.voice.id).mentors.map((m) => m.name),
           model: dr.model,
         });
       }
@@ -503,7 +518,7 @@ export class Hive {
         for (const w of voters) {
           const r = await tryDecide(
             providers.decider,
-            { question: frame, voice: { name: w.voice, faculty: w.faculty, mentor_principles: [] }, round_summaries: roundSummaries, options: Object.fromEntries(options.map((o, k) => [`o_${k + 1}`, o.claim])) },
+            { question: frame, voice: { name: w.voice, faculty: w.faculty, mentor_principles: ballotPrinciples(lenses.get(w.voiceId)) }, round_summaries: roundSummaries, options: Object.fromEntries(options.map((o, k) => [`o_${k + 1}`, o.claim])) },
             BALLOT(w.voice, w.faculty, options.map((_, k) => k + 1)),
             "ballot",
             cycleId,
@@ -660,11 +675,14 @@ export class Hive {
     const compose = async (): Promise<string[]> => {
       const approved = Object.fromEntries(coalition.map((w) => [w.messageId, w.claim]));
       const approvedEvidence = coalition.flatMap((w) => w.evidence);
+      // short labels E1..En for the approved quotes (long chunk ids get miscopied; M5 finding)
+      const mentorName = new Map((await db.mentor.findMany({ where: { id: { in: [...new Set(approvedEvidence.map((e) => e.mentorId))] } }, select: { id: true, name: true } })).map((m) => [m.id, m.name]));
+      const labeled = approvedEvidence.map((e, i) => ({ label: `E${i + 1}`, ...e, mentor: mentorName.get(e.mentorId) ?? e.mentorId }));
       const winner = conclave?.outcome.winner ? conclave.options.find((o) => o.option_id === conclave!.outcome.winner)?.claim : undefined;
       const baseVars = {
         awareness: trace.awareness.text,
         coalition: approved,
-        evidence: approvedEvidence,
+        evidence: labeled.map((e) => ({ chunkId: e.label, mentor: e.mentor, quote: e.quote })),
         conclave: conclave ? { winner, decision: conclave.outcome.decision, dissent: conclave.outcome.dissent.map((d) => d.voice) } : undefined,
         guidance: arbiterGuidance,
         auditNote,
@@ -686,24 +704,51 @@ export class Hive {
         draft = await gen({ failingSentences: failing });
         check = await checkFaithfulness(providers.decider, { cycleId, approved, guidance: arbiterGuidance, text: draft.text });
       }
-      const kept = check.sentences.filter((s) => s.faithful).map((s) => s.sentence);
+      let kept = check.sentences.filter((s) => s.faithful).map((s) => s.sentence);
+      // no mentor first person: one regeneration naming the problem, then offending sentences are dropped
+      let mentorVoiceDropped = 0;
+      if (mentorFirstPerson(kept.join(" "), this.d.mentorNames)) {
+        regenerated = true;
+        draft = await gen({ mentorVoiceNote: "Your draft spoke as a mentor in the first person. Never speak as a mentor; describe them in the third person (\"Marcus Aurelius wrote: '...'\")." });
+        check = await checkFaithfulness(providers.decider, { cycleId, approved, guidance: arbiterGuidance, text: draft.text });
+        kept = check.sentences.filter((s) => s.faithful).map((s) => s.sentence);
+        const clean = kept.filter((s) => !mentorFirstPerson(s, this.d.mentorNames));
+        mentorVoiceDropped = kept.length - clean.length;
+        kept = clean;
+      }
       let text = kept.join(" ");
-      // any quote in the output must verify against approved evidence, else it is removed
+      // any quote in the output must match an approved, verified quote exactly, else it is removed
       let quotesRemoved = 0;
+      const verifiedQuotes: { chunkId: string; quote: string; mentorId: string }[] = [];
       for (const q of draft.quotes) {
-        const ev = approvedEvidence.find((e) => e.chunkId === q.chunkId);
-        if (!ev || ev.quote !== q.quote) {
+        const ev = labeled.find((e) => e.label === q.chunkId.trim().replace(/^\[|\]$/g, ""));
+        if (!ev || normalize(ev.quote) !== normalize(q.quote)) {
           quotesRemoved++;
           text = text.split(q.quote).join("").replace(/\s+/g, " ").trim();
-          await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: "LEXICON", payload: { promptId: "LEXICON_COMPOSE", chunkId: q.chunkId, reason: ev ? "not_approved_quote" : "chunk_not_approved", quote: q.quote.slice(0, 200) } });
+          await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: "LEXICON", payload: { promptId: "LEXICON_COMPOSE", label: q.chunkId, reason: ev ? "not_approved_quote" : "chunk_not_approved", quote: q.quote.slice(0, 200) } });
+        } else if (text.includes(q.quote)) verifiedQuotes.push({ chunkId: ev.chunkId, quote: q.quote, mentorId: ev.mentorId });
+      }
+      // cite or silence in the reply text itself: every quoted span must be an approved verified quote
+      // (or a run of ≥ 8 of its words), or the operator's own words; otherwise its sentence is dropped
+      const sentencesOut: string[] = [];
+      for (const sentence of splitSentences(text)) {
+        const spans = [...sentence.matchAll(/["\u201C]([^"\u201C\u201D]+)["\u201D]/g)].map((m) => m[1]);
+        const bad = spans.find((inner) => !allowedQuotedSpan(inner, labeled.map((e) => e.quote), req.input));
+        if (bad === undefined) sentencesOut.push(sentence);
+        else {
+          quotesRemoved++;
+          await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: "LEXICON", payload: { promptId: "LEXICON_COMPOSE", reason: "unverified_quote_in_text", quote: bad.slice(0, 200), sentence: sentence.slice(0, 200) } });
         }
       }
+      text = sentencesOut.join(" ");
       output = text || (check.sentences.length === 0 ? "(The composed reply was empty.)" : "(No sentence of the draft passed the faithfulness check.)");
       trace.compose = {
         draft: trace.compose.draft,
         faithfulness: check.sentences.map((s) => ({ sentence: s.sentence, p: s.p, kept: s.faithful })),
         regenerated,
         quotesRemoved,
+        mentorVoiceDropped,
+        quotes: verifiedQuotes,
         unavailable: check.unavailable,
       };
       // when regeneration happened, also record first-draft sentences that were dropped
@@ -948,6 +993,20 @@ export class Hive {
     const last = await this.d.db.selfModelVersion.findFirst({ orderBy: { version: "desc" }, select: { version: true } });
     return (last?.version ?? 0) + 1;
   }
+}
+
+/**
+ * A quoted span in the reply is allowed when it is the operator's own words, an approved verified quote,
+ * or a run of at least 8 consecutive words of one (the MENTOR RULES minimum). Exported for tests.
+ */
+export function allowedQuotedSpan(inner: string, approvedQuotes: string[], operatorInput: string): boolean {
+  const n = normalize(inner);
+  if (!n) return true;
+  if (normalize(operatorInput).includes(n)) return true;
+  return approvedQuotes.some((q) => {
+    const nq = normalize(q);
+    return nq === n || (nq.includes(n) && n.split(" ").length >= 8);
+  });
 }
 
 /** Unique id for ad-hoc sessions (REPL, eval). */

@@ -9,6 +9,7 @@ import { GenerationError } from "../providers/llm";
 import { quoteRejection, verifyQuote } from "../quotes";
 import { clearRetrievalCache, search } from "../retrieval";
 import { promptSettings, Schemas } from "@/lib/hive/prompts";
+import { hiveConfig } from "@/lib/hive/config";
 import { AUTHORIAL, EPISODE_TAG, EVIDENCE_SUPPORTS, POSITION_TAG, T } from "@/lib/hive/questions";
 import { fetchGutenberg, fetchWikisourceLetters, realGet, type GetText } from "./fetch";
 import { scenarioLeaks } from "./fidelity";
@@ -25,8 +26,14 @@ import { mapLimit, toBytes } from "./vectors";
 export const STEPS = ["fetch", "chunk", "authorial", "embed", "tag", "holdout", "fingerprint", "principles", "fidelity", "activate"] as const;
 export type Step = (typeof STEPS)[number];
 
-export const MIN_AUTHORIAL_WORDS = 30_000;
-export const ACTIVATION = { dilemmasAnswered: 15, principles: 8, receiptsPerPrinciple: 2 };
+/** Activation thresholds from config/hive.yaml `corpus.activation` (owner lowered dilemmas 15 → 13 on 2026-11-04). */
+const act = () => hiveConfig().corpus.activation;
+export const ACTIVATION = {
+  get dilemmasAnswered() { return act().dilemmas_answered; },
+  get principles() { return act().principles; },
+  get receiptsPerPrinciple() { return act().receipts_per_principle; },
+};
+export const minAuthorialWords = () => act().min_authorial_words;
 const PASSAGES_K = 8;
 
 type Source =
@@ -261,8 +268,8 @@ export class CorpusBuilder {
     const words = kept.reduce((s, c) => s + wordCount(c.text), 0);
     clearRetrievalCache();
     await this.saveStats(mentorId, { chunks: kept.length, authorialWords: words });
-    if (words < MIN_AUTHORIAL_WORDS) {
-      await this.deactivate(mentorId, `insufficient authorial text: ${words} words < ${MIN_AUTHORIAL_WORDS}`);
+    if (words < minAuthorialWords()) {
+      await this.deactivate(mentorId, `insufficient authorial text: ${words} words < ${minAuthorialWords()}`);
       return { kept: kept.length, dropped, authorialWords: words, unavailable, stop: true, reason: "insufficient authorial text" };
     }
     return { kept: kept.length, dropped, authorialWords: words, unavailable };
@@ -521,7 +528,7 @@ export class CorpusBuilder {
     const principles = await this.db.mentorPrinciple.findMany({ where: { mentorId }, select: { receipts: true } });
     const strong = principles.filter((p) => (JSON.parse(p.receipts) as unknown[]).length >= ACTIVATION.receiptsPerPrinciple).length;
     const reasons: string[] = [];
-    if ((s.authorialWords ?? 0) < MIN_AUTHORIAL_WORDS) reasons.push(`authorial words ${s.authorialWords ?? 0} < ${MIN_AUTHORIAL_WORDS}`);
+    if ((s.authorialWords ?? 0) < minAuthorialWords()) reasons.push(`authorial words ${s.authorialWords ?? 0} < ${minAuthorialWords()}`);
     if (dilemmas < ACTIVATION.dilemmasAnswered) reasons.push(`dilemmas answered with evidence ${dilemmas} < ${ACTIVATION.dilemmasAnswered}`);
     if (strong < ACTIVATION.principles) reasons.push(`principles with ≥ ${ACTIVATION.receiptsPerPrinciple} verified receipts ${strong} < ${ACTIVATION.principles}`);
     if (!s.fidelity) reasons.push("no fidelity report");

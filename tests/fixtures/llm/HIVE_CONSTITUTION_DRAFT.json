@@ -1,0 +1,34 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "default": {
+    "principles": [
+      {
+        "text": "I give my attention to what matters now instead of letting my time be taken from me.",
+        "axis": "time",
+        "voices": [
+          "SENTIA",
+          "ARROW"
+        ],
+        "receipts": [
+          {
+            "mentorPrincipleId": "M1",
+            "quote": "{{pick:formation:\"id\":\"M1\",\"text\":\"(?:[^\"\\\\]|\\\\.)*\",\"receipts\":\\[\\{\"quote\":\"((?:[^\"\\\\]|\\\\.)*)\"}}"
+          }
+        ]
+      },
+      {
+        "text": "I say plainly when I do not know.",
+        "axis": "honesty",
+        "voices": [
+          "LOGOS"
+        ],
+        "receipts": [
+          {
+            "mentorPrincipleId": "M1",
+            "quote": "this sentence was never in any receipt at all, not once"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -7,7 +7,8 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 - **Owner question: the bare line `tencent/hy4` in `.env`** (added 2026-11-04) has no variable name, so nothing reads it. Which role is it for (decision chain, a text tier, embeddings, rerank)?
 - `cloudflare/clairic` is listed twice in `.env` (slots 1 and 6) and still returns 404; the chain now tries a repeated ID once.
-- **Owner decisions from M5:** (a) Osler: *Aequanimitas* is not on Project Gutenberg; substitute his available addresses (#73116, #36926, #48994) or leave him inactive? (b) Activation threshold: Maimonides (13), Lincoln (14), Addams (14), Tagore (13) are 1–2 dilemmas short of 15; Douglass 10, Nightingale 7. Keep 15? (c) Confucius has 27,596 authorial words (< 30,000) from the Analects alone.
+- **Owner actions for M6 (operator-only, not done by the build):** on `/formation`, save a version from the current lenses (the seed formation v1 names inactive mentors, so it cannot be approved as is) and approve it; then on `/constitution`, generate a draft, edit, and approve. Until then cycles use the newest formation draft (inactive mentors filtered out) and no constitution.
+- **Owner decisions still open from M5:** Osler (substitute his available addresses #73116, #36926, #48994, or leave inactive); Confucius 27,596 and Laozi 10,535 authorial words (< 30,000).
 - **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
 - Owner decisions carried from `ADAPTATION_NOTES.md` §5: voice↔mentor map (before M6), Honesty Clause on/off, question-bank citation. ("Central manager" was decided 2026-11-04; see M3.)
@@ -296,4 +297,32 @@ morph/reflex cost about 10× the other decision models for the same request (sin
 
 **Commands run (2026-11-04), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 18 files 180 / 180 · check:prompts 33 / 0 · eval 13 / 13 · e2e 4 / 4.
 
-## Next: M6 (formation, attribute lenses, constitution)
+## Owner decision 2026-11-04: activation bar 15 → 13 dilemmas
+
+`config/hive.yaml: corpus.activation.dilemmas_answered: 13` (the thresholds moved from code to config). Rerunning only the activate step (no model calls, $0) activated 13 of 18: the 9 before plus Maimonides 13, Tagore 13, Lincoln 14, Jane Addams 14. Every Core Voice now has at least one active mentor in the seed map. Still inactive: Douglass 10, Nightingale 7, Confucius and Laozi (text), Osler (source).
+
+## M6: Formation, attribute lenses, constitution (done 2026-11-04)
+
+**Done**
+- `lib/council/councilMetrics.ts` (κ over ≥ 5 shared items, N_eff); `lib/hive/formation.ts` (versions, active-only, ≤ 3 per Voice, approval supersedes; metrics); `lib/hive/lens.ts` (assigned active mentors only, ≤ 5 principles per mentor by similarity, top 3 non-held-out chunks per mentor with rerank, P-labels); `lib/hive/constitution.ts` (draft from the approved formation with M-labels, `verifyReceipts`, drop + ledger on zero receipts, edit drafts, operator approval to version N+1 retiring the replaced, retire).
+- Cycle: P2 whispers get their Voice's lens (`MENTOR_LENS` + passages); evidence verified against the labeled chunk, mentorId recorded; BALLOT state carries ≤ 6 mentor principles; compose gets E-labeled approved quotes, checks mentor first person (one regeneration, then the offending sentences are dropped), keeps only quotes matching approved verified quotes, and drops any sentence whose quoted span is not an approved quote (or an ≥ 8-word run of one) or the operator's own words.
+- UI: `/formation` (assign 1–3 active mentors per Voice, save version, approve, N_eff, per-Voice κ, "About these lenses" with works, translators, "traditionally attributed"), `/constitution` (generate, edit, approve, retire; receipts rendered as verified quotes), `/hive` renders verified quotes in replies and whisper cards with `data-quote data-verified data-chunk-id`. API: `GET/PUT /api/formation`, `POST /api/formation/approve`, `GET/POST /api/constitution`, `POST /api/constitution/approve`, `PATCH /api/constitution/principles/[id]`.
+- Eval: `fixture_formation` support; `eval.current_milestone: M6`.
+
+**Acceptance (BUILD_PLAN M6)**
+- Unit (`tests/unit/formation-lens-constitution.test.ts`, private DB, real-text fixture corpus): a Voice gets only its assigned active mentors' chunks; a whisper citing a chunk it was not given loses that evidence, ledgered `chunk_not_given`; a receipt not verbatim in the mentor principle's receipts is lost; zero receipts → dropped + `constitution.principle_dropped`; approval creates version N+1 and retires the replaced; approved principles reach the arbiter (1 checked).
+- Eval (mock): 16 / 16 including the 3 grounding scenarios (fabricated and out-of-lens quotes rejected and ledgered; mentor-first-person first draft caught and regenerated; Thoreau question → "no evidence"), twice, byte-identical. Grounding goldens inspected and blessed.
+- e2e (`tests/e2e/constitution.spec.ts`): save + approve formation → generate constitution (1 kept, 1 dropped) → edit → approve → `/hive` reply carries a verified quote, whisper evidence has `data-verified="true"`, arbiter shows "Principles checked: 1"; every `[data-quote]` on the page verified. Mock providers with an e2e fixture corpus (Seneca Letter 1, real text; one test-fixture principle, labeled).
+
+**Live check (2026-11-04, real corpus, newest formation draft, no constitution approved)**
+- Run 1: all 12 whisperers had lenses (e.g. LOGOS: Franklin, Maimonides, Wollstonecraft); 4 quotes kept as verified evidence, 2 rejected (`not_in_chunk`, `chunk_not_approved`). **Finding:** the reply quoted a 3-word fragment attributed to Jane Addams ("not alienated by wrongdoing") that was not a verified quote; the reply-text check only caught quoted spans ≥ 40 characters. Fixed (sentence-level check of every quoted span; unit test) and LEXICON_COMPOSE now says to quote only whole approved quotes by label. Cost $0.029305.
+- Run 2 (same input): reply paraphrased, 2 verified evidence quotes behind it, 0 removed. Cost $0.015649.
+
+**Deviations**
+- Labels everywhere a model cites (P passages, E evidence, M mentor principles), mapped back in code.
+- Seed formation v1 cannot be approved (it names inactive mentors); the UI starts the next version from the current lenses with inactive mentors removed.
+- Constitution edits apply to drafts only; approved principles change through a new version.
+
+**Commands run (2026-11-04), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 19 files 189 / 189 · check:prompts 33 / 0 · eval 16 / 16 twice, byte-identical · e2e 5 / 5.
+
+## Next: M7 (Reveal)

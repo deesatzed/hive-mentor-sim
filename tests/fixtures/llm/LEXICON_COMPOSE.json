@@ -3,6 +3,43 @@
   "rules": [
     {
       "when": {
+        "variant": "mentor_first_person_draft",
+        "absent:mentorVoiceNote": ""
+      },
+      "output": {
+        "text": "I, Marcus Aurelius, tell you to master yourself before the day begins.",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
+        "variant": "mentor_first_person_draft"
+      },
+      "output": {
+        "text": "I can't speak as Marcus Aurelius, and I have no evidence from his writings in front of me right now. What would you like to explore about him?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
+        "variant": "fabricated_and_out_of_lens_quotes"
+      },
+      "output": {
+        "text": "I have no evidence from a mentor's writings that I can stand behind here, so I'll speak for myself: anger at being wronged is worth listening to before acting on. What happened?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
+        "coalition": "lenses includes Thoreau"
+      },
+      "output": {
+        "text": "Thoreau isn't among the mentors whose writings I can draw on right now, so I have no evidence from his texts to offer. What draws you to living simply?",
+        "quotes": []
+      }
+    },
+    {
+      "when": {
         "variant": "injects_unfaithful_sentence"
       },
       "output": {
@@ -99,6 +136,21 @@
       "output": {
         "text": "Noted: I'll keep my answers concise. What's on your mind?",
         "quotes": []
+      }
+    },
+    {
+      "when": {
+        "coalition": "A passage from our lens bears on how time",
+        "evidence": "\"E1\""
+      },
+      "output": {
+        "text": "Something I'm drawing on says it plainly: \"{{pick:evidence:\"E1\",\"mentor\":\"[^\"]*\",\"quote\":\"((?:[^\"\\\\]|\\\\.)*)\"}}\". How would you like to use your time?",
+        "quotes": [
+          {
+            "chunkId": "E1",
+            "quote": "{{pick:evidence:\"E1\",\"mentor\":\"[^\"]*\",\"quote\":\"((?:[^\"\\\\]|\\\\.)*)\"}}"
+          }
+        ]
       }
     },
     {

@@ -106,7 +106,9 @@ export class MockDecider implements Decider {
  * case-insensitive regex; "variant" against the context's mock variant; "absent:<var>" when the var
  * is empty. First matching rule wins, then variants, then default.
  * Templating in outputs: a string exactly "{{var:<name>}}" becomes that var's value (any type);
- * inside a longer string it is replaced by its text; an array element "{{spread:<name>}}" splices an array var.
+ * inside a longer string it is replaced by its text; an array element "{{spread:<name>}}" splices an array var;
+ * a string exactly "{{pick:<name>:<regex>}}" becomes capture group 1 of the regex run on the var's text
+ * (JSON for non-strings; JSON escapes are undone), or "" when it does not match.
  */
 export type LlmFixture =
   | { rules?: { when: Record<string, string>; output: unknown }[]; default?: unknown; variants?: Record<string, unknown> }
@@ -124,7 +126,15 @@ function applyTemplate(x: unknown, vars: Record<string, unknown>): unknown {
   if (typeof x === "string") {
     const whole = x.match(/^\{\{var:([A-Za-z0-9_]+)\}\}$/);
     if (whole) return vars[whole[1]];
-    return x.replace(/\{\{var:([A-Za-z0-9_]+)\}\}/g, (_, k: string) => varText(vars[k]));
+    const runPick = (name: string, re: string) => {
+      const m = varText(vars[name]).match(new RegExp(re));
+      if (!m?.[1]) return "";
+      return typeof vars[name] === "string" ? m[1] : (JSON.parse(`"${m[1]}"`) as string);
+    };
+    const pick = x.match(/^\{\{pick:([A-Za-z0-9_]+):([\s\S]+)\}\}$/);
+    if (pick) return runPick(pick[1], pick[2]);
+    const withPicks = x.replace(/\{\{pick:([A-Za-z0-9_]+):([\s\S]+?)\}\}/g, (_m: string, n: string, re: string) => runPick(n, re));
+    return withPicks.replace(/\{\{var:([A-Za-z0-9_]+)\}\}/g, (_, k: string) => varText(vars[k]));
   }
   if (Array.isArray(x))
     return x.flatMap((el) => {

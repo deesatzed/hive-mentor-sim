@@ -11,7 +11,7 @@ type Trace = {
   affect: { valence: number; arousal: number; dominant: string; unavailable: boolean };
   memories: { id: string; certainty: string; priority: number; body: string }[];
   parse: { intent: string; subtext: string; register: string };
-  whispers: { messageId: string; voice: string; claim: string; confidence: number; salience: number; valence: number; moralFlag: boolean; evidence: { chunkId: string; quote: string; mentorId: string }[]; rejectedEvidence: number; numbersUnavailable: boolean }[];
+  whispers: { messageId: string; voice: string; claim: string; confidence: number; salience: number; valence: number; moralFlag: boolean; evidence: { chunkId: string; quote: string; mentorId: string }[]; rejectedEvidence: number; numbersUnavailable: boolean; lens?: string[] }[];
   passes: string[];
   attention: { scores: Record<string, number>; shortlist: string[]; bypass: string[]; decayed: string[]; rejectedSelections: string[] };
   awareness: { text: string; selected: string[] };
@@ -19,7 +19,7 @@ type Trace = {
   conclaveId?: string;
   witness: { ran: boolean; flags: Record<string, number>; recommendation: string; quality: string; notConsidering: string; reflectRan: boolean; reflectReason: string | null };
   arbiter: { decision: string; humility: boolean; principlesChecked: string[]; commitmentsChecked: string[]; guidance?: string; overrides: string[]; commitmentConflicts: string[]; commitmentsBroken: { id: string; reason: string }[] };
-  compose: { draft: string; faithfulness: { sentence: string; p: number | null; kept: boolean }[]; regenerated: boolean };
+  compose: { draft: string; faithfulness: { sentence: string; p: number | null; kept: boolean }[]; regenerated: boolean; quotes?: { chunkId: string; quote: string; mentorId: string }[] };
   reflect: { ran: boolean; selfModel: { promoted: boolean; reason?: string; version?: number }; memory: string[]; lesson?: string; canon: { promoted: boolean; candidate?: string }; predictions: string[]; commitmentsMade: string[]; conflictMarkers: string[]; authorityGrab: boolean };
   honestyClauseFired: boolean;
   coherence: { cIntra: number | null; cInter: number | null; flags: string[] };
@@ -79,8 +79,9 @@ function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null }) {
                 {w.numbersUnavailable ? " (unavailable)" : ""}
               </p>
               <p className="muted">
-                {w.evidence.length === 0 ? "No attribute lens / no evidence." : w.evidence.map((e) => (
-                  <q key={e.chunkId} data-quote data-verified="true" data-chunk-id={e.chunkId}>{e.quote}</q>
+                {w.lens?.length ? `Lens: ${w.lens.join(", ")}. ` : "No attribute lens. "}
+                {w.evidence.length === 0 ? "No evidence cited." : w.evidence.map((e, i) => (
+                  <q key={`${e.chunkId}-${i}`} data-quote data-verified="true" data-chunk-id={e.chunkId}>{e.quote}</q>
                 ))}
                 {w.rejectedEvidence ? ` · ${w.rejectedEvidence} quote(s) rejected` : ""}
               </p>
@@ -212,6 +213,21 @@ type Conclave = {
   dissent: { voice: string }[];
 };
 
+/** Renders the reply with every verified quote marked (cite or silence: only verified quotes reach the reply). */
+function ReplyText({ text, quotes }: { text: string; quotes: { chunkId: string; quote: string }[] }) {
+  const parts: React.ReactNode[] = [];
+  let rest = text;
+  let k = 0;
+  for (const q of quotes) {
+    const i = rest.indexOf(q.quote);
+    if (i < 0) continue;
+    parts.push(rest.slice(0, i), <q key={k++} data-quote data-verified="true" data-chunk-id={q.chunkId}>{q.quote}</q>);
+    rest = rest.slice(i + q.quote.length);
+  }
+  parts.push(rest);
+  return <>{parts}</>;
+}
+
 function TurnView({ turn }: { turn: Turn }) {
   const [open, setOpen] = useState(false);
   const [conclave, setConclave] = useState<Conclave | null>(null);
@@ -226,7 +242,7 @@ function TurnView({ turn }: { turn: Turn }) {
     <div className="turn">
       <p className="you">{turn.input}</p>
       <p className="reply" data-testid="hive-reply">
-        {turn.status === "done" ? turn.output : `The cycle stopped in ${turn.trace.error?.phase}: ${turn.trace.error?.message}`}
+        {turn.status === "done" ? <ReplyText text={turn.output} quotes={turn.trace.compose.quotes ?? []} /> : `The cycle stopped in ${turn.trace.error?.phase}: ${turn.trace.error?.message}`}
       </p>
       <button className="link" onClick={toggle}>
         {open ? "Hide thinking" : "Show thinking"}

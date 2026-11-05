@@ -3,6 +3,49 @@
   "rules": [
     {
       "when": {
+        "voice": "^KINDRED$",
+        "variant": "fabricated_and_out_of_lens_quotes"
+      },
+      "output": {
+        "claim": "Anger after being wronged deserves attention before any response.",
+        "evidence": [
+          {
+            "chunkId": "P9",
+            "quote": "the angry man is always the first to be wounded by his own anger"
+          }
+        ],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^ETHOS$",
+        "variant": "fabricated_and_out_of_lens_quotes"
+      },
+      "output": {
+        "claim": "Whatever we advise should not repay one wrong with another.",
+        "evidence": [
+          {
+            "chunkId": "cmw_chunk_from_another_voice",
+            "quote": "to repay a wrong with a wrong only doubles the harm to everyone involved"
+          }
+        ],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^LOGOS$",
+        "input": "Thoreau"
+      },
+      "output": {
+        "claim": "None of our lenses includes Thoreau's writings this cycle, so we have no evidence to quote.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
         "voice": "^LOGOS$",
         "variant": "logos_self_contradiction",
         "input": "plan carefully or act fast"
@@ -287,6 +330,22 @@
       "output": {
         "claim": "Note the stated preference for concise answers.",
         "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^SENTIA$",
+        "passages": "\\[P1\\]"
+      },
+      "output": {
+        "claim": "A passage from our lens bears on how time is spent; the feeling of time slipping away matters here.",
+        "evidence": [
+          {
+            "chunkId": "P1",
+            "quote": "{{pick:passages:\\[P1\\] \\([^)]*\\) ((?:\\S+\\s+){11}\\S+)}}"
+          }
+        ],
         "uncertainty": "low"
       }
     },

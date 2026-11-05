@@ -62,3 +62,15 @@ describe("no mentor first person (TEST_PLAN #2)", () => {
     expect(mentorFirstPerson("I think this matters.", names)).toBeNull();
   });
 });
+
+describe("quoted spans in the reply (cite or silence, M6 live finding)", () => {
+  it("allows the operator's words and approved quotes (or ≥ 8-word runs of them); refuses short or unverified fragments", async () => {
+    const { allowedQuotedSpan } = await import("@/lib/hive/orchestrator");
+    const approved = ["a sympathy which is not alienated by wrongdoing but understands the wrong and still holds the person"];
+    expect(allowedQuotedSpan("thinking of quitting", approved, "I'm thinking of quitting my job.")).toBe(true);
+    expect(allowedQuotedSpan(approved[0], approved, "x")).toBe(true);
+    expect(allowedQuotedSpan("not alienated by wrongdoing but understands the wrong and still", approved, "x")).toBe(true);
+    expect(allowedQuotedSpan("not alienated by wrongdoing", approved, "x")).toBe(false); // < 8 words
+    expect(allowedQuotedSpan("sympathy that never alienates", approved, "x")).toBe(false);
+  });
+});

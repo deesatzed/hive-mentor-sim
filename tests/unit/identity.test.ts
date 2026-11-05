@@ -154,7 +154,7 @@ describe("ego audit questions", () => {
     return { cycleNo: n, verdict: "PASS", trace: t, conclave: null, ...extra };
   };
   const w = (voice: string, id: string, o: Partial<{ salience: number; confidence: number; moralFlag: boolean }> = {}) => ({
-    messageId: id, voice, claim: "c", confidence: o.confidence ?? 0.5, salience: o.salience ?? 0.5, valence: 0, evidence: [], rejectedEvidence: 0, advisory: false, endorsedBy: null, moralFlag: o.moralFlag ?? false, numbersUnavailable: false, uncertainty: "",
+    messageId: id, voice, claim: "c", confidence: o.confidence ?? 0.5, salience: o.salience ?? 0.5, valence: 0, evidence: [], rejectedEvidence: 0, advisory: false, endorsedBy: null, moralFlag: o.moralFlag ?? false, numbersUnavailable: false, uncertainty: "", lens: [],
   });
 
   it("clean traces → no findings, no mandate", () => {

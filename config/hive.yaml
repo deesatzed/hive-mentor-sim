@@ -344,13 +344,21 @@ eval:
   scenarios_dir: seed/eval/scenarios
   goldens_dir: seed/eval/goldens
   # pnpm eval runs scenarios whose milestone ≤ this one
-  current_milestone: M4
+  current_milestone: M6
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first
     - coherence
     - non_sycophancy
     - constitution_alignment
+# ---------------------------------------------------------------------------------------------------
+# Mentor activation (docs/MENTOR_CORPUS.md). dilemmas_answered lowered from 15 to 13 by the owner on 2026-11-04.
+corpus:
+  activation:
+    dilemmas_answered: 13
+    principles: 8
+    receipts_per_principle: 2
+    min_authorial_words: 30000
 # ---------------------------------------------------------------------------------------------------
 # Who decides the order of the thinking cycle (owner decision 2026-11-04).
 #   manager: the central manager model picks the next phase from the phases code allows at that point.

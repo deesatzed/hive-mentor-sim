@@ -57,9 +57,11 @@ export async function search(args: {
   k: number;
   /** embedding candidates passed to the reranker (default 3k) */
   candidates?: number;
+  /** a precomputed embedding of `query` (same embedder), to embed once per cycle */
+  queryVec?: Float32Array;
 }): Promise<SearchResult> {
   if (args.k <= 0 || !args.mentorIds.length) return { chunks: [], skippedOtherModel: 0 };
-  const [q] = await args.embedder.embed([args.query]);
+  const q = args.queryVec ?? (await args.embedder.embed([args.query]))[0];
   const model = args.embedder.model;
   let skipped = 0;
   const pool: RetrievedChunk[] = [];

@@ -1,6 +1,6 @@
 # Mentor fidelity report
 
-Generated 2026-11-04 by `pnpm corpus build`. Held-out passages (never retrievable) were turned into neutral scenarios; scenarios that shared a 6-word sequence with their passage or named the author or a work were discarded.
+Generated 2026-11-05 by `pnpm corpus build`. Held-out passages (never retrievable) were turned into neutral scenarios; scenarios that shared a 6-word sequence with their passage or named the author or a work were discarded.
 
 **How to read this.** Famous figures are in the base model's training data, so a high name-only score means the model already "knows" them; the fingerprint's value shows up as grounding (every answer cites verified passages) and as abstaining when the passages do not address a case, not only as accuracy. These numbers are k of n on a small set: they say how often the Hive's grounded reading of the texts matched the author's own stated choice, never "what this person would think."
 

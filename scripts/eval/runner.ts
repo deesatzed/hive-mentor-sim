@@ -30,6 +30,26 @@ export function loadScenarios(cfg: HiveConfig = hiveConfig()): Scenario[] {
 
 const mNum = (m: string) => Number(m.slice(1));
 
+/**
+ * Named formation fixtures for scenarios (EVAL FIXTURES, written straight to the eval database; they
+ * bypass saveFormation's active-mentor check because the eval database has no corpus).
+ */
+const FORMATION_FIXTURES: Record<string, (db: ReturnType<typeof getDb>) => Promise<void>> = {
+  no_voice_has_thoreau: async (db) => {
+    const map = JSON.parse(readFileSync(path.join(process.cwd(), "seed", "voice_mentor_map.json"), "utf8")) as { assignments: { voice: string; mentors: string[] }[] };
+    const voices = new Map((await db.voice.findMany({ where: { class: "core" } })).map((v) => [v.name, v.id]));
+    const last = await db.formation.findFirst({ orderBy: { version: "desc" }, select: { version: true } });
+    await db.formation.create({
+      data: {
+        version: (last?.version ?? 0) + 1,
+        status: "approved",
+        note: "eval fixture: no_voice_has_thoreau",
+        members: { create: map.assignments.flatMap((a) => a.mentors.filter((m) => m !== "henry-david-thoreau").map((mentorId) => ({ voiceId: voices.get(a.voice)!, mentorId, kind: "declared" }))) },
+      },
+    });
+  },
+};
+
 export interface RunOpts {
   live: boolean;
   updateGoldens: boolean;
@@ -55,13 +75,14 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
       results.push({ ...base, skipped: true, skipReason: `requires ${unmet[0]}=${unmet[1]}`, passed: false });
       continue;
     }
-    if (s.fixture_formation) {
-      results.push({ ...base, skipped: true, skipReason: `fixture_formation '${s.fixture_formation}' needs the corpus (M6)`, passed: false });
+    if (s.fixture_formation && !FORMATION_FIXTURES[s.fixture_formation]) {
+      results.push({ ...base, skipped: true, skipReason: `unknown fixture_formation '${s.fixture_formation}'`, passed: false });
       continue;
     }
 
     await cloneDb(TEMPLATE, RUN);
     const db = getDb(RUN);
+    if (s.fixture_formation) await FORMATION_FIXTURES[s.fixture_formation](db);
     const hive = createHive({ env, db, cfg, providerDeps: { mockContext: { variant: s.mock_variant } } });
     const sessionId = await hive.createSession("chat", `eval:${s.id}`);
     const turns: TurnRecord[] = [];

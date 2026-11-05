@@ -43,6 +43,14 @@ export const HiveConfigSchema = z.object({
     open_uncertainties: z.array(z.string()),
   }),
   eval: z.object({ scenarios_dir: z.string(), goldens_dir: z.string(), current_milestone: z.string().regex(/^M\d+$/), rubric_dimensions: z.array(z.string()) }),
+  corpus: z.object({
+    activation: z.object({
+      dilemmas_answered: z.number().int().positive(),
+      principles: z.number().int().positive(),
+      receipts_per_principle: z.number().int().positive(),
+      min_authorial_words: z.number().int().positive(),
+    }),
+  }),
   orchestration: z.object({ mode: z.enum(["manager", "code"]), max_manager_steps: z.number().int().min(7) }),
   models: z.object({
     manager: z.string(),

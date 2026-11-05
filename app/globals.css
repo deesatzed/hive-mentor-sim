@@ -92,3 +92,5 @@ td:first-child, th:first-child { text-align: left; }
 .side h3 { margin: 16px 0 4px; font-size: 0.95rem; }
 .home.wide { max-width: 1100px; }
 td.flag { font-weight: 600; text-decoration: underline; }
+.chip { display: inline-block; margin: 0 8px 4px 0; font-size: 0.85rem; white-space: nowrap; }
+q[data-verified="true"] { background: color-mix(in srgb, var(--foreground) 8%, transparent); }

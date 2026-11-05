@@ -7,7 +7,7 @@
 3. **Public domain in the US**, with the source's copyright flag confirming it. Project Gutenberg via the Gutendex API (`copyright: false`) or Wikisource.
 4. **Enough text:** ≥ 30,000 words of authorial text after filtering.
 5. **Activation threshold:** a mentor becomes `active=true` only after a complete build with:
-   - ≥ 15 dilemmas answered with verified evidence;
+   - ≥ 13 dilemmas answered with verified evidence (owner lowered this from 15 on 2026-11-04; `config/hive.yaml: corpus.activation`);
    - ≥ 8 mentor principles, each with ≥ 2 verified receipts;
    - a fidelity report generated.
 

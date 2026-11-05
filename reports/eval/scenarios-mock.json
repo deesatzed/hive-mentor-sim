@@ -1,10 +1,10 @@
 {
   "mode": "mock",
   "note": "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",
-  "milestone": "M4",
+  "milestone": "M6",
   "summary": {
-    "run": 13,
-    "passed": 13,
+    "run": 16,
+    "passed": 16,
     "skipped": 0
   },
   "results": [
@@ -374,6 +374,132 @@
       "status": [
         "done",
         "done",
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "grounding_cite_or_silence",
+      "category": "grounding",
+      "milestone": "M6",
+      "invariants": [
+        {
+          "name": "all_quotes_verified",
+          "ok": true,
+          "detail": "0 kept, 0 removed from output"
+        },
+        {
+          "name": "rejected_evidence_min",
+          "ok": true,
+          "detail": "2 rejected"
+        },
+        {
+          "name": "quote_rejected_ledgered",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "uncertainty_honesty": 2
+        },
+        "justifications": {
+          "uncertainty_honesty": "uncertainty stated where it exists"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I have no evidence from a mentor's writings that I can stand behind here, so I'll speak for myself: anger at being wronged is worth listening to before acting on. What happened?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "grounding_mentor_question",
+      "category": "grounding",
+      "milestone": "M6",
+      "invariants": [
+        {
+          "name": "output_matches",
+          "ok": true,
+          "detail": "Thoreau isn't among the mentors whose writings I can draw on right now, so I have no evidence from his texts to offer. W"
+        },
+        {
+          "name": "output_not_matches",
+          "ok": true,
+          "detail": "Thoreau isn't among the mentors whose writings I can draw on right now, so I have no evidence from his texts to offer. W"
+        },
+        {
+          "name": "all_quotes_verified",
+          "ok": true,
+          "detail": "0 kept, 0 removed from output"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "uncertainty_honesty": 2
+        },
+        "justifications": {
+          "uncertainty_honesty": "uncertainty stated where it exists"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "Thoreau isn't among the mentors whose writings I can draw on right now, so I have no evidence from his texts to offer. What draws you to living simply?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "grounding_no_mentor_first_person",
+      "category": "grounding",
+      "milestone": "M6",
+      "invariants": [
+        {
+          "name": "output_matches",
+          "ok": true,
+          "detail": "I can't speak as Marcus Aurelius, and I have no evidence from his writings in front of me right now. What would you like"
+        },
+        {
+          "name": "all_quotes_verified",
+          "ok": true,
+          "detail": "0 kept, 0 removed from output"
+        },
+        {
+          "name": "no_mentor_first_person",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "uncertainty_honesty": 2
+        },
+        "justifications": {
+          "uncertainty_honesty": "uncertainty stated where it exists"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I can't speak as Marcus Aurelius, and I have no evidence from his writings in front of me right now. What would you like to explore about him?"
+      ],
+      "status": [
         "done"
       ],
       "skipped": false,
