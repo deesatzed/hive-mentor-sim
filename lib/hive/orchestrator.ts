@@ -151,7 +151,7 @@ export class Hive {
     // ---------------- P0 INTAKE (code)
     const last = await db.cycle.findFirst({ orderBy: { cycleNo: "desc" }, select: { cycleNo: true } });
     const cycleNo = (last?.cycleNo ?? 0) + 1;
-    const formation = await db.formation.findFirst({ orderBy: { version: "desc" }, select: { version: true } });
+    const formation = await activeFormation(db); // the formation whose lenses this cycle uses (approved, else newest draft)
     const principlesRows = await db.hivePrinciple.findMany({ where: { status: "approved" }, orderBy: { createdAt: "asc" } });
     const principles = principlesRows.map((p) => ({ id: p.id, text: p.text }));
     const constitutionVersion = principlesRows.length ? Math.max(...principlesRows.map((p) => p.version)) : null;
@@ -181,7 +181,8 @@ export class Hive {
     const oldMarkers = (await this.state.openConflictMarkers()).filter((m) => cycleNo - m.createdCycle >= cfg.memory.conflict_escalation_cycles);
     const mandateAudit = await this.pendingEgoMandate(cycleNo);
     const mandateReason: "ego_audit" | "conflict_marker" | null = mandateAudit ? "ego_audit" : oldMarkers.length ? "conflict_marker" : null;
-    const constraints = { requireP4: mandateReason !== null };
+    // ruling and calibration modes always deliberate: the Conclave winner is the ruling (ARCHITECTURE.md "Ruling mode")
+    const constraints = { requireP4: mandateReason !== null || mode !== "chat" };
     trace.phases.P0 = { ran: true, ms: Date.now() - t0, costUsd: 0, entities: [] };
 
     // shared per-cycle state
@@ -196,7 +197,7 @@ export class Hive {
     let output = "";
     let arbiterGuidance = "";
     const shared = { principles: principles.map((p) => p.text), mentorLens: "" }; // per-Voice lens text is added in P2
-    const formationNow = await activeFormation(db);
+    const formationNow = formation;
     let lenses = new Map<string, Lens>();
     const sessionId = req.sessionId;
 
@@ -518,7 +519,7 @@ export class Hive {
         for (const w of voters) {
           const r = await tryDecide(
             providers.decider,
-            { question: frame, voice: { name: w.voice, faculty: w.faculty, mentor_principles: ballotPrinciples(lenses.get(w.voiceId)) }, round_summaries: roundSummaries, options: Object.fromEntries(options.map((o, k) => [`o_${k + 1}`, o.claim])) },
+            { question: frame, voice: { name: w.voice, faculty: w.faculty, mentor_principles: ballotPrinciples(lenses.get(w.voiceId)) }, round_summaries: roundSummaries, options: Object.fromEntries(options.map((o, k) => [`o_${k + 1}`, o.claim])), ...(mode !== "chat" ? { mode } : {}) },
             BALLOT(w.voice, w.faculty, options.map((_, k) => k + 1)),
             "ballot",
             cycleId,

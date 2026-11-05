@@ -13,5 +13,6 @@
 - **Commands:**
   - `pnpm lint && pnpm typecheck && pnpm test && pnpm eval && pnpm test:e2e`
   - `pnpm corpus build --mentor all`
+  - `pnpm reveal [--live] [--limit N]` (or the Run Reveal button on `/reveal`)
   - `pnpm eval:calibration`
   - `pnpm smoke:live`, `pnpm eval:live`

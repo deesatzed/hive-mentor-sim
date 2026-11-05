@@ -26,6 +26,15 @@ async function main() {
   const [pv] = await e.embed(["saving time"]);
   await db.mentorPrinciple.create({ data: { mentorId: "seneca", text: "(e2e fixture) Seneca urges saving time instead of letting it be taken.", axis: "time", receipts: JSON.stringify(sentences.slice(0, 2).map((quote) => ({ chunkId: first.id, quote }))), embedding: toBytes(pv) } });
   await db.mentor.update({ where: { id: "seneca" }, data: { active: true, corpusStats: JSON.stringify({ answered: 0, principles: 1, steps: {} }) } });
+  // e2e FIXTURE mentor answers for Reveal: a scripted choice on every dilemma (first option on even-numbered
+  // dilemmas, second on odd), each citing a verbatim sentence of the real chunk. Not Seneca's actual answers.
+  const dilemmas = await db.situation.findMany({ where: { setKey: "dilemma" }, orderBy: { id: "asc" } });
+  for (const [i, d] of dilemmas.entries()) {
+    const options = JSON.parse(d.options) as { id: string }[];
+    await db.mentorAnswer.create({
+      data: { mentorId: "seneca", questionKey: d.id, status: "answered", answer: "(e2e fixture answer)", choice: options[i % 2].id, evidence: JSON.stringify([{ chunkId: first.id, quote: sentences[0] }]), model: "fixture:e2e" },
+    });
+  }
   await disconnectAll();
 }
 main();

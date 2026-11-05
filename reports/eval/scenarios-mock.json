@@ -1,7 +1,7 @@
 {
   "mode": "mock",
   "note": "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",
-  "milestone": "M6",
+  "milestone": "M7",
   "summary": {
     "run": 16,
     "passed": 16,

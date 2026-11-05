@@ -351,6 +351,16 @@
     },
     {
       "when": {
+        "mode": "^ruling$"
+      },
+      "output": {
+        "claim": "{{var:voice}} weighs these options through its own faculty and leans toward one of them.",
+        "evidence": [],
+        "uncertainty": "medium"
+      }
+    },
+    {
+      "when": {
         "voice": "^KINDRED$"
       },
       "output": {

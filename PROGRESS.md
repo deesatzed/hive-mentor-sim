@@ -325,4 +325,28 @@ morph/reflex cost about 10× the other decision models for the same request (sin
 
 **Commands run (2026-11-04), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 19 files 189 / 189 · check:prompts 33 / 0 · eval 16 / 16 twice, byte-identical · e2e 5 / 5.
 
-## Next: M7 (Reveal)
+## M7: Reveal (done 2026-11-05)
+
+**Done**
+- `lib/hive/reveal.ts`: pure comparisons (`agreement` with n ≥ 8 rule and κ correction, `voiceVsMentors`, `voiceTop`, `suggest` with revealed and wildcard picks), `runReveal` (ruling-mode heartbeat per dilemma, resumable per formation/constitution key, `HiveRuling` with per-Voice tops and `CONSTITUTION_RULING`), `revealResults` (headline, Hive vs. mentors with per-dilemma evidence, each Voice vs. its own mentors, Voice ballot N_eff, constitution mirror, suggestions, all rulings with Conclave decision).
+- Orchestrator: ruling and calibration modes always run P4 (the manager could previously skip it); cycles record the formation version whose lenses they used (was: newest version, even when an older one was approved); ruling-mode ballots carry `mode`.
+- UI and API: `/reveal` (Run / Resume button, progress, cost so far, three comparisons, suggestions not applied automatically, links to traces), `/cycles/[id]` (one stored cycle with its full trace; trace rendering moved to `app/hive/trace-view.tsx`), `GET/POST /api/reveal` (background run, one at a time per server). CLI `pnpm reveal [--live] [--limit N] [--db]`.
+- Mock additions (labeled, tests only): ruling-mode ballots spread deterministically by Voice and option; a `ruling` rule for `CONSTITUTION_RULING`; a ruling-mode `VOICE_WHISPER` fixture so every whispering Voice gives a claim; e2e fixture mentor answers for Seneca on all 40 dilemmas (scripted choices, each citing a verbatim sentence of the real chunk; not Seneca's answers).
+
+**Acceptance (BUILD_PLAN M7)**
+- Unit (`tests/unit/reveal.test.ts`, 11 tests): agreement counts only dilemmas where the mentor has evidence; below n = 8 → no rate and κ null; κ-corrected agreement (8/10 with 3 options → 0.7); N_eff = 1 for identical rulings and 3 for three chance-level subjects; wildcard maximizes N_eff and differs from the revealed pick; ruling mode (manager ordering) runs P4 and uses the situation's option ids as stable options; resumable runs without duplicates; a new constitution starts a new key and fills the mirror.
+- e2e (`tests/e2e/reveal.spec.ts`): Reveal runs 40 dilemmas on mocks → page shows the headline, Hive vs. mentors (Seneca k/40), Voice vs. own mentors, Voice N_eff, constitution mirror; every `[data-quote]` verified; a trace link opens `/cycles/[id]` in ruling mode with the Conclave section.
+
+**Live check (2026-11-05, on a backup copy of dev.db: `reveal-live.db`, formation v2 approved by the owner, no constitution approved)**
+- `pnpm reveal --live --db file:./reveal-live.db --limit 3`: 3 of 40 dilemmas ruled, 0 errors, **measured cost $0.067347** (about $0.022 per dilemma). Rulings DL-01 a, DL-02 a, DL-03 b; Voices split on DL-01 and DL-03 (e.g. DL-03: 6 Voices b, 5 a, 1 c; LOGOS tied, so no top recorded). Conclave decision PASS on 1, ESCALATE_THRESHOLD on 2. Voice ballot N_eff 3.25 over 13 voting Voices (3 rulings: small n, not a finding). No mentor reached n ≥ 8 with 3 rulings, so no rate is shown. The owner's dev.db was not changed.
+- Findings fixed from this run: the headline broke ties alphabetically ("built mostly from Lincoln and Franklin" when 10 mentors each back 2 Voices) → now names all tied mentors or their count; LUMEN and WITNESS (which never whisper, so never vote) read as "not enough evidence" → now "cast no ballots"; escalated Conclaves were not visible → each ruling shows its Conclave decision and the page counts them.
+
+**Deviations**
+- Voice vs. its own mentors pools (dilemma, mentor) pairs; the spec did not say how to combine several mentors.
+- Suggestions are computed per Voice with fewer than 3 mentors and are shown, not written to the formation (`FormationMember.kind` suggested_* is unused); the operator applies them on `/formation`.
+- The ruling is the top Conclave option even when the Conclave escalates (spec: "the winner is the ruling"); the escalation is displayed.
+- e2e: one worker (shared e2e.db) and its own build folder `.next-e2e`, so it can run while `pnpm dev` is up.
+
+**Commands run (2026-11-05), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 20 files 200 / 200 · check:prompts all pass · eval 16 / 16 twice, byte-identical · e2e 6 / 6.
+
+## Next: M8 (calibration pairs)

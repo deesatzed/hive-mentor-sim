@@ -84,10 +84,18 @@ const BALLOT_TABLE: Record<string, { ack: number; boundaries: number; protect: n
   ETHOS: { ack: 0.7, boundaries: 0.9, protect: 0.3 },
   LOGOS: { ack: 0.3, boundaries: 0.5, protect: 0.9 },
 };
+/** Deterministic 0..1 from a string (FNV-1a); used so mock ruling-mode ballots differ by Voice and option. */
+function hash01(x: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < x.length; i++) h = Math.imul(h ^ x.charCodeAt(i), 16777619);
+  return (h >>> 0) / 4294967295;
+}
 const ballot: MockRule = (_t, _q, name, state) => {
   const s = obj(state);
   const voice = str(obj(s.voice).name);
   const option = str(obj(s.options)[name]);
+  // ruling mode (Reveal): scripted per-Voice spread so Voices disagree; not model behavior
+  if (s.mode === "ruling") return noul(Math.round((0.15 + 0.8 * hash01(`${voice}|${option}`)) * 100) / 100);
   const row = BALLOT_TABLE[voice] ?? { ack: 0.6, boundaries: 0.5, protect: 0.4 };
   if (/acknowledge/i.test(option)) return noul(row.ack);
   if (/boundar/i.test(option)) return noul(row.boundaries);
@@ -156,6 +164,11 @@ export const MOCK_RULES: Record<string, MockRule> = {
   grab,
   "k_*": commitmentConflict,
   supports: () => noul(0.8),
+  // CONSTITUTION_RULING: scripted pick by dilemma text (mock; not model behavior)
+  ruling: (_t, q, _n, state) => {
+    const ids = Object.keys((q as { criteria: Record<string, string> }).criteria);
+    return mockChoice(q, ids[Math.floor(hash01(str(obj(state).dilemma)) * ids.length) % ids.length]);
+  },
 };
 
 /** For unit tests that need the neutral default explicitly. */

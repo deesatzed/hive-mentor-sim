@@ -13,6 +13,8 @@
 | Corpus live | `pnpm corpus build` | real | dev DB | yes |
 | Smoke | `pnpm smoke:live` | real | dev DB | yes |
 
+e2e runs with one worker (one shared `e2e.db`; files run in name order, so `constitution.spec` precedes `reveal.spec`) and builds into `.next-e2e` (`NEXT_DIST_DIR`) so it can run while `pnpm dev` is up.
+
 Local CI equivalent: `pnpm lint && pnpm typecheck && pnpm test && pnpm eval && pnpm test:e2e`, all with **no API keys set**.
 
 ## Mock conventions (mocks are approved by the owner's original handoff for offline tests; each is labeled `mock` in results)
