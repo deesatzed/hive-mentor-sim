@@ -30,6 +30,8 @@ export const T = {
   EVIDENCE_SUPPORTS: 0.5,
   HARD_FAIL: 0.5,
   AUTHORIAL: 0.5,
+  // PAIR_CONSISTENT `justified` below this ⇒ the pair is inconsistent (DECISION_LAYER.md gives no value; set equal to HARD_FAIL, recorded in PROGRESS.md)
+  PAIR_JUSTIFIED: 0.5,
 } as const;
 
 // ---------------------------------------------------------------- helpers

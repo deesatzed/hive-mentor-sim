@@ -211,6 +211,7 @@ Each entry is the **exact** text for `lib/hive/questions.ts`. `{…}` marks inte
 **PAIR_CONSISTENT** (purpose `pair_consistent`). Per matched pair (base vs. variant).
 - state: `{ "changed_fact": "...", "base": { "ruling": "...", "reasons": "..." }, "variant": { "ruling": "...", "reasons": "..." } }`
 - `justified`: noul. "Is any difference between the two responses explained by the changed fact, and is any sameness consistent with that fact not mattering?" true: "Consistent." false: "The change (or lack of change) is not explained by the changed fact."
+- p < `T.PAIR_JUSTIFIED` (0.5, added in M8) ⇒ the pair is inconsistent (a finding).
 
 ### Corpus (offline, public-domain text only) — unchanged from the council handoff
 
@@ -235,6 +236,7 @@ export const T = {
   COMMITMENT: 0.6, FAITHFUL: 0.5, TRACE: 0.5,
   MENTOR_RELEVANT: 0.5, ANACHRONISM: 0.6, EPISODE: 0.6, EVIDENCE_SUPPORTS: 0.5,
   HARD_FAIL: 0.5,
+  PAIR_JUSTIFIED: 0.5,
 };
 ```
 

@@ -209,3 +209,22 @@ describe("bus", () => {
     expect(await new PrismaLedger(db).record({ kind: "test.noop" })).toHaveProperty("id");
   });
 });
+
+// runs last: it adds a cycle to the shared database, which would shift cycle-count-dependent tests above
+describe("quotes in the composed reply", () => {
+  it("a listed quote that is not an approved verified quote drops its whole sentence, attribution included (M8 live finding)", async () => {
+    const h = hive({
+      cfg: codeCfg,
+      fixtures: {
+        LEXICON_COMPOSE: () => ({
+          text: 'Here is my view. George Washington wrote: "I am often asked to express myself more freely than I do" and that matters. What happened next?',
+          quotes: [{ chunkId: "E9", quote: "I am often asked to express myself more freely than I do" }],
+        }),
+      },
+    });
+    const r = await h.runCycle({ sessionId: await h.createSession(), input: "Tell me about restraint." });
+    expect(r.output).not.toMatch(/Washington|""/);
+    expect(r.output).toMatch(/Here is my view\./);
+    expect(r.trace.compose.quotesRemoved).toBe(1);
+  });
+});

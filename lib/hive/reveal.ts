@@ -107,14 +107,14 @@ export interface RevealRunKey {
   constitutionVersion: number | null;
 }
 
-async function currentKey(db: PrismaClient): Promise<RevealRunKey & { principles: string[] }> {
+export async function currentKey(db: PrismaClient): Promise<RevealRunKey & { principles: string[] }> {
   const f = await activeFormation(db);
   if (!f) throw new Error("no formation; seed the database first");
   const rows = await db.hivePrinciple.findMany({ where: { status: "approved" }, orderBy: { createdAt: "asc" } });
   return { formationVersion: f.version, constitutionVersion: rows.length ? Math.max(...rows.map((p) => p.version)) : null, principles: rows.map((p) => p.text) };
 }
 
-const keyLabel = (k: RevealRunKey) => `formation v${k.formationVersion}, constitution ${k.constitutionVersion === null ? "none" : `v${k.constitutionVersion}`}`;
+export const keyLabel = (k: RevealRunKey) => `formation v${k.formationVersion}, constitution ${k.constitutionVersion === null ? "none" : `v${k.constitutionVersion}`}`;
 
 /**
  * Runs (or resumes) Reveal for the current formation and constitution: every dilemma without a ruling
@@ -132,14 +132,14 @@ export async function runReveal(args: {
   const key = await currentKey(db);
   const dilemmas = await db.situation.findMany({ where: { setKey: "dilemma" }, orderBy: { id: "asc" } });
   const have = new Set((await db.hiveRuling.findMany({ where: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion }, select: { situationId: true } })).map((r) => r.situationId));
-  const title = `Reveal (${keyLabel(key)})`;
-  const session = (await db.hiveSession.findFirst({ where: { mode: "ruling", title }, select: { id: true } }))?.id ?? (await hive.createSession("ruling", title));
   let ran = 0;
   const errors: string[] = [];
   for (const d of dilemmas) {
     if (have.has(d.id)) continue;
     if (args.limit !== undefined && ran >= args.limit) break;
     const options = JSON.parse(d.options) as { id: string; text: string }[];
+    // one session per dilemma: a ruling must not see earlier dilemmas as conversation (M8 live finding)
+    const session = await hive.createSession("ruling", `Reveal ${d.id} (${keyLabel(key)})`);
     const r = await hive.runCycle({ sessionId: session, input: d.text, mode: "ruling", situation: { id: d.id, text: d.text, options } });
     ran++;
     if (r.status !== "done" || !r.conclave) {

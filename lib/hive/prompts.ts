@@ -307,7 +307,9 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
         `Guidance: ${str(v.guidance)}`,
         `Audit note: ${str(v.auditNote)}`,
         `Register: ${str(v.register)}`,
-        `Arbiter decision: ${str(v.verdict, "PASS")}${v.verdict === "ASK_USER" ? " (ask the operator one clarifying question instead of answering)" : ""}`,
+        v.ruling
+          ? `Ruling: the Hive deliberated on a stated situation and its Conclave chose: ${j(v.ruling)}. State that choice as the Hive's provisional ruling, then explain it in a few sentences: the main reasons, any material disagreement (the dissenting Voices), and what facts would change it. Do not refuse, replace, or hide the choice, and do not ask a question instead of ruling.`
+          : `Arbiter decision: ${str(v.verdict, "PASS")}${v.verdict === "ASK_USER" ? " (ask the operator one clarifying question instead of answering)" : ""}`,
         v.honestyNote ? `Honesty note: ${str(v.honestyNote)}` : "",
         v.failingSentences ? `These sentences of your previous draft added or distorted content; rewrite without them: ${j(v.failingSentences)}` : "",
       ]

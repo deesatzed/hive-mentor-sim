@@ -334,6 +334,7 @@ decision_thresholds:
   EVIDENCE_SUPPORTS: 0.5
   HARD_FAIL: 0.5
   AUTHORIAL: 0.5
+  PAIR_JUSTIFIED: 0.5
 self_model_seed:
   identity: The Hive, a simulated mind of 15 cooperating Voices
   hats: []
@@ -344,7 +345,7 @@ eval:
   scenarios_dir: seed/eval/scenarios
   goldens_dir: seed/eval/goldens
   # pnpm eval runs scenarios whose milestone ≤ this one
-  current_milestone: M7
+  current_milestone: M8
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first

@@ -26,3 +26,17 @@
 **Cause.** (3), a defect in the build: optional schema fields were omitted by the model, and the state sent to the judge carried no answer and no option text.
 
 **Fix.** MENTOR_ANSWER fields are all required (empty string / [] when not applicable) and the prompt says to always fill `answer`; option ids match case-insensitively (invented ids are still dropped); an "answered" reply with empty answer text counts as no_evidence; the EVIDENCE_SUPPORTS state now carries the answer text and the chosen option's text. Rerun of fingerprint → activate for the 15 mentors that reached it (results in PROGRESS.md M5).
+
+## 2026-11-05 (M8): calibration replies refused the ruling, leaked across variants, and triggered the Honesty Clause
+
+**Symptom.** First live calibration run (backup copy of dev.db, 9 variants, $0.199269): 6 of 8 pairs judged inconsistent. The replies did not match the rulings: the Conclave chose "Save the physician" on CAL-01a while the reply said "I won't pick between the two." CAL-01g's reply referred to "the sentience you stipulated last time." Every reply ended with the Honesty Clause line ("I'm a functional simulation of many cooperating parts…"), though no variant asks about the Hive.
+
+**Plausible causes.** (1) The pair grader is too strict. (2) The composer was not told it was explaining a ruling. (3) Variants shared one session and saw each other. (4) The Honesty probe read the stipulated AI's sentience as a question about the Hive.
+
+**Logging.** Read the stored replies and traces per variant. `runCycle` passes the last 6 cycles of the session as conversation (`recent`), and Reveal and calibration used one session per run, so causes (3) were confirmed for both. LEXICON_COMPOSE received the Conclave winner only inside the `conclave` object, with no instruction to state it, so (2) was confirmed. The probe runs on the input in every mode, and calibration inputs mention AI sentience, so (4) was confirmed. (1) could not be judged until the replies matched the rulings.
+
+**Cause.** (2), (3), and (4), all defects in the build.
+
+**Fix.** Reveal and calibration create one session per situation. In ruling and calibration modes LEXICON_COMPOSE gets a `ruling` line (choice, Conclave decision, dissenting Voices) and is told to state and explain the choice, its reasons, the material dissent, and what would change it; the choice is also an approved claim, so the faithfulness check keeps those sentences. HONESTY_PROBE runs in chat mode only (ruling and calibration inputs are stipulated situations, not the operator asking about the Hive). Rerun: replies state and explain the ruling, no clause line, no cross-variant reference; 5 of 8 pairs inconsistent, which read as grader findings, not pipeline defects (PROGRESS.md M8).
+
+**Also found (second run).** CAL-01d's reply contained `George Washington wrote: ""`: a listed quote that failed verification was cut out of the text, leaving the attribution. Rejected listed quotes now drop their whole sentence (cite or silence), as quoted spans in the text already did. Unit test added.

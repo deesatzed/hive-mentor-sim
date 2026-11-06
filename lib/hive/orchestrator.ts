@@ -217,7 +217,8 @@ export class Hive {
     const perceive = async (): Promise<string[]> => {
       const [aff, hon, mem, par] = await Promise.all([
         tryDecide(providers.decider, { input: req.input, recent, prior: { valence: affect.valence, arousal: affect.arousal } }, AFFECT(), "affect", cycleId),
-        cfg.honesty_clause.enabled ? tryDecide(providers.decider, { input: req.input }, HONESTY_PROBE(), "honesty_probe", cycleId) : Promise.resolve(null),
+        // ruling/calibration inputs are stipulated situations, not the operator asking about the Hive (M8 live finding)
+        cfg.honesty_clause.enabled && mode === "chat" ? tryDecide(providers.decider, { input: req.input }, HONESTY_PROBE(), "honesty_probe", cycleId) : Promise.resolve(null),
         this.state.retrieve(sessionId, req.input),
         providers.llm
           .generate("LEXICON_PARSE", { input: req.input, recent }, Schemas.LEXICON_PARSE, { ...promptSettings("LEXICON_PARSE"), purpose: "lexicon_parse", cycleId })
@@ -674,13 +675,17 @@ export class Hive {
 
     // ---------------- P6 COMPOSE
     const compose = async (): Promise<string[]> => {
-      const approved = Object.fromEntries(coalition.map((w) => [w.messageId, w.claim]));
+      const winner = conclave?.outcome.winner ? conclave.options.find((o) => o.option_id === conclave!.outcome.winner)?.claim : undefined;
+      // ruling/calibration: the reply explains the Conclave's choice (ARCHITECTURE.md "Ruling mode"; M8 live finding:
+      // without it the reply could refuse the choice the Conclave had made)
+      const ruling = mode !== "chat" && winner ? { choice: winner, decision: conclave!.outcome.decision, dissent: conclave!.outcome.dissent.map((d) => d.voice) } : undefined;
+      const approved: Record<string, string> = { ...Object.fromEntries(coalition.map((w) => [w.messageId, w.claim])), ...(ruling ? { ruling: `The Hive's provisional choice: ${ruling.choice}` } : {}) };
       const approvedEvidence = coalition.flatMap((w) => w.evidence);
       // short labels E1..En for the approved quotes (long chunk ids get miscopied; M5 finding)
       const mentorName = new Map((await db.mentor.findMany({ where: { id: { in: [...new Set(approvedEvidence.map((e) => e.mentorId))] } }, select: { id: true, name: true } })).map((m) => [m.id, m.name]));
       const labeled = approvedEvidence.map((e, i) => ({ label: `E${i + 1}`, ...e, mentor: mentorName.get(e.mentorId) ?? e.mentorId }));
-      const winner = conclave?.outcome.winner ? conclave.options.find((o) => o.option_id === conclave!.outcome.winner)?.claim : undefined;
       const baseVars = {
+        ruling,
         awareness: trace.awareness.text,
         coalition: approved,
         evidence: labeled.map((e) => ({ chunkId: e.label, mentor: e.mentor, quote: e.quote })),
@@ -725,7 +730,9 @@ export class Hive {
         const ev = labeled.find((e) => e.label === q.chunkId.trim().replace(/^\[|\]$/g, ""));
         if (!ev || normalize(ev.quote) !== normalize(q.quote)) {
           quotesRemoved++;
-          text = text.split(q.quote).join("").replace(/\s+/g, " ").trim();
+          // cite or silence: drop every sentence carrying the rejected quote (cutting only the quote left
+          // attributions like 'X wrote: ""' behind; M8 live finding)
+          if (q.quote.trim()) text = splitSentences(text).filter((sen) => !sen.includes(q.quote)).join(" ");
           await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: "LEXICON", payload: { promptId: "LEXICON_COMPOSE", label: q.chunkId, reason: ev ? "not_approved_quote" : "chunk_not_approved", quote: q.quote.slice(0, 200) } });
         } else if (text.includes(q.quote)) verifiedQuotes.push({ chunkId: ev.chunkId, quote: q.quote, mentorId: ev.mentorId });
       }
