@@ -94,3 +94,13 @@ td:first-child, th:first-child { text-align: left; }
 td.flag { font-weight: 600; text-decoration: underline; }
 .chip { display: inline-block; margin: 0 8px 4px 0; font-size: 0.85rem; white-space: nowrap; }
 q[data-verified="true"] { background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+.filters { margin: 8px 0; }
+.filters label, .danger label { font-size: 0.9rem; }
+.danger { border: 1px solid #c0392b; border-radius: 6px; padding: 8px 12px; margin-top: 16px; }
+th[scope="row"] { text-align: left; font-weight: 600; }
+:focus-visible { outline: 2px solid #2f6fdf; outline-offset: 2px; }
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus { left: 8px; top: 8px; background: var(--background); padding: 4px 8px; z-index: 10; }
+.site-nav { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; margin-left: auto; }
+.trace-nav { font-size: 0.85rem; margin: 4px 0 8px; }
+#content:focus { outline: none; }

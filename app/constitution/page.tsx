@@ -84,7 +84,7 @@ export default function ConstitutionPage() {
       <p>
         <button onClick={generate} disabled={busy}>{busy ? "Drafting…" : "Generate draft"}</button>
       </p>
-      {msg && <p data-testid="constitution-msg">{msg}</p>}
+      <p data-testid="constitution-msg" aria-live="polite">{msg}</p>
       <h2>Approved {d.versions.approved ? `(version ${d.versions.approved})` : ""}</h2>
       {d.approved.length === 0 ? <p className="muted">No constitution approved yet.</p> : <ul>{d.approved.map((p) => <PrincipleCard key={p.id} p={p} onSaved={load} onRetire={() => retire(p.id)} />)}</ul>}
       <h2>Draft {d.versions.draft ? `(version ${d.versions.draft})` : ""}</h2>

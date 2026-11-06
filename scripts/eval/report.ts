@@ -35,7 +35,7 @@ export function printTable(results: GradeResult[], live: boolean): boolean {
   return passed === ran.length;
 }
 
-export function writeReport(results: GradeResult[], live: boolean, milestone: string): string {
+export function writeReport(results: GradeResult[], live: boolean, milestone: string, graderAgreement?: unknown): string {
   const dir = path.join(process.cwd(), "reports", "eval");
   mkdirSync(dir, { recursive: true });
   const file = path.join(dir, live ? `scenarios-live-${new Date().toISOString().slice(0, 10)}.json` : "scenarios-mock.json");
@@ -44,6 +44,7 @@ export function writeReport(results: GradeResult[], live: boolean, milestone: st
     note: live ? "live providers; measured" : "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",
     milestone,
     summary: { run: results.filter((r) => !r.skipped).length, passed: results.filter((r) => r.passed).length, skipped: results.filter((r) => r.skipped).length },
+    ...(graderAgreement ? { graderAgreement } : {}),
     results,
   };
   writeFileSync(file, normalizeIds(JSON.stringify(body, null, 2)) + "\n");

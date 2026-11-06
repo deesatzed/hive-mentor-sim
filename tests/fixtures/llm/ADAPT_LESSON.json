@@ -1,5 +1,23 @@
 {
-  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior. The 'e2e journey' rule exists only so the e2e journey can log one prediction from a real (mock) cycle.",
+  "rules": [
+    {
+      "when": {
+        "cycle": "e2e journey"
+      },
+      "output": {
+        "lesson": "(e2e mock) Starting something new goes better with one small, concrete first step.",
+        "predictions": [
+          {
+            "text": "(e2e mock) The first week at the new job will go better than feared.",
+            "horizonDays": 7,
+            "voice": "ADAPT",
+            "mentorIds": []
+          }
+        ]
+      }
+    }
+  ],
   "default": {
     "predictions": []
   }

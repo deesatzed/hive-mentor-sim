@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CostMeter } from "@/lib/council/providers/costMeter";
-import { ChainUnavailableError, OpenRouterEmbeddings, OpenRouterReranker, OPENROUTER_EMBEDDINGS_URL, OPENROUTER_RERANK_URL } from "@/lib/council/providers/embeddings";
+import { ChainUnavailableError, forCycle, OpenRouterEmbeddings, OpenRouterReranker, OPENROUTER_EMBEDDINGS_URL, OPENROUTER_RERANK_URL } from "@/lib/council/providers/embeddings";
 import { ProviderAuthError } from "@/lib/council/providers/http";
 import { MockReranker } from "@/lib/council/providers/mocks";
 import { fakeFetch, MemoryLedger, noSleep } from "../helpers/fakeFetch";
@@ -50,5 +50,23 @@ describe("OpenRouterReranker", () => {
   it("MockReranker is deterministic token overlap (mock)", async () => {
     const out = await new MockReranker().rerank("stay calm when wronged", ["the price of wheat", "stay calm", "when wronged, stay calm"]);
     expect(out.map((x) => x.index)).toEqual([2, 1, 0]);
+  });
+});
+
+describe("forCycle (M10 finding: retrieval cost was not tied to its cycle)", () => {
+  it("embed and rerank ledger rows carry the cycle id, so the per-cycle ledger sum equals the cycle cost", async () => {
+    const f = fakeFetch([
+      { status: 200, body: { data: [{ index: 0, embedding: [1, 0] }], usage: { cost: 0.000003 } } },
+      { status: 200, body: { results: [{ index: 0, relevance_score: 0.5 }], usage: { cost: 0.000004 } } },
+    ]);
+    const ledger = new MemoryLedger();
+    const meter = new CostMeter();
+    const opts = { apiKey: "k", meter, ledger, fetch: f.impl, sleep: noSleep };
+    const s = forCycle(new OpenRouterEmbeddings({ ...opts, chain: ["emb/one"] }), new OpenRouterReranker({ ...opts, chain: ["rr/one"] }), "cycle-1");
+    await s.embedder.embed(["a"]);
+    await s.reranker.rerank("q", ["a"], 1);
+    expect(s.embedder.dim).toBe(2);
+    expect(ledger.events.map((e) => [e.kind, e.cycleId])).toEqual([["embed.batch", "cycle-1"], ["rerank", "cycle-1"]]);
+    expect(ledger.events.reduce((a, e) => a + (e.costUsd ?? 0), 0)).toBeCloseTo(meter.spentUsd, 12);
   });
 });

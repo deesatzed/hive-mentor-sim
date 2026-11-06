@@ -84,4 +84,8 @@ export interface GradeResult {
   passed: boolean;
   outputs: string[];
   status: string[];
+  /** live only: measured cost of the scenario's cycles (sum of Cycle.costUsd; grading calls not included) */
+  costUsd?: number;
+  /** live only: the heuristic grader on the same live outputs, for grader agreement (M10) */
+  heuristic?: { scores: Record<string, number>; rubricScore: number; pass: boolean };
 }

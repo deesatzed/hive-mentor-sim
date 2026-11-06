@@ -4,6 +4,7 @@ import type { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { Ledger } from "@/lib/council/ledger";
 import type { Providers } from "@/lib/council/providers";
+import { forCycle } from "@/lib/council/providers/embeddings";
 import { GenerationError } from "@/lib/council/providers/llm";
 import { quoteRejection } from "@/lib/council/quotes";
 import { arbitrate } from "./arbiter";
@@ -176,6 +177,8 @@ export class Hive {
       select: { id: true },
     });
     const cycleId = cycle.id;
+    // retrieval and coherence calls are ledgered against this cycle, so the per-cycle ledger sum equals the cycle cost
+    const scoped = forCycle(providers.embedder, providers.reranker, cycleId);
     this.bus.startCycle(cycleId, cycleNo);
 
     // previous cycle's claims (for C_intra) and any pending REFLECT mandate
@@ -320,7 +323,7 @@ export class Hive {
       // attribute lenses: assigned active mentors' principles + top chunks (built once per cycle)
       if (!lenses.size) {
         lenses = formationNow
-          ? await buildLenses({ db, embedder: providers.embedder, reranker: providers.reranker, assignments: formationNow.assignments, voiceIds: coreVoices(this.d.voices).map((v) => v.id), query: `${req.input}\n${parse.intent}` })
+          ? await buildLenses({ db, embedder: scoped.embedder, reranker: scoped.reranker, assignments: formationNow.assignments, voiceIds: coreVoices(this.d.voices).map((v) => v.id), query: `${req.input}\n${parse.intent}` })
           : new Map();
       }
       const lensOf = (id: string) => lenses.get(id) ?? emptyLens(id);
@@ -474,7 +477,7 @@ export class Hive {
       trace.passes = passes;
       // interoception: coherence of each Voice with itself (vs the previous cycle) and across Voices
       trace.coherence = await measureCoherence({
-        embedder: providers.embedder,
+        embedder: scoped.embedder,
         current: whispers.filter((w) => !w.advisory).map((w) => ({ voice: w.voice, claim: w.claim })),
         previous: prevClaims,
         intraMin: cfg.coherence.intra_min,

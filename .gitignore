@@ -35,3 +35,7 @@ live-check.db
 live-check2.db
 live-check3.db
 /reports/calibration-mock.md
+/backups/
+/smoke.db
+/test-m10-backups/
+/.next-build/

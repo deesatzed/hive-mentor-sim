@@ -367,7 +367,7 @@ eval:
   scenarios_dir: seed/eval/scenarios
   goldens_dir: seed/eval/goldens
   # pnpm eval runs scenarios whose milestone ≤ this one
-  current_milestone: M9
+  current_milestone: M10
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first

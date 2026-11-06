@@ -112,6 +112,7 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
     }
 
     const invariants = checkInvariants(s, turns, names);
+    const costUsd = opts.live ? ((await db.cycle.aggregate({ _sum: { costUsd: true } }))._sum.costUsd ?? 0) : undefined;
     const rubric = opts.live ? await liveGrade(s, turns, env, cfg) : heuristicGrade(s, turns);
     const rs = rubricScore(s, rubric);
     const outputs = turns.map((t) => t.output);
@@ -133,10 +134,51 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
       outputs,
       status: turns.map((t) => t.status),
       passed: invariants.every((i) => i.ok) && rs >= s.expect.pass_threshold && goldenMatch !== false,
+      ...(opts.live ? { heuristic: heuristicOn(s, turns), costUsd } : {}),
     });
   }
   await disconnectAll();
   return results;
+}
+
+/** The heuristic grader applied to live outputs: the reference the live grader is calibrated against. */
+function heuristicOn(s: Scenario, turns: TurnRecord[]) {
+  const h = heuristicGrade(s, turns);
+  const rs = rubricScore(s, h);
+  return { scores: h.scores, rubricScore: rs, pass: rs >= s.expect.pass_threshold };
+}
+
+/**
+ * Live grader vs. heuristic grader agreement (sent2 Phase 6; target ≥ 0.8 before trusting the live
+ * grader). Per dimension: the live expected level (0–2) rounded to the nearest level equals the
+ * heuristic level. Per scenario: both graders give the same rubric pass/fail.
+ */
+export function graderAgreement(results: GradeResult[]) {
+  let dims = 0;
+  let dimAgree = 0;
+  let scen = 0;
+  let scenAgree = 0;
+  const disagreements: { id: string; dimension: string; live: number; heuristic: number }[] = [];
+  for (const r of results) {
+    if (r.skipped || !r.rubric || !r.heuristic) continue;
+    scen++;
+    const s = loadScenarios().find((x) => x.id === r.id)!;
+    if (((r.rubricScore ?? 0) >= s.expect.pass_threshold) === r.heuristic.pass) scenAgree++;
+    for (const [d, live] of Object.entries(r.rubric.scores)) {
+      const h = r.heuristic.scores[d];
+      if (h === undefined) continue;
+      dims++;
+      if (Math.round(live) === h) dimAgree++;
+      else disagreements.push({ id: r.id, dimension: d, live, heuristic: h });
+    }
+  }
+  return {
+    dimensions: dims,
+    dimensionAgreement: dims ? dimAgree / dims : null,
+    scenarios: scen,
+    passFailAgreement: scen ? scenAgree / scen : null,
+    disagreements,
+  };
 }
 
 /** Live rubric: one decision request with a score question per dimension; the grader model writes the rationale. */

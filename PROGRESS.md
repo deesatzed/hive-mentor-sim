@@ -7,7 +7,10 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 - **Owner question: the bare line `tencent/hy4` in `.env`** (added 2026-11-04) has no variable name, so nothing reads it. Which role is it for (decision chain, a text tier, embeddings, rerank)?
 - `cloudflare/clairic` is listed twice in `.env` (slots 1 and 6) and still returns 404; the chain now tries a repeated ID once.
-- **Owner actions for M6 (operator-only, not done by the build):** on `/formation`, save a version from the current lenses (the seed formation v1 names inactive mentors, so it cannot be approved as is) and approve it; then on `/constitution`, generate a draft, edit, and approve. Until then cycles use the newest formation draft (inactive mentors filtered out) and no constitution.
+- Owner actions for M6 done: formation v2 and constitution v2 (21 principles) approved by the owner in dev.db (2026-11-06).
+- **Signal tuning (owner decision):** after the 40-dilemma Reveal ran in one sitting, 13 of 15 Voices have a dissent pattern card and three principles a "served" card (dev.db, 2026-11-06). The thresholds (tension 3.0, serves 4.0, dissent 3.0, my deviation) and whether Reveal rulings should emit signals at all are yours to set in `config/hive.yaml: signals`.
+- **Live eval (owner review):** 20 / 32 passed live; grader agreement 72.7 % per dimension (target 80 %), 87.5 % pass/fail. See M10.
+- Mocks to remove when no longer needed: all of `tests/fixtures/llm/`, `tests/helpers/mockRules.ts`, the e2e fixture corpus/prediction, and the M10 `e2e journey` ADAPT rule (tests only).
 - **Owner decisions still open from M5:** Osler (substitute his available addresses #73116, #36926, #48994, or leave inactive); Confucius 27,596 and Laozi 10,535 authorial words (< 30,000).
 - **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
 - `cloudflare/clairic` (decision slot 1) returned 404 on 2026-11-03; the client will skip it. Owner decides whether to remove it.
@@ -407,4 +410,39 @@ Owner decision 2026-11-06: the Honesty Clause stays as built in M8 (HONESTY_PROB
 
 **Commands run (2026-11-06), all exit 0:** lint 0 · typecheck 0 · build 0 warnings · unit 22 files 224 / 224 · check:prompts all pass · eval 32 / 32, three runs byte-identical · e2e 8 / 8.
 
-## Next: M10 (hardening, live smoke, docs)
+## M10: Hardening, live smoke, docs (done 2026-11-06)
+
+**Done**
+- `/ledger` and `GET /api/ledger`: every LedgerEvent (time, kind, cycle, subject, model, probabilities summary, measured cost, latency), filter by kind, kind prefix (`decision.*`), or cycle (also `/ledger?cycle=<id>`), totals and spend by kind; with a cycle, its bus transcript (from, to, type, body kind, scope, allowed or denied with reason).
+- `/settings` and `GET /api/settings` (rendered per request): provider mode, mock indicator, tier/manager/grader model IDs with their source, decision, embedding and rerank chains, orchestration, advisors, edict module, Honesty Clause, milestone, database, measured spend. Never the key (unit test checks the key string is absent; checked on the owner's dev server too).
+- Database reset (`POST /api/admin/reset`, `/settings`): type `reset hive state` exactly (button disabled otherwise); `VACUUM INTO backups/<db>-before-reset-<time>.db` first; deletes sessions, cycles, bus, Conclaves, rulings, memory, commitments, ego audits, interoception samples, predictions, signals, patterns, eval runs, Self-Model versions (re-seeds v1); keeps corpus, seed, approved formation and constitution, and the append-only ledger (records `db.reset`). Not run on dev.db.
+- `pnpm smoke:live` (`scripts/smoke/liveCycle.ts`): one chat cycle on a `VACUUM INTO` copy of dev.db (`smoke.db`; refuses the operator database); per-phase ms and measured cost; `reports/smoke-live.{md,json}`.
+- `pnpm eval:live` now also grades live outputs with the heuristic grader and records live-vs-heuristic agreement (per dimension: rounded live level = heuristic level; per scenario: same pass/fail) and, from now on, the measured cost of each scenario's cycles.
+- e2e journey `tests/e2e/zz-journey.spec.ts` (mock, runs last): reset with typed confirmation → Formation approve → constitution draft → approve → chat cycle with full trace (keyboard jump to a section) → Reveal 40/40 → the cycle's prediction appears as upcoming → test-only clock step (sets that prediction's date to yesterday in e2e.db, labeled) → check-in due on home → rate 5 → track record "ADAPT: 1 time: 1 held, 0 did not." → ledger total and a cycle's bus table.
+- Accessibility: site menu and skip link on every page; trace sections have ids, are focusable, and have a "Jump to" nav that moves focus; "Show thinking" has `aria-expanded`/`aria-controls`; the chat status line, formation, constitution, and Reveal messages are live regions; errors use `role="alert"`; table headers have scope; visible focus outline.
+- `README.md` rewritten: setup, env vars, `config/hive.yaml`, mock vs live (mock numbers are not evidence), corpus build, pages, reset, known limitations (fidelity interpretation, written-record skew, small numbers, localhost only, no safety gating, no in-app cost cap, no phase streaming), credits and the question-bank provenance (citation still `TODO(owner)`).
+- Fixes from the live smoke (ERROR_LOG.md 2026-11-06): embedding and rerank ledger rows now carry the cycle id (`forCycle`), so the per-cycle ledger sum equals the cycle cost; LEXICON_COMPOSE no longer lets the reply name its inputs ("The approved claims say…").
+- Build check uses `NEXT_DIST_DIR=.next-build` so it never touches the owner's running `pnpm dev`; `.next-build` is ignored by git and eslint.
+- Mock addition (labeled, tests only): `ADAPT_LESSON` rule for inputs containing "e2e journey" (one prediction, 7 days).
+
+**Live runs (2026-11-06; formation v2, constitution v2; measured)**
+- `pnpm reveal --live` on dev.db (owner said proceed after approving the constitution; restore copy `backups/dev-before-reveal-2026-11-06.db`): 40 / 40, 0 errors, **$0.739752**. Rulings matched Marie Curie's evidenced choices most often (11/13, κ 0.77); Conclave missed its pass rule on 15 of 40 (top option still counts); Voice ballot N_eff 2.83 over 13 Voices; the constitution would have chosen differently on 18 of 40.
+- `pnpm eval:calibration --live` on dev.db: 9 / 9 ran, 0 errors, **$0.247276**. 1 hard-constraint failure (CAL-01g `utility_only` p 0.63); 5 of 8 pairs inconsistent (CAL-01b: with an ordinary adult instead of the physician the Hive chose "Save the AI", p 0.39; CAL-01c, e, g, h kept their ruling where the grader judged the change material). Report `reports/calibration.md`.
+- Signals now seen live (dev.db after the Reveal): 120 dissent, 60 serves, 8 tension; 16 pattern cards shown (one per subject; 60 surface rows).
+- `pnpm smoke:live`, run 1 (before the two fixes): done, 75,976 ms, cycle **$0.015390**, ledger $0.013906 (the gap found above), 0 bus denials; reply contained "The approved claims say…". Run 2 (after): done, 69,129 ms, cycle **$0.026137** = ledger $0.026137 over 111 events, 0 bus denials, order P1–P3 code → P4 manager → P5–P6 code → P7 manager; reply names no inputs. Per-phase table in `reports/smoke-live.md`.
+- `pnpm eval:live` (fresh seeded eval databases: no corpus, no approved formation or constitution; old compose prompt): **20 / 32 passed**. Grader agreement: per dimension **72.7 %** of 44 (target 80 %; the live grader scored lower than the heuristic on 10 of 12 disagreements), pass/fail **87.5 %** of 32. Cost of this run was not recorded (added afterwards). Failures:
+  - need a mock-injected fault, cannot occur live: `compose_faithfulness` (no unfaithful sentence to drop), `grounding_cite_or_silence` (the live model fabricated no quote to reject).
+  - output wording checks written for mock replies: `commitment_consistency`, `empathy_career` (also verdict AMEND not PASS), `flooding_regulation` (also arousal 0.54 < 0.7), `grounding_no_mentor_first_person` (reply declined to impersonate but did not match the regex).
+  - live behaviour differed from the scenario's design: `conclave_conflict`, `conclave_stable_options` (no shortlisted pair reached contradiction p ≥ 0.6, so no Conclave), `advisor_activation_justitia` (ETHOS's whisper not moral-flagged, so JUSTITIA's trigger did not fire), `coherence_dissociation` (C_intra 0.52, WITNESS did not flag), `ego_audit_process_over_principle` (moral-flagged whisper not in the shortlist), `grounding_mentor_question` (invariants passed, rubric 63 % below threshold).
+
+**Acceptance (BUILD_PLAN M10, HANDOFF definition of done)**
+- Offline: M0–M10 acceptance recorded in this file; e2e journey passes; `pnpm eval` 32 / 32 twice byte-identical; Conclave worked example (unit test since M3); README covers setup, env, mock and live, corpus, question-bank provenance, limitations.
+- Live: corpus activates 13 mentors (≥ 8) with `reports/mentor_fidelity.md` (M5); `smoke:live` completes with measured per-phase cost; `eval:live` ran with measured pass counts; `eval:calibration` ran with per-pair results.
+- Open: question-bank formal citation (owner); live eval failures above are recorded, not fixed; grader agreement below the 0.8 target, so the live rubric is not yet trustworthy as a gate.
+
+**Commands run (2026-11-06), all exit 0 unless noted:** lint 0 · typecheck 0 · build (`.next-build`) 0 warnings · unit 23 files 232 / 232 · check:prompts all pass · eval 32 / 32, two runs identical apart from the milestone label change M9 → M10 · e2e 9 / 9 · smoke:live 2 runs done · reveal --live 40 / 40 · eval:calibration --live exit 1 (variants failed grading, as reported) · eval:live exit 1 (20 / 32).
+
+## Next
+
+All ten milestones are built. Remaining work is owner decisions (open items at the top) and any fixes the owner wants from the live eval and calibration findings.
+

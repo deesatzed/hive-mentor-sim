@@ -16,7 +16,8 @@ import { errorDetail, isAuthStatus, postJsonWithRetry, ProviderAuthError, Provid
 export interface Embedder {
   model: string;
   dim: number;
-  embed(texts: string[]): Promise<Float32Array[]>;
+  /** opts.cycleId ties the ledger row (and its cost) to the cycle that asked */
+  embed(texts: string[], opts?: { cycleId?: string }): Promise<Float32Array[]>;
 }
 
 export interface RerankResult {
@@ -25,7 +26,28 @@ export interface RerankResult {
 }
 export interface Reranker {
   model: string;
-  rerank(query: string, documents: string[], topN?: number): Promise<RerankResult[]>;
+  rerank(query: string, documents: string[], topN?: number, opts?: { cycleId?: string }): Promise<RerankResult[]>;
+}
+
+/** The same embedder and reranker, with every call's ledger row tied to one cycle. */
+export function forCycle(e: Embedder, r: Reranker, cycleId: string): { embedder: Embedder; reranker: Reranker } {
+  return {
+    embedder: {
+      get model() {
+        return e.model;
+      },
+      get dim() {
+        return e.dim;
+      },
+      embed: (texts) => e.embed(texts, { cycleId }),
+    },
+    reranker: {
+      get model() {
+        return r.model;
+      },
+      rerank: (q, docs, topN) => r.rerank(q, docs, topN, { cycleId }),
+    },
+  };
 }
 
 export const OPENROUTER_EMBEDDINGS_URL = "https://openrouter.ai/api/v1/embeddings";
@@ -81,7 +103,7 @@ export class OpenRouterEmbeddings implements Embedder {
     this.model = o.chain[0];
   }
 
-  async embed(texts: string[]): Promise<Float32Array[]> {
+  async embed(texts: string[], opts: { cycleId?: string } = {}): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
     const { json, model, latencyMs } = await postChain(this.o, this.o.url ?? OPENROUTER_EMBEDDINGS_URL, "embedding", (m) => ({ model: m, input: texts }));
     const data = (json.data as { index: number; embedding: number[] }[] | undefined) ?? [];
@@ -92,7 +114,7 @@ export class OpenRouterEmbeddings implements Embedder {
     this.dim = out[0].length;
     this.model = model;
     this.o.meter.add(served, usage.cost ?? 0);
-    await this.o.ledger.record({ kind: "embed.batch", model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: texts.length, dim: this.dim, promptTokens: usage.prompt_tokens ?? null } });
+    await this.o.ledger.record({ kind: "embed.batch", cycleId: opts.cycleId ?? null, model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: texts.length, dim: this.dim, promptTokens: usage.prompt_tokens ?? null } });
     return out;
   }
 }
@@ -105,7 +127,7 @@ export class OpenRouterReranker implements Reranker {
     this.model = o.chain[0];
   }
 
-  async rerank(query: string, documents: string[], topN?: number): Promise<RerankResult[]> {
+  async rerank(query: string, documents: string[], topN?: number, opts: { cycleId?: string } = {}): Promise<RerankResult[]> {
     if (documents.length === 0) return [];
     const { json, model, latencyMs } = await postChain(this.o, this.o.url ?? OPENROUTER_RERANK_URL, "rerank", (m) => ({ model: m, query, documents, ...(topN ? { top_n: topN } : {}) }));
     const results = ((json.results as { index: number; relevance_score: number }[] | undefined) ?? []).map((r) => ({ index: r.index, score: r.relevance_score }));
@@ -113,7 +135,7 @@ export class OpenRouterReranker implements Reranker {
     const served = typeof json.model === "string" ? `${model} (served ${json.model})` : model;
     this.model = model;
     this.o.meter.add(served, usage.cost ?? 0);
-    await this.o.ledger.record({ kind: "rerank", model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: documents.length, top: results.slice(0, 3) } });
+    await this.o.ledger.record({ kind: "rerank", cycleId: opts.cycleId ?? null, model: served, costUsd: usage.cost ?? 0, latencyMs, payload: { n: documents.length, top: results.slice(0, 3) } });
     return results.sort((a, b) => b.score - a.score || a.index - b.index);
   }
 }

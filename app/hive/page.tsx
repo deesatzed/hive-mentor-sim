@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 /** /hive — talk to the Hive; each reply can expand its full cycle trace (docs/PRODUCT_SPEC.md §4). */
 import { n, ReplyText, TraceView, type Conclave, type Trace } from "./trace-view";
@@ -11,6 +11,7 @@ type Turn = { input: string; output: string; status: string; cycleId: string; tr
 function TurnView({ turn }: { turn: Turn }) {
   const [open, setOpen] = useState(false);
   const [conclave, setConclave] = useState<Conclave | null>(null);
+  const traceId = `t-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const toggle = async () => {
     if (!open && turn.trace.conclaveId && !conclave) {
       const r = await fetch(`/api/cycles/${turn.cycleId}`).then((x) => x.json());
@@ -24,10 +25,10 @@ function TurnView({ turn }: { turn: Turn }) {
       <p className="reply" data-testid="hive-reply">
         {turn.status === "done" ? <ReplyText text={turn.output} quotes={turn.trace.compose.quotes ?? []} /> : `The cycle stopped in ${turn.trace.error?.phase}: ${turn.trace.error?.message}`}
       </p>
-      <button className="link" onClick={toggle}>
+      <button className="link" onClick={toggle} aria-expanded={open} aria-controls={traceId}>
         {open ? "Hide thinking" : "Show thinking"}
       </button>
-      {open && <TraceView t={turn.trace} conclave={conclave} />}
+      {open && <TraceView id={traceId} t={turn.trace} conclave={conclave} />}
     </div>
   );
 }
@@ -82,7 +83,10 @@ export default function HivePage() {
             {busy ? "Thinking…" : "Send"}
           </button>
         </form>
-        {error && <p className="error">{error}</p>}
+        <p className="muted" aria-live="polite" data-testid="cycle-status">
+          {busy ? "The Hive is thinking: running perceive, whispers, attention, Conclave, compose and reflect. This takes a while with live models." : turns.length ? `Reply ${turns.length} received.` : ""}
+        </p>
+        {error && <p className="error" role="alert">{error}</p>}
       </div>
       <aside className="side">
         <h3>Self-Model</h3>

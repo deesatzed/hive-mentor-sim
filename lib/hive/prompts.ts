@@ -321,7 +321,7 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     tier: "premium",
     temperature: 0.6,
     instruction:
-      "Render this as the Hive speaking to the operator in first person, warm, precise, plain. Say only what the approved claims and guidance support. If you include a mentor quote, copy it exactly from the approved evidence and name the mentor and work in the third person. Always reply with at least one complete sentence: a preference for brevity means a short reply, never an empty one. Never put a mentor's words in quotation marks unless you copy one whole approved evidence quote and list it in quotes by its label (E1, E2…); paraphrase otherwise, without quotation marks.",
+      "Render this as the Hive speaking to the operator in first person, warm, precise, plain. Say only what the approved claims and guidance support, but speak about the matter itself: never refer to these inputs in the reply (no \"approved claims\", \"guidance\", \"coalition\", \"audit note\", or \"awareness\"). If you include a mentor quote, copy it exactly from the approved evidence and name the mentor and work in the third person. Always reply with at least one complete sentence: a preference for brevity means a short reply, never an empty one. Never put a mentor's words in quotation marks unless you copy one whole approved evidence quote and list it in quotes by its label (E1, E2…); paraphrase otherwise, without quotation marks.",
     user: (v) =>
       [
         `Awareness: ${str(v.awareness)}`,

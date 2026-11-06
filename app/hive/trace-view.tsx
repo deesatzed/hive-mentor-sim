@@ -1,5 +1,7 @@
 "use client";
 
+import { createContext, useContext, useId } from "react";
+
 /** Shared cycle-trace rendering for /hive and /cycles/[id] (docs/PRODUCT_SPEC.md §4). */
 
 export type Trace = {
@@ -31,11 +33,17 @@ export type Trace = {
 
 export const n = (x: number) => x.toFixed(2);
 
+const SECTIONS = ["Perceive", "Whispers", "Attention", "Awareness", "Conclave", "WITNESS audit", "Arbiter", "Compose", "Advisors", "Reflect"];
+const slug = (title: string) => title.toLowerCase().split(" ")[0];
+/** per-trace id prefix, so several traces on one page keep unique section ids */
+const TraceIdCtx = createContext("trace");
+
 function Section({ title, phase, trace, children }: { title: string; phase?: string; trace: Trace; children: React.ReactNode }) {
   const p = phase ? trace.phases[phase] : undefined;
+  const id = `${useContext(TraceIdCtx)}-${slug(title)}`;
   return (
-    <section className="trace-section" data-testid={`trace-${title.toLowerCase().split(" ")[0]}`}>
-      <h4>
+    <section className="trace-section" data-testid={`trace-${slug(title)}`} id={id} aria-labelledby={`${id}-h`} tabIndex={-1}>
+      <h4 id={`${id}-h`}>
         {title}
         {p && (
           <span className="muted">
@@ -49,10 +57,40 @@ function Section({ title, phase, trace, children }: { title: string; phase?: str
   );
 }
 
-export function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null }) {
+/** Keyboard route through the trace: one link per section; following a link moves focus to that section. */
+function TraceNav({ prefix }: { prefix: string }) {
+  return (
+    <nav aria-label="Trace sections" className="trace-nav">
+      Jump to:{" "}
+      {SECTIONS.map((title, i) => (
+        <span key={title}>
+          {i > 0 && " · "}
+          <a
+            href={`#${prefix}-${slug(title)}`}
+            onClick={(e) => {
+              const el = document.getElementById(`${prefix}-${slug(title)}`);
+              if (el) {
+                e.preventDefault();
+                el.scrollIntoView({ block: "start" });
+                el.focus();
+              }
+            }}
+          >
+            {title}
+          </a>
+        </span>
+      ))}
+    </nav>
+  );
+}
+
+export function TraceView({ t, conclave, id }: { t: Trace; conclave: Conclave | null; id?: string }) {
+  const prefix = `trace-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const voiceOf = new Map(t.whispers.map((w) => [w.messageId, w.voice]));
   return (
-    <div className="trace">
+    <TraceIdCtx.Provider value={prefix}>
+    <div className="trace" id={id} role="region" aria-label="Cycle trace">
+      <TraceNav prefix={prefix} />
       {t.mock && <p className="mock-banner">Mock providers: scripted outputs, not model behavior.</p>}
       <p className="muted">
         Ordering: {t.orchestration.mode}
@@ -117,9 +155,9 @@ export function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null
             <table>
               <thead>
                 <tr>
-                  <th>Voice</th>
-                  <th>α</th>
-                  {conclave.options.map((o, i) => <th key={o.option_id} title={o.claim}>o{i + 1}</th>)}
+                  <th scope="col">Voice</th>
+                  <th scope="col">α</th>
+                  {conclave.options.map((o, i) => <th scope="col" key={o.option_id} title={o.claim}>o{i + 1}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -225,6 +263,7 @@ export function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null
         )}
       </Section>
     </div>
+    </TraceIdCtx.Provider>
   );
 }
 

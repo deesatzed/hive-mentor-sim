@@ -83,7 +83,7 @@ export default function FormationPage() {
         <button onClick={save}>Save as new version</button>{" "}
         {newestDraft && <button onClick={() => approve(newestDraft.version)}>Approve version {newestDraft.version}</button>}
       </p>
-      {msg && <p data-testid="formation-msg">{msg}</p>}
+      <p data-testid="formation-msg" aria-live="polite">{msg}</p>
       <h2>Versions</h2>
       <ul>{d.history.map((h) => <li key={h.version}>v{h.version} · {h.status} · {h._count.members} assignments{h.note ? ` · ${h.note}` : ""}</li>)}</ul>
       <section>

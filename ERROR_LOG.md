@@ -48,3 +48,19 @@
 **Cause.** Attention breaks equal scores by message id, and message ids are random UUIDs. Ratings are discrete levels, so exact ties are common; the mock advisors all tie, and a tie at the top-k cutoff was settled at random. (The kernel was independent of input order, as designed, but not reproducible.)
 
 **Fix.** Attention items carry a `tieKey` (the speaking Voice, unique per cycle); ties sort by score, then tie key, then id, for both the ranked pool and the moral bypass list. Order independence is unchanged (existing test) and a new test shows the tie key deciding before random ids. Eval: three runs byte-identical; all 32 goldens match.
+
+## 2026-11-06 (M10): per-cycle ledger sum smaller than the cycle cost
+
+**Symptom.** First `pnpm smoke:live`: cycle cost $0.015390 (cost meter) but the ledger rows for that cycle summed to $0.013906.
+
+**Cause.** Embedding and rerank calls (attribute lenses in P1, coherence in P2) wrote their ledger rows without a cycle id: 3 `embed.batch` and 13 `rerank` rows, $0.001485 together, which is the whole gap. The cycle total was right; `/ledger` filtered by cycle undercounted.
+
+**Fix.** `Embedder.embed` and `Reranker.rerank` take an optional `{ cycleId }`; the orchestrator wraps both with `forCycle(…, cycleId)` for every call it makes. Unit test: the ledger rows carry the cycle id and their sum equals the meter.
+
+## 2026-11-06 (M10): live reply named its own inputs ("The approved claims say…")
+
+**Symptom.** The `smoke:live` reply read: "The approved claims say to ask anyway — in writing…". The faithfulness check kept the sentence because its content is supported.
+
+**Cause.** LEXICON_COMPOSE told the model to "say only what the approved claims and guidance support" without saying not to mention them; the model echoed the label.
+
+**Fix.** The instruction now says to speak about the matter itself and never refer to the inputs ("approved claims", "guidance", "coalition", "audit note", "awareness"). Verified by a second `smoke:live` (PROGRESS.md M10).

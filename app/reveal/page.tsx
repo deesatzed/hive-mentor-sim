@@ -72,7 +72,7 @@ export default function RevealPage() {
         </button>{" "}
         <progress max={progress.total} value={progress.done} aria-label="Reveal progress" /> <span data-testid="reveal-progress">{progress.done}/{progress.total}</span> · cost so far ${progress.costUsd.toFixed(6)}
       </p>
-      {msg && <p className="muted">{msg}</p>}
+      <p className="muted" aria-live="polite">{msg}</p>
       {d.run.lastFinished && d.run.lastFinished.errors.length > 0 && (
         <p className="error">
           Last run: {d.run.lastFinished.errors.length} dilemma(s) ended in error and will be retried on resume: {d.run.lastFinished.errors.slice(0, 3).join("; ")}

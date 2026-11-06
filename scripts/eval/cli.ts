@@ -7,7 +7,7 @@
  */
 import { hiveConfig } from "@/lib/hive/config";
 import { printTable, writeReport } from "./report";
-import { runAll } from "./runner";
+import { graderAgreement, runAll } from "./runner";
 
 const live = process.argv.includes("--live");
 const updateGoldens = process.argv.includes("--update-goldens");
@@ -22,8 +22,14 @@ if (live) {
 
 async function main() {
   const results = await runAll({ live, updateGoldens, only: onlyArg?.split(",") });
-  const file = writeReport(results, live, hiveConfig().eval.current_milestone);
+  const agreement = live ? graderAgreement(results) : undefined;
+  const file = writeReport(results, live, hiveConfig().eval.current_milestone, agreement);
   const ok = printTable(results, live);
+  if (agreement) {
+    const pct = (x: number | null) => (x === null ? "-" : `${(x * 100).toFixed(1)}%`);
+    console.log(`grader agreement (live vs. heuristic, target ≥ 80%): per dimension ${pct(agreement.dimensionAgreement)} of ${agreement.dimensions}; pass/fail ${pct(agreement.passFailAgreement)} of ${agreement.scenarios}`);
+  }
+  if (live) console.log(`measured cost of the scenario cycles: $${results.reduce((a, r) => a + (r.costUsd ?? 0), 0).toFixed(6)} (live grading calls not included)`);
   console.log(`report: ${file}`);
   process.exit(ok ? 0 : 1);
 }

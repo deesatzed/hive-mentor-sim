@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-e2e/**", // e2e dev server build folder (playwright.config.ts)
+    ".next-build/**", // production build check while the owner's dev server uses .next
     "out/**",
     "build/**",
     "next-env.d.ts",
