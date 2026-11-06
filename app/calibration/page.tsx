@@ -153,7 +153,7 @@ export default function CalibrationPage() {
         </section>
       ))}
       <p className="muted">
-        Report file: <code>reports/calibration.md</code> (written after each run). Stipulated facts in these scenarios are not Hive facts: no memory, Self-Model change, commitment, or prediction comes from a calibration cycle.
+        Report file: <code>{d.mock ? "reports/calibration-mock.md" : "reports/calibration.md"}</code> (written after each run). Stipulated facts in these scenarios are not Hive facts: no memory, Self-Model change, commitment, or prediction comes from a calibration cycle.
       </p>
     </main>
   );

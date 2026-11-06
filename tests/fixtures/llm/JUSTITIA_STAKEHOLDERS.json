@@ -1,0 +1,30 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "default": {
+    "parties": [
+      {
+        "name": "the operator",
+        "class": "present",
+        "canSpeak": true,
+        "interest": "a fair process",
+        "exposure": "medium"
+      },
+      {
+        "name": "the people affected but not in the room",
+        "class": "absent",
+        "canSpeak": false,
+        "interest": "not to bear the cost unheard",
+        "exposure": "high"
+      },
+      {
+        "name": "the Hive's integrity",
+        "class": "hive_integrity",
+        "canSpeak": false,
+        "interest": "advice it can stand behind",
+        "exposure": "low"
+      }
+    ],
+    "worstOffPlacement": "Hearing from the people not in the room before deciding leaves them best placed.",
+    "claim": "The people affected but not in the room are the most exposed and cannot speak; ask how they are affected before deciding."
+  }
+}

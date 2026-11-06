@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
-/** /interoception — the Hive's system-level register (docs/ARCHITECTURE.md; sent2 v1.3 §3.2). Patterns arrive in M9. */
+/** /interoception — the Hive's system-level register (docs/ARCHITECTURE.md; sent2 v1.3 §3.2; PRODUCT_SPEC.md §8). */
+
+type Pattern = { id: string; type: string; subjectType: string; subjectId: string; sentence: string; densityNow: number; surfacedAt: string; cycleIds: string[] };
 
 type Data = {
+  patterns: Pattern[];
+  bloc: { conclaves: number; flags: { members: string[]; meanAgreement: number; meanW: number }[] };
   band: [number, number];
   intraMin: number;
   samples: { cycleNo: number; valence: number; arousal: number; dominant: string; cIntra: number | null; cInter: number | null; openConflictMarkers: number }[];
@@ -18,12 +23,17 @@ const f = (x: number | null) => (x === null ? "-" : x.toFixed(2));
 export default function InteroceptionPage() {
   const [d, setD] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
+  const load = useCallback(() => {
     fetch("/api/interoception")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then(setD)
       .catch((e: Error) => setError(e.message));
   }, []);
+  useEffect(load, [load]);
+  const dismiss = async (id: string) => {
+    await fetch(`/api/patterns/${id}/dismiss`, { method: "POST" });
+    load();
+  };
   if (error) return <main className="home"><p className="error">{error}</p></main>;
   if (!d) return <main className="home"><p className="muted">Loading…</p></main>;
   const [lo, hi] = d.band;
@@ -57,6 +67,48 @@ export default function InteroceptionPage() {
           <ul>{d.markers.map((m) => <li key={m.id}>cycle {m.createdCycle}: {m.body} {m.resolvedCycle !== null ? <span className="muted">(resolved in cycle {m.resolvedCycle})</span> : <strong>open</strong>}</li>)}</ul>
         )}
       </section>
+      <section data-testid="intero-patterns">
+        <h2>Patterns</h2>
+        <p className="muted">Observations from decaying signals (half-life 14 days), never verdicts. A dismissed pattern stays hidden for 30 days.</p>
+        {d.patterns.length === 0 ? <p className="muted">No pattern has crossed its threshold yet.</p> : (
+          <ul>
+            {d.patterns.map((p) => (
+              <li key={p.id} className="card" data-testid="pattern-card">
+                {p.sentence} <span className="muted">(density now {p.densityNow.toFixed(2)})</span>{" "}
+                {p.cycleIds.length > 0 && (
+                  <span>
+                    Open the cycles:{" "}
+                    {p.cycleIds.map((c, i) => (
+                      <span key={c}>
+                        {i > 0 && ", "}
+                        <Link href={`/cycles/${c}`}>{i + 1}</Link>
+                      </span>
+                    ))}
+                    .{" "}
+                  </span>
+                )}
+                <button onClick={() => dismiss(p.id)}>Dismiss</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section data-testid="intero-bloc">
+        <h2>Bloc audit</h2>
+        {d.bloc.conclaves < 5 ? (
+          <p className="muted">Needs at least 5 Conclaves ({d.bloc.conclaves} so far).</p>
+        ) : d.bloc.flags.length === 0 ? (
+          <p className="muted">No group of 3 or more Voices voted in lockstep (mean agreement above 0.9) over the last {d.bloc.conclaves} Conclaves.</p>
+        ) : (
+          <ul>
+            {d.bloc.flags.map((b) => (
+              <li key={b.members.join(",")}>
+                {b.members.join(", ")} chose the same top option {Math.round(b.meanAgreement * 100)}% of the time over {d.bloc.conclaves} Conclaves.
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       <section data-testid="intero-audits">
         <h2>Ego audits</h2>
         {d.audits.length === 0 ? <p className="muted">None yet (every 25 cycles, or when a Self-Model delta is refused).</p> : (
@@ -82,7 +134,6 @@ export default function InteroceptionPage() {
           </ul>
         )}
       </section>
-      <p className="muted">Pattern surfacing arrives in M9.</p>
     </main>
   );
 }

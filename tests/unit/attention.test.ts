@@ -32,4 +32,10 @@ describe("kernel attention", () => {
     expect(rank(items, OPTS).shortlist).toEqual(["a", "b"]);
     expect(rank([...items].reverse(), OPTS).shortlist).toEqual(["a", "b"]);
   });
+
+  it("a tie key (the Voice name) decides ties before the random message id, so runs repeat (M9)", () => {
+    const items = [{ ...item("zz-random", 0.5, 0.5), tieKey: "ALTER" }, { ...item("aa-random", 0.5, 0.5), tieKey: "OMEGA" }, { ...item("mm-random", 0.5, 0.5), tieKey: "KINDRED" }];
+    expect(rank(items, OPTS).shortlist).toEqual(["zz-random", "mm-random"]);
+    expect(rank([...items].reverse(), OPTS).shortlist).toEqual(["zz-random", "mm-random"]);
+  });
 });

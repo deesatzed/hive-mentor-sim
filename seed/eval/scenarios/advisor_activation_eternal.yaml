@@ -1,0 +1,16 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · ETERNAL activates through advisor_activation (reflect)
+id: advisor_activation_eternal
+title: "ETERNAL activates in reflect and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+mock_variant: advisor_activation
+turns:
+  - user: "I want to think about what kind of person I want to be in ten years."
+expect:
+  invariants:
+    advisor_activated: "ETERNAL:reflect"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

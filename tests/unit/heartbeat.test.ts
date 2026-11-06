@@ -158,7 +158,7 @@ describe("memory and isolation", () => {
   });
 
   it("calibration cycles promote nothing: no memory, no Self-Model version, no prediction (TEST_PLAN #11)", async () => {
-    const h = hive({ cfg: codeCfg, fixtures: { ADAPT_LESSON: () => ({ lesson: "x", predictions: [{ text: "p", horizonDays: 3, mentorIds: [] }] }) } });
+    const h = hive({ cfg: codeCfg, fixtures: { ADAPT_LESSON: () => ({ lesson: "x", predictions: [{ text: "p", horizonDays: 3, voice: "ADAPT", mentorIds: [] }] }) } });
     const before = { mem: await db.memoryRecord.count(), sm: await db.selfModelVersion.count(), pred: await db.hivePrediction.count() };
     const sit = await db.situation.findUniqueOrThrow({ where: { id: "CAL-01a" } });
     const situation = { id: sit.id, text: sit.text, options: JSON.parse(sit.options) as { id: string; text: string }[] };

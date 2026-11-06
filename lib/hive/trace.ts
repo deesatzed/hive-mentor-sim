@@ -111,6 +111,25 @@ export const CycleTraceSchema = z.object({
   /** hat taxonomy (sent2 v1.3 §3.1) of the entities that ran this cycle */
   hats: z.array(z.object({ entity: z.string(), type: z.string(), revisableBy: z.array(z.string()) })),
   honestyClauseFired: z.boolean(),
+  /** M9: advisors that activated this cycle, their route, the ENDORSE result, and where an endorsed advisory went */
+  advisors: z
+    .array(
+      z.object({
+        name: z.string(),
+        phase: z.enum(["whisper", "deliberate", "compose", "reflect"]),
+        via: z.array(z.string()),
+        trigger: z.string().nullable(),
+        claim: z.string(),
+        passed: z.boolean(),
+        endorsedBy: z.string().nullable(),
+        probabilities: z.record(z.string(), z.number()).nullable(),
+        enteredAs: z.enum(["coalition", "compose", "reflect"]).nullable(),
+        detail: z.unknown().optional(),
+      }),
+    )
+    .default([]),
+  /** M9: signals emitted in P7 (tension/serves per principle, dissent per Voice) */
+  signals: z.array(z.object({ type: z.string(), subjectType: z.string(), subjectId: z.string() })).default([]),
   error: z.object({ phase: z.string(), name: z.string(), message: z.string() }).optional(),
 });
 export type CycleTrace = z.infer<typeof CycleTraceSchema>;
@@ -138,5 +157,7 @@ export function emptyTrace(mode: CycleTrace["mode"], mock: boolean, orchestratio
     coherence: { cIntra: null, cInter: null, perVoiceDrift: {}, flags: [], unavailable: false },
     hats: [],
     honestyClauseFired: false,
+    advisors: [],
+    signals: [],
   };
 }

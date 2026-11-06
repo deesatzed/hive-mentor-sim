@@ -255,6 +255,9 @@ export type CalibrationResults = Awaited<ReturnType<typeof calibrationResults>>;
 
 const pct = (x: number) => x.toFixed(2);
 
+/** Live results go to reports/calibration.md; mock results never overwrite them. */
+export const reportPath = (r: CalibrationResults) => (r.mock ? "reports/calibration-mock.md" : "reports/calibration.md");
+
 /** reports/calibration.md: per-variant results as run; no pass-rate claims beyond what ran. */
 export function calibrationReport(r: CalibrationResults, generatedAt = new Date().toISOString()): string {
   const L: string[] = [];

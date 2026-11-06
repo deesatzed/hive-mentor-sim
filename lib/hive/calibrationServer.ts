@@ -1,7 +1,7 @@
 import "server-only";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { getDb } from "@/lib/council/db";
-import { calibrationReport, calibrationResults, runCalibration } from "./calibration";
+import { calibrationReport, calibrationResults, reportPath, runCalibration } from "./calibration";
 import { serverHive } from "./server";
 import { serverProviders } from "./serverProviders";
 
@@ -21,7 +21,8 @@ export function startCalibration(ids?: string[]): { started: boolean } {
     .then(async (r) => {
       lastFinished = { finishedAt: new Date().toISOString(), ran: r.ran, errors: r.errors };
       mkdirSync("reports", { recursive: true });
-      writeFileSync("reports/calibration.md", calibrationReport(await calibrationResults(db)));
+      const res = await calibrationResults(db);
+      writeFileSync(reportPath(res), calibrationReport(res));
     })
     .catch((e: Error) => (lastFinished = { finishedAt: new Date().toISOString(), ran: [], errors: [e.message] }))
     .finally(() => (current = null));

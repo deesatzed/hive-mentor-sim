@@ -1,0 +1,16 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · PROTEUS activates through advisor_activation (whisper)
+id: advisor_activation_proteus
+title: "PROTEUS activates in whisper and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+mock_variant: advisor_activation
+turns:
+  - user: "I want to learn to cook but I keep giving up after a week."
+expect:
+  invariants:
+    advisor_activated: "PROTEUS:whisper"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

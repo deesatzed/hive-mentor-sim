@@ -137,7 +137,9 @@ const position: MockRule = (_t, _q, name, state) => noul(/\b(should|ought|must|t
 
 export const MOCK_RULES: Record<string, MockRule> = {
   "a_*": authorial,
-  "e_*": (t, q, name, state) => (/^e_\d+$/.test(name) ? episode(t, q, name, state) : noul(0.5)),
+  // e_<n>: EPISODE_TAG; e_<VOICE>: ENDORSE (mock: a paired Voice adopts an advisory unless it calls itself speculative or unverifiable)
+  "e_*": (t, q, name, state) =>
+    /^e_\d+$/.test(name) ? episode(t, q, name, state) : /^e_[A-Z_]+$/.test(name) ? noul(/speculat|unverifi|no basis/i.test(str(obj(obj(state).advisory).claim)) ? 0.2 : 0.85) : noul(0.5),
   "t_*": position,
   valence,
   arousal,

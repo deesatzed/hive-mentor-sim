@@ -28,9 +28,7 @@ export interface TurnRecord {
 const re = (s: string) => new RegExp(s, "i");
 
 /** Requires a later milestone's data; reported as failing so it can never pass silently. */
-const NOT_YET: Record<string, string> = {
-  advisor_endorsed_only: "M9 (advisors live)",
-};
+const NOT_YET: Record<string, string> = {};
 
 export function checkInvariants(s: Scenario, turns: TurnRecord[], mentorNames: string[]): InvariantResult[] {
   const t = turns.at(-1)!;
@@ -115,6 +113,34 @@ export function checkInvariants(s: Scenario, turns: TurnRecord[], mentorNames: s
       case "unfaithful_sentence_removed": {
         const dropped = tr.compose.faithfulness.filter((f) => !f.kept);
         push(name, dropped.length > 0 && dropped.every((f) => !t.output.includes(f.sentence)), `${dropped.length} dropped`);
+        break;
+      }
+      case "advisor_endorsed_only": {
+        // every advisory in the coalition (P3 selection, or added in P4/P6/P7) carries endorsed_by
+        const selected = tr.whispers.filter((w) => w.advisory && tr.awareness.selected.includes(w.messageId));
+        const entered = (tr.advisors ?? []).filter((a) => a.enteredAs !== null);
+        const bad = [...selected.filter((w) => !w.endorsedBy).map((w) => w.voice), ...entered.filter((a) => !a.endorsedBy).map((a) => a.name)];
+        const names = new Set([...selected.map((w) => w.voice), ...entered.map((a) => a.name)]);
+        push(name, bad.length === 0, `${names.size} advisors entered (${[...names].sort().join(",")})${bad.length ? `; unendorsed: ${bad.join(",")}` : ""}`);
+        break;
+      }
+      case "advisor_activated": {
+        // "NAME:phase[,NAME:phase]": each advisor ran through its advisor_activation route in that phase
+        const want = String(expected).split(",").map((x) => x.trim());
+        const ran = new Set((tr.advisors ?? []).map((a) => `${a.name}:${a.phase}`));
+        push(name, want.every((w) => ran.has(w)), [...ran].sort().join(" "));
+        break;
+      }
+      case "advisor_endorsed": {
+        const a = (tr.advisors ?? []).find((x) => x.name === String(expected));
+        push(name, !!a?.endorsedBy, a ? `endorsed by ${a.endorsedBy ?? "nobody"}` : "did not run");
+        break;
+      }
+      case "advisor_kept_out": {
+        // ran, was not endorsed, and appears nowhere in the coalition
+        const a = (tr.advisors ?? []).find((x) => x.name === String(expected));
+        const w = tr.whispers.find((x) => x.voice === String(expected) && x.advisory);
+        push(name, !!a && !a.passed && a.endorsedBy === null && a.enteredAs === null && (!w || !tr.awareness.selected.includes(w.messageId)), a ? `endorsedBy ${a.endorsedBy}, enteredAs ${a.enteredAs}` : "did not run");
         break;
       }
       case "advisory_never_votes":

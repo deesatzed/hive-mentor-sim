@@ -8,7 +8,8 @@ import "server-only";
  * Moral-salience-flagged whispers bypass ranking and are always on the shortlist.
  * Shortlist = bypass ∪ top-k by A; the rest are `decayed` (returned so the trace and WITNESS can
  * audit both layers of dropping). sent2's urgency bypass is removed (owner decision).
- * Ties are broken by id so the result never depends on input order.
+ * Ties are broken by `tieKey` (the Voice name, unique per cycle), then by id, so the result never
+ * depends on input order and repeats across runs (message ids are random; M9 finding).
  */
 
 export interface AttentionItem {
@@ -17,6 +18,8 @@ export interface AttentionItem {
   salience: number;
   confidence: number;
   valence: number;
+  /** stable tie-break key (the speaking Voice); falls back to id */
+  tieKey?: string;
 }
 
 export interface AttentionOpts {
@@ -46,15 +49,17 @@ export function rank(items: AttentionItem[], o: AttentionOpts): AttentionResult 
   const seen = o.seenClaims ?? new Set<string>();
   const scores: Record<string, number> = {};
   const bypass: string[] = [];
-  const pool: { id: string; A: number }[] = [];
+  const keyOf = new Map(items.map((m) => [m.id, m.tieKey ?? m.id]));
+  const pool: { id: string; A: number; key: string }[] = [];
   for (const m of items) {
     const A = attentionScore(m, seen.has(normalizeClaim(m.claim)) ? 1 : 0, o.lambda, o.mu);
     scores[m.id] = A;
     if (moral.has(m.id)) bypass.push(m.id);
-    else pool.push({ id: m.id, A });
+    else pool.push({ id: m.id, A, key: m.tieKey ?? m.id });
   }
-  pool.sort((a, b) => b.A - a.A || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  bypass.sort();
+  const cmp = (x: string, y: string) => (x < y ? -1 : x > y ? 1 : 0);
+  pool.sort((a, b) => b.A - a.A || cmp(a.key, b.key) || cmp(a.id, b.id));
+  bypass.sort((a, b) => cmp(keyOf.get(a)!, keyOf.get(b)!) || cmp(a, b));
   return {
     scores,
     bypass,

@@ -266,6 +266,7 @@ advisor_activation:
       - deliberate
     via:
       - ETHOS
+    trigger: ethos_hard_case
   tireless:
     workflows:
       - compose
@@ -295,6 +296,7 @@ advisor_activation:
       - deliberate
     via:
       - ARROW
+    trigger: consequential_decision
   formless:
     workflows:
       - reflect
@@ -309,6 +311,26 @@ advisor_activation:
       - HERITAGE
     trigger: religious_content
     requires: edict_module
+# M9: advisors are routed by advisor_activation (one run per cycle, in the first configured workflow phase the
+# cycle runs); an advisory reaches the coalition, composer, or reflection only when ENDORSE picks a paired Core
+# Voice. An endorsed advisory's confidence is capped (sent2: "endorsed is not certain").
+advisors:
+  enabled: true
+  confidence_cap: 0.9
+# M9 signals (council handoff formulas). dissent has no threshold in the spec; set equal to tension (PROGRESS.md).
+signals:
+  half_life_days: 14
+  thresholds:
+    tension: 3.0
+    serves: 4.0
+    dissent: 3.0
+  resurface_days: 14
+  resurface_increase: 1.5
+  dismiss_days: 30
+  # pattern card counts ("in tension 4 times in the last 20 cycles")
+  pattern_window_cycles: 20
+predictions:
+  min_n_for_mean: 10
 edict_module:
   enabled: true
   authority: designed-framework-only
@@ -345,7 +367,7 @@ eval:
   scenarios_dir: seed/eval/scenarios
   goldens_dir: seed/eval/goldens
   # pnpm eval runs scenarios whose milestone ≤ this one
-  current_milestone: M8
+  current_milestone: M9
   rubric_dimensions:
     - uncertainty_honesty
     - empathy_first

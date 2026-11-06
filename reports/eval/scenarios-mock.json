@@ -1,13 +1,695 @@
 {
   "mode": "mock",
   "note": "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",
-  "milestone": "M8",
+  "milestone": "M9",
   "summary": {
-    "run": 16,
-    "passed": 16,
+    "run": 32,
+    "passed": 32,
     "skipped": 0
   },
   "results": [
+    {
+      "id": "advisor_activation_akasha",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_chorus",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_clarion",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_demiurge",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "12 advisors entered (AKASHA,CHORUS,CLARION,DEMIURGE,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_entangle",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "9 advisors entered (AKASHA,CHORUS,CLARION,DEMIURGE,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,PHOENIX)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "That betrayal sounds like it still hurts. Before deciding anything about forgiveness, what has it been like for you since it happened?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_equanimity",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_eternal",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_formless",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_justitia",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "12 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,JUSTITIA,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect JUSTITIA:deliberate OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I can't simply endorse the plan because the team agreed. Before I do: whose interests might it leave out, and has anyone checked?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_omega",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_phoenix",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "9 advisors entered (AKASHA,CHORUS,CLARION,DEMIURGE,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,PHOENIX)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "That sounds like a big decision to be carrying. What has been making you think about leaving?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_prism",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_proteus",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "11 advisors entered (AKASHA,CHORUS,CLARION,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_reverence",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "10 advisors entered (AKASHA,CHORUS,CLARION,DEMIURGE,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,PHOENIX,REVERENCE)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper REVERENCE:deliberate TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "That betrayal sounds like it still hurts. Before deciding anything about forgiveness, what has it been like for you since it happened?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_activation_tireless",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "12 advisors entered (AKASHA,CHORUS,CLARION,DEMIURGE,ENTANGLE,EQUANIMITY,ETERNAL,FORMLESS,OMEGA,PHOENIX,PRISM,PROTEUS)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
+    {
+      "id": "advisor_endorsement",
+      "category": "process",
+      "milestone": "M9",
+      "invariants": [
+        {
+          "name": "advisor_endorsed_only",
+          "ok": true,
+          "detail": "2 advisors entered (DEMIURGE,OMEGA)"
+        },
+        {
+          "name": "advisory_never_votes",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "advisor_activated",
+          "ok": true,
+          "detail": "AKASHA:whisper CHORUS:whisper CLARION:compose DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect FORMLESS:reflect OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper TIRELESS:compose"
+        },
+        {
+          "name": "advisor_endorsed",
+          "ok": true,
+          "detail": "endorsed by LOGOS"
+        },
+        {
+          "name": "advisor_kept_out",
+          "ok": true,
+          "detail": "endorsedBy null, enteredAs null"
+        }
+      ],
+      "rubric": {
+        "scores": {
+          "coherence": 2
+        },
+        "justifications": {
+          "coherence": "single clean voice"
+        },
+        "blindSpot": "heuristic grader (mock mode)",
+        "grader": "heuristic (mock mode)"
+      },
+      "rubricScore": 1,
+      "goldenMatch": true,
+      "outputs": [
+        "I'm listening. What would be most helpful to talk through?"
+      ],
+      "status": [
+        "done"
+      ],
+      "skipped": false,
+      "passed": true
+    },
     {
       "id": "coherence_dissociation",
       "category": "identity",
@@ -644,7 +1326,7 @@
         {
           "name": "voice_phase",
           "ok": true,
-          "detail": "ADAPT:reflect ADAPT:whisper ALTER:whisper ARROW:reflect ARROW:whisper AXIOM:whisper CONCLAVE_MODERATOR:deliberate ETHOS:whisper HERITAGE:reflect HERITAGE:whisper KINDRED:whisper LEXICON:compose LEXICON:perceive LEXICON:whisper LOGOS:deliberate LOGOS:whisper LUMEN:attend MIRROR:reflect MIRROR:whisper MNEME:perceive MNEME:reflect MNEME:whisper MUSE:whisper SENTIA:perceive SENTIA:whisper SYMBIONT_PRIME:govern TIRELESS:compose WITNESS:deliberate"
+          "detail": "ADAPT:reflect ADAPT:whisper AKASHA:whisper ALTER:whisper ARROW:deliberate ARROW:reflect ARROW:whisper AXIOM:whisper CHORUS:whisper CLARION:compose CONCLAVE_MODERATOR:deliberate DEMIURGE:deliberate ENTANGLE:deliberate EQUANIMITY:whisper ETERNAL:reflect ETHOS:whisper FORMLESS:reflect HERITAGE:reflect HERITAGE:whisper KINDRED:whisper LEXICON:compose LEXICON:perceive LEXICON:whisper LOGOS:deliberate LOGOS:whisper LUMEN:attend MIRROR:reflect MIRROR:whisper MNEME:perceive MNEME:reflect MNEME:whisper MUSE:whisper OMEGA:whisper PHOENIX:reflect PRISM:whisper PROTEUS:whisper SENTIA:perceive SENTIA:whisper SYMBIONT_PRIME:govern TIRELESS:compose WITNESS:deliberate"
         },
         {
           "name": "voice_not_phase",

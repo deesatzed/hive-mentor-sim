@@ -40,3 +40,11 @@
 **Fix.** Reveal and calibration create one session per situation. In ruling and calibration modes LEXICON_COMPOSE gets a `ruling` line (choice, Conclave decision, dissenting Voices) and is told to state and explain the choice, its reasons, the material dissent, and what would change it; the choice is also an approved claim, so the faithfulness check keeps those sentences. HONESTY_PROBE runs in chat mode only (ruling and calibration inputs are stipulated situations, not the operator asking about the Hive). Rerun: replies state and explain the ruling, no clause line, no cross-variant reference; 5 of 8 pairs inconsistent, which read as grader findings, not pipeline defects (PROGRESS.md M8).
 
 **Also found (second run).** CAL-01d's reply contained `George Washington wrote: ""`: a listed quote that failed verification was cut out of the text, leaving the attribution. Rejected listed quotes now drop their whole sentence (cite or silence), as quoted spans in the text already did. Unit test added.
+
+## 2026-11-06 (M9): mock eval stopped being byte-identical between runs
+
+**Symptom.** After advisors were routed in P2, two `pnpm eval` runs differed in which advisories reached the coalition (e.g. AKASHA in one run, EQUANIMITY in the other). Through M8 the report was byte-identical across runs.
+
+**Cause.** Attention breaks equal scores by message id, and message ids are random UUIDs. Ratings are discrete levels, so exact ties are common; the mock advisors all tie, and a tie at the top-k cutoff was settled at random. (The kernel was independent of input order, as designed, but not reproducible.)
+
+**Fix.** Attention items carry a `tieKey` (the speaking Voice, unique per cycle); ties sort by score, then tie key, then id, for both the ranked pool and the moral bypass list. Order independence is unchanged (existing test) and a new test shows the tie key deciding before random ids. Eval: three runs byte-identical; all 32 goldens match.

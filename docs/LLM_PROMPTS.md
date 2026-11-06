@@ -145,6 +145,14 @@ Each begins with `_shared.md` filled for the named entity.
 
 **ADAPT_LESSON** (ADAPT, standard, 0.3) — "Compare what the Hive predicted with what happened; propose a lesson and any checkable prediction from this cycle." Schema `{ lesson?: string, predictions: Array<{ text: string, horizonDays: number, mentorIds: string[] }> }`.
 
+**DEMIURGE_ROLLOUT** (DEMIURGE, premium, 0.4; M9) — User: input, candidate (Conclave winner or awareness), awareness. "Roll out the candidate: 3 steps, 2 alternative cells per step, each an actor, a short event, and an outlook label; include the adverse path; one advisory claim for ARROW; never pick the action; no numbers." Schema `{ candidate: string, levels: [[cell, cell] ×3], claim: string ≤ 280 }`, cell `{ actor: 'hive'|'operator'|'world', event: string ≤ 160, outlook: 'favorable'|'mixed'|'adverse' }`. Paths and worst-first order are computed in code.
+
+**JUSTITIA_STAKEHOLDERS** (JUSTITIA, premium, 0.2; M9) — User: input, ETHOS's claim, options, awareness. "List every affected party … whether each can speak, its interest, and its exposure (low, medium, high); say which course leaves the worst-off party best placed; one advisory claim for ETHOS; no numbers." Schema `{ parties: [{ name, class: 'present'|'absent'|'future'|'non_human'|'hive_integrity', canSpeak: boolean, interest ≤ 160, exposure: 'low'|'medium'|'high' }], worstOffPlacement ≤ 240, claim ≤ 280 }`.
+
+**Advisors on VOICE_WHISPER (M9):** advisors use §3.5 with `passages: none` and one more line, `Phase context (you are advising in {phase}): {json}` (P2: parse; P4: awareness, coalition, Conclave result; P6: awareness, coalition, ruling; P7: input, output, awareness, verdict).
+
+**ADAPT_LESSON (M9 change):** the user message adds the last 5 checked-in predictions with ratings and the coalition (Voice, claim, evidence mentor ids); each prediction adds a required `voice` (validated in code).
+
 **HERITAGE_CANON** (HERITAGE, standard, 0.3) — "Is there a durable, teachable principle here that has survived testing? If not, return none." Schema `{ candidate?: string, evidenceCycles: string[] }`.
 
 **ARROW_COMMIT** (ARROW, standard, 0.2) — "List commitments the composed output makes (stated position, refusal, promise, canon adoption)." Schema `{ commitments: Array<{ text: string, costType: 'reputational'|'relational'|'epistemic'|'ethical' }> }`.

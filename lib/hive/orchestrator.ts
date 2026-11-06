@@ -35,13 +35,16 @@ import {
   HONESTY_PROBE,
   mapIndex,
   MORAL_SALIENCE,
+  PRINCIPLE_STATUS,
   PROMOTE_GOAL,
   T,
   WHISPER_RATING,
   WITNESS_FLAGS,
 } from "./questions";
 import { HiveState } from "./state";
+import { emitAndSurface, type EmittedSignal } from "./signalStore";
 import { emptyTrace, type CycleTrace, type TraceWhisper } from "./trace";
+import { activeAdvisors, buildRollout, coalitionEligible, decideEndorsement, stakeholderSummary, stripSelfEndorsement, type AdvisorPhase, type Party } from "./endorsement";
 import { coreVoices, type Voice } from "./voices";
 
 /**
@@ -201,6 +204,72 @@ export class Hive {
     let lenses = new Map<string, Lens>();
     const sessionId = req.sessionId;
 
+    // ---------------- advisors (M9): routed by advisor_activation, adopted only through ENDORSE
+    const advisorsRan = new Set<string>();
+    let advisoryWhispers: WhisperWork[] = []; // P2 advisories, kept across a REFLECT re-run of P2
+    type AdvisorOut = { name: string; voiceId: string; faculty: string; claim: string; endorsedBy: string | null; messageId: string; index: number };
+    const runAdvisors = async (phase: AdvisorPhase, context: Record<string, unknown>, opts: { ethosHardCase?: boolean } = {}): Promise<AdvisorOut[]> => {
+      if (!cfg.advisors.enabled) return [];
+      const names = activeAdvisors(cfg.advisor_activation, phase, req.input, { edictModule: cfg.edict_module.enabled, ethosHardCase: opts.ethosHardCase }).filter((n) => !advisorsRan.has(n));
+      const out: AdvisorOut[] = [];
+      for (const name of names) {
+        const adv = this.d.voices.find((v) => v.class === "advisor" && v.name === name);
+        if (!adv || !adv.active) continue;
+        advisorsRan.add(name);
+        const rule = cfg.advisor_activation[name.toLowerCase()];
+        const via = rule.via.filter((p) => coreVoices(this.d.voices).some((v) => v.name === p));
+        let claim = "PASS";
+        let detail: unknown;
+        if (name === "TIRELESS") {
+          // TIRELESS's workflow is the P6 faithfulness pass (FAITHFUL decisions per sentence), run in code; no advisory text to endorse
+          trace.advisors.push({ name, phase, via, trigger: rule.trigger ?? null, claim: "Faithfulness pass over the composed reply (FAITHFUL decisions, P6).", passed: false, endorsedBy: null, probabilities: null, enteredAs: null, detail: { implementedAs: "faithfulness check" } });
+          continue;
+        }
+        try {
+          if (name === "DEMIURGE") {
+            const r = await providers.llm.generate("DEMIURGE_ROLLOUT", { input: req.input, candidate: context.candidate, awareness: context.awareness, shared }, Schemas.DEMIURGE_ROLLOUT, { ...promptSettings("DEMIURGE_ROLLOUT"), purpose: "demiurge_rollout", cycleId });
+            const ro = buildRollout(r.data.levels);
+            detail = { candidate: r.data.candidate, worst: ro.worst, paths: ro.paths.length, boundary: "Analysis only: ARROW holds intent; SYMBIONT PRIME holds the gate." };
+            claim = r.data.claim.trim();
+          } else if (name === "JUSTITIA") {
+            const r = await providers.llm.generate("JUSTITIA_STAKEHOLDERS", { input: req.input, ethos: context.ethos, options: context.options, awareness: context.awareness, shared }, Schemas.JUSTITIA_STAKEHOLDERS, { ...promptSettings("JUSTITIA_STAKEHOLDERS"), purpose: "justitia_stakeholders", cycleId });
+            detail = { parties: r.data.parties as Party[], ...stakeholderSummary(r.data.parties as Party[]), worstOffPlacement: r.data.worstOffPlacement };
+            claim = r.data.claim.trim();
+          } else {
+            const vars = { voice: name, mode, input: req.input, options: req.situation?.options, affect, memories: [], selfModel, commitments: [], parse, passages: "none", reflectNote: "", phaseContext: context, advisorPhase: phase, shared };
+            const r = await providers.llm.generate("VOICE_WHISPER", vars, Schemas.VOICE_WHISPER, { ...promptSettings("VOICE_WHISPER", vars), purpose: "advisor_whisper", cycleId });
+            // advisors have no mentor lens: any cited evidence is not theirs to cite
+            for (const ev of r.data.evidence) await this.d.ledger.record({ kind: "quote.rejected", cycleId, subjectType: "voice", subjectId: name, payload: { promptId: "VOICE_WHISPER", label: ev.chunkId, reason: "chunk_not_given", quote: ev.quote.slice(0, 200) } });
+            claim = mentorFirstPerson(r.data.claim, this.d.mentorNames) ? "PASS" : r.data.claim.trim();
+          }
+        } catch (e) {
+          if (!(e instanceof GenerationError)) throw e;
+        }
+        const index = trace.advisors.length;
+        if (!claim || claim.toUpperCase() === "PASS") {
+          trace.advisors.push({ name, phase, via, trigger: rule.trigger ?? null, claim: "PASS", passed: true, endorsedBy: null, probabilities: null, enteredAs: null, ...(detail ? { detail } : {}) });
+          continue;
+        }
+        claim = claim.slice(0, 280);
+        const advEnv = await this.publish(adv.id, "task/analysis/advisory", "assessment.published", phase, { kind: "advisory_whisper", claim, advisory: true, endorsed_by: null }, cycleId, "advisor");
+        const partners = via.map((v) => ({ voice: v, claim: whispers.find((w) => w.voice === v && !w.advisory)?.claim ?? null }));
+        const e = await decideEndorsement(providers.decider, { voice: name, claim }, partners, cycleId);
+        let messageId = advEnv.message_id;
+        if (e.endorsedBy) {
+          // the partner re-emits the advisory as its own claim and owns it (sent2 endorse())
+          const partner = this.d.voices.find((v) => v.name === e.endorsedBy)!;
+          const channel = partner.id === "core.witness" ? "task/reflection" : "task/analysis";
+          const env = await this.publish(partner.id, channel, "assessment.published", phase, { kind: "endorsement", claim, endorsed_from: advEnv.message_id, advisor: name, endorsed_by: e.endorsedBy }, cycleId, "endorse");
+          messageId = env.message_id;
+        }
+        trace.advisors.push({ name, phase, via, trigger: rule.trigger ?? null, claim, passed: false, endorsedBy: e.endorsedBy, probabilities: e.probabilities, enteredAs: null, ...(detail ? { detail } : {}) });
+        out.push({ name, voiceId: adv.id, faculty: adv.attribute, claim, endorsedBy: e.endorsedBy, messageId, index });
+      }
+      return out;
+    };
+    const advisoryWork = (a: AdvisorOut): WhisperWork =>
+      stripSelfEndorsement({ messageId: a.messageId, voice: a.name, voiceId: a.voiceId, faculty: a.faculty, claim: a.claim, confidence: 0.5, salience: 0.5, valence: 0, evidence: [], rejectedEvidence: 0, advisory: true, endorsedBy: null, moralFlag: false, numbersUnavailable: false, uncertainty: "", lens: [] });
+
     const runPhase = async (id: PhaseId, fn: () => Promise<string[]>) => {
       const start = Date.now();
       const spent = providers.meter.spentUsd;
@@ -329,6 +398,13 @@ export class Hive {
         });
       }
 
+      // advisors routed to this phase (once per cycle; a REFLECT re-run keeps the first pass's advisories)
+      whispers = work.map(({ model: _m, ...w }) => w); // partners' own claims for ENDORSE
+      const newAdvisories = (await runAdvisors("whisper", { parse })).map((a) => ({ ...advisoryWork(a), endorsedBy: a.endorsedBy, model: "advisor", __index: a.index }));
+      const advStart = work.length;
+      work.push(...newAdvisories.map(({ __index: _i, ...w }) => w));
+      if (!newAdvisories.length && advisoryWhispers.length) work.push(...advisoryWhispers.map((w) => ({ ...w, model: "advisor" })));
+
       // numbers from the decision layer: ≤ 4 whispers per WHISPER_RATING request
       for (let i = 0; i < work.length; i += 4) {
         const chunk = work.slice(i, i + 4);
@@ -363,7 +439,9 @@ export class Hive {
           w.moralFlag = r ? r.p(`m_${j + 1}`) >= T.MORAL_SALIENCE : false;
         });
       }
+      for (const w of work.slice(advStart)) if (w.endorsedBy) w.confidence = Math.min(w.confidence, cfg.advisors.confidence_cap); // endorsed is not certain
       for (const w of work) {
+        if (w.advisory) continue; // advisories were published (and any endorsement re-emitted) when they ran
         const env = await this.publish(
           w.voiceId,
           "task/analysis",
@@ -387,24 +465,29 @@ export class Hive {
         w.messageId = env.message_id;
       }
       whispers = work.map(({ model: _m, ...w }) => w);
+      advisoryWhispers = whispers.filter((w) => w.advisory);
+      for (const w of advisoryWhispers) {
+        const t = trace.advisors.find((a) => a.name === w.voice && a.phase === "whisper");
+        if (t) t.enteredAs = null; // set in P3 if selected
+      }
       trace.whispers = whispers.map(({ voiceId: _v, faculty: _f, ...w }) => w);
       trace.passes = passes;
       // interoception: coherence of each Voice with itself (vs the previous cycle) and across Voices
       trace.coherence = await measureCoherence({
         embedder: providers.embedder,
-        current: whispers.map((w) => ({ voice: w.voice, claim: w.claim })),
+        current: whispers.filter((w) => !w.advisory).map((w) => ({ voice: w.voice, claim: w.claim })),
         previous: prevClaims,
         intraMin: cfg.coherence.intra_min,
         interBand: cfg.coherence.inter_band,
       });
-      return speakers.map((v) => v.name);
+      return [...speakers.map((v) => v.name), ...trace.advisors.filter((a) => a.phase === "whisper").map((a) => a.name)];
     };
 
     // ---------------- P3 ATTEND
     const attend = async (): Promise<string[]> => {
       const seen = await this.state.seenClaims(sessionId);
       const ranked = rank(
-        whispers.map((w) => ({ id: w.messageId, claim: w.claim, salience: w.salience, confidence: w.confidence, valence: w.valence })),
+        whispers.filter(coalitionEligible).map((w) => ({ id: w.messageId, claim: w.claim, salience: w.salience, confidence: w.confidence, valence: w.valence, tieKey: w.voice })),
         { k: cfg.attention.k, lambda: cfg.attention.lambda, mu: cfg.attention.mu, moralFlagged: new Set(whispers.filter((w) => w.moralFlag).map((w) => w.messageId)), seenClaims: seen },
       );
       trace.attention = { ...ranked, rejectedSelections: [] };
@@ -437,6 +520,7 @@ export class Hive {
         }
         trace.awareness = { text, selected, excluded };
         coalition = selected.map((id) => byMsg.get(id)!);
+        for (const w of coalition) if (w.advisory) trace.advisors.find((a) => a.name === w.voice && a.phase === "whisper")!.enteredAs = "coalition";
       }
       await this.publish("core.lumen", "task/deliberation", "proposal.submitted", "attend", { kind: "awareness", awareness: trace.awareness.text, selected: trace.awareness.selected }, cycleId, "lumen");
       return ["LUMEN"];
@@ -515,7 +599,7 @@ export class Hive {
         }
         // ballots: one BALLOT decision per Core Voice with a rated claim this cycle; others abstain
         const optIds = options.map((o) => o.option_id);
-        const voters = whispers.filter((w) => !w.numbersUnavailable);
+        const voters = whispers.filter((w) => !w.numbersUnavailable && !w.advisory); // advisors never vote
         const ballots: Ballot[] = [];
         for (const w of voters) {
           const r = await tryDecide(
@@ -634,6 +718,25 @@ export class Hive {
             trace.reflect.resolvedMarkers.push(m.id);
           }
       }
+      if (allowReflect) {
+        // deliberate-phase advisors (DEMIURGE → ARROW, JUSTITIA → ETHOS, ...) after the Conclave; endorsed ones join the coalition
+        const ethos = whispers.find((w) => w.voice === "ETHOS" && !w.advisory);
+        const winnerClaim = conclave?.outcome.winner ? conclave.options.find((o) => o.option_id === conclave!.outcome.winner)?.claim : undefined;
+        const outs = await runAdvisors(
+          "deliberate",
+          { awareness: trace.awareness.text, coalition: coalition.map((w) => ({ voice: w.voice, claim: w.claim })), conclave: conclave ? { winner: winnerClaim ?? null, decision: conclave.outcome.decision } : null, candidate: winnerClaim ?? trace.awareness.text, ethos: ethos?.claim ?? null, options: req.situation?.options ?? conclave?.options.map((o) => ({ id: o.option_id, text: o.claim })) ?? null },
+          { ethosHardCase: ethos?.moralFlag === true },
+        );
+        for (const a of outs) {
+          // not a rated whisper (it skips attention): recorded in trace.advisors, and joins the coalition only when endorsed
+          const w = { ...advisoryWork(a), endorsedBy: a.endorsedBy };
+          if (coalitionEligible(w)) {
+            coalition.push(w);
+            trace.advisors[a.index].enteredAs = "coalition";
+          }
+        }
+        entities.push(...trace.advisors.filter((a) => a.phase === "deliberate").map((a) => a.name));
+      }
       return entities;
     };
 
@@ -679,7 +782,14 @@ export class Hive {
       // ruling/calibration: the reply explains the Conclave's choice (ARCHITECTURE.md "Ruling mode"; M8 live finding:
       // without it the reply could refuse the choice the Conclave had made)
       const ruling = mode !== "chat" && winner ? { choice: winner, decision: conclave!.outcome.decision, dissent: conclave!.outcome.dissent.map((d) => d.voice) } : undefined;
-      const approved: Record<string, string> = { ...Object.fromEntries(coalition.map((w) => [w.messageId, w.claim])), ...(ruling ? { ruling: `The Hive's provisional choice: ${ruling.choice}` } : {}) };
+      // compose-phase advisors (CLARION → LEXICON, ...): an endorsed advisory becomes an approved claim the reply may use
+      const composeAdvice = (await runAdvisors("compose", { awareness: trace.awareness.text, coalition: coalition.map((w) => w.claim), ruling: ruling?.choice ?? null })).filter((a) => a.endorsedBy);
+      for (const a of composeAdvice) trace.advisors[a.index].enteredAs = "compose";
+      const approved: Record<string, string> = {
+        ...Object.fromEntries(coalition.map((w) => [w.messageId, w.claim])),
+        ...Object.fromEntries(composeAdvice.map((a) => [a.messageId, a.claim])),
+        ...(ruling ? { ruling: `The Hive's provisional choice: ${ruling.choice}` } : {}),
+      };
       const approvedEvidence = coalition.flatMap((w) => w.evidence);
       // short labels E1..En for the approved quotes (long chunk ids get miscopied; M5 finding)
       const mentorName = new Map((await db.mentor.findMany({ where: { id: { in: [...new Set(approvedEvidence.map((e) => e.mentorId))] } }, select: { id: true, name: true } })).map((m) => [m.id, m.name]));
@@ -764,7 +874,7 @@ export class Hive {
         for (const f of failing)
           if (!trace.compose.faithfulness.some((x) => x.sentence === f)) trace.compose.faithfulness.unshift({ sentence: f, p: null, kept: false });
       await this.publish("core.lexicon", "user/output/draft", "proposal.submitted", "compose", { kind: "draft", text: output, regenerated }, cycleId, "lexicon");
-      return ["LEXICON", "TIRELESS"];
+      return ["LEXICON", "TIRELESS", ...trace.advisors.filter((a) => a.phase === "compose" && a.name !== "TIRELESS").map((a) => a.name)];
     };
 
     // ---------------- P7 REFLECT
@@ -780,7 +890,16 @@ export class Hive {
           throw e;
         }
       };
-      const cycleSummary = { input: req.input, output, awareness: trace.awareness.text, verdict: trace.arbiter.decision };
+      // reflect-phase advisors (ETERNAL, PHOENIX, FORMLESS, ...): endorsed notes go into what MIRROR, ADAPT, and HERITAGE read
+      const reflectAdvice = (await runAdvisors("reflect", { input: req.input, output, awareness: trace.awareness.text, verdict: trace.arbiter.decision })).filter((a) => a.endorsedBy);
+      for (const a of reflectAdvice) trace.advisors[a.index].enteredAs = "reflect";
+      const cycleSummary = {
+        input: req.input,
+        output,
+        awareness: trace.awareness.text,
+        verdict: trace.arbiter.decision,
+        ...(reflectAdvice.length ? { advisory: reflectAdvice.map((a) => ({ advisor: a.name, endorsedBy: a.endorsedBy, note: a.claim })) } : {}),
+      };
 
       // MNEME: episode memory (hive scope when verified, else this session)
       const ep = await gen("MNEME_CONSOLIDATE", { cycle: cycleSummary, input: req.input, output, memories: memories.map((m) => m.body) });
@@ -837,7 +956,9 @@ export class Hive {
       }
 
       // ADAPT: lesson and checkable predictions
-      const lesson = await gen("ADAPT_LESSON", { predictions: [], cycle: cycleSummary });
+      const prior = await db.hivePrediction.findMany({ where: { outcomeRating: { not: null } }, orderBy: { checkedInAt: "desc" }, take: 5, select: { text: true, outcomeRating: true, outcomeNote: true } });
+      const coalitionInfo = coalition.filter((w) => !w.advisory).map((w) => ({ voice: w.voice, claim: w.claim, mentorIds: [...new Set(w.evidence.map((e) => e.mentorId))] }));
+      const lesson = await gen("ADAPT_LESSON", { predictions: prior.map((p) => ({ text: p.text, rating: p.outcomeRating, note: p.outcomeNote })), cycle: cycleSummary, coalition: coalitionInfo });
       if (lesson) {
         await this.publish("core.adapt", "task/analysis", "proposal.submitted", "reflect", { kind: "lesson", ...lesson }, cycleId, "adapt");
         if (lesson.lesson) {
@@ -846,7 +967,10 @@ export class Hive {
         }
         if (promote)
           for (const p of lesson.predictions) {
-            const row = await db.hivePrediction.create({ data: { cycleId, text: p.text, proposedBy: "ADAPT", mentorRefs: JSON.stringify(p.mentorIds), checkInAt: new Date(Date.now() + p.horizonDays * 86_400_000) }, select: { id: true } });
+            // attribution is validated: a coalition Voice (else ADAPT), and only mentors whose verified evidence that Voice used
+            const from = coalitionInfo.find((c) => c.voice === p.voice.trim().toUpperCase());
+            const mentorRefs = from ? p.mentorIds.filter((m) => from.mentorIds.includes(m)) : [];
+            const row = await db.hivePrediction.create({ data: { cycleId, text: p.text, proposedBy: from?.voice ?? "ADAPT", mentorRefs: JSON.stringify(mentorRefs), principleIds: JSON.stringify(trace.arbiter.principlesChecked), checkInAt: new Date(Date.now() + p.horizonDays * 86_400_000) }, select: { id: true } });
             trace.reflect.predictions.push(row.id);
           }
       }
@@ -871,6 +995,25 @@ export class Hive {
           }
       }
 
+      // signals (M9): tension / serves per relevant principle from the composed output; dissent per Voice that lost the Conclave
+      if (promote) {
+        const emitted: EmittedSignal[] = [];
+        const relevant = principles.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => trace.arbiter.principlesChecked.includes(p.id));
+        if (relevant.length && output) {
+          const st = await tryDecideBatched(providers.decider, { input: req.input, target: output }, PRINCIPLE_STATUS(relevant), "principle_status", cycleId);
+          for (const p of relevant) {
+            const r = st.get(`s_${p.n}`);
+            if (!r) continue;
+            const idx = r.score(`s_${p.n}`);
+            if (idx < T.STATUS_TENSION) emitted.push({ type: "tension", subjectType: "principle", subjectId: p.id });
+            else if (idx > T.STATUS_SERVES) emitted.push({ type: "serves", subjectType: "principle", subjectId: p.id });
+          }
+        }
+        for (const d of conclave?.outcome.dissent ?? []) emitted.push({ type: "dissent", subjectType: "voice", subjectId: d.voice });
+        trace.signals = emitted;
+        await emitAndSurface(db, this.d.ledger, cfg, cycleId, emitted);
+      }
+
       // WITNESS ego audit: every N cycles, and on demand when a Self-Model delta was refused
       const trigger = cycleNo % cfg.ego_audit_every === 0 ? "periodic" : trace.reflect.conflictMarkers.length > 0 ? "on_demand" : null;
       if (trigger && promote) {
@@ -880,7 +1023,7 @@ export class Hive {
       }
 
       if (promote) await this.state.decay(cfg.memory.decay_gamma);
-      return ["MNEME", "MIRROR", "ADAPT", "HERITAGE", "ARROW", ...(trace.egoAudit.ran ? ["WITNESS"] : [])];
+      return ["MNEME", "MIRROR", "ADAPT", "HERITAGE", "ARROW", ...(trace.egoAudit.ran ? ["WITNESS"] : []), ...trace.advisors.filter((a) => a.phase === "reflect").map((a) => a.name)];
     };
 
     // ---------------- orchestration: manager or code chooses the next allowed phase

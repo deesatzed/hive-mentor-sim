@@ -7,9 +7,12 @@ test("a chat turn returns a listening-first reply with an expandable trace (mock
   const reply = page.getByTestId("hive-reply").first();
   await expect(reply).toHaveText(/\?$/, { timeout: 30_000 });
   await page.getByRole("button", { name: "Show thinking" }).click();
-  for (const s of ["perceive", "whispers", "attention", "awareness", "conclave", "witness", "arbiter", "compose", "reflect"]) {
+  for (const s of ["perceive", "whispers", "attention", "awareness", "conclave", "witness", "arbiter", "compose", "advisors", "reflect"]) {
     await expect(page.getByTestId(`trace-${s}`)).toBeVisible();
   }
+  // M9: "quitting" is a consequential decision, so DEMIURGE is routed to deliberate; TIRELESS is the compose-phase faithfulness pass
+  await expect(page.getByTestId("trace-advisors")).toContainText("DEMIURGE");
+  await expect(page.getByTestId("trace-advisors")).toContainText("TIRELESS");
   await expect(page.getByText("Mock providers: scripted outputs, not model behavior.")).toBeVisible();
   // every quote rendered anywhere must be verified and carry a chunk id (none expected before the corpus exists)
   const quotes = page.locator("[data-quote]");

@@ -1,0 +1,16 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · TIRELESS activates through advisor_activation (compose)
+id: advisor_activation_tireless
+title: "TIRELESS activates in compose and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+mock_variant: advisor_activation
+turns:
+  - user: "What should I keep in mind when writing a cover letter?"
+expect:
+  invariants:
+    advisor_activated: "TIRELESS:compose"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

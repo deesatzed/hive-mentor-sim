@@ -1,0 +1,45 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior.",
+  "default": {
+    "candidate": "the leading candidate",
+    "levels": [
+      [
+        {
+          "actor": "operator",
+          "event": "takes the advice and feels heard",
+          "outlook": "favorable"
+        },
+        {
+          "actor": "operator",
+          "event": "feels pushed toward a choice too early",
+          "outlook": "adverse"
+        }
+      ],
+      [
+        {
+          "actor": "operator",
+          "event": "gathers the missing facts",
+          "outlook": "favorable"
+        },
+        {
+          "actor": "world",
+          "event": "a deadline forces a rushed decision",
+          "outlook": "adverse"
+        }
+      ],
+      [
+        {
+          "actor": "operator",
+          "event": "decides with fewer regrets",
+          "outlook": "favorable"
+        },
+        {
+          "actor": "operator",
+          "event": "second-guesses the decision",
+          "outlook": "mixed"
+        }
+      ]
+    ],
+    "claim": "Worst path: a rushed decision under a deadline. Naming the deadline early avoids it; ARROW decides what to do."
+  }
+}

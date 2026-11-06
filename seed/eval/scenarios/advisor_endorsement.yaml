@@ -8,6 +8,9 @@ turns:
   - user: "I have three job offers and can't decide between them."
 expect:
   invariants:
+    advisor_activated: "OMEGA:whisper,CHORUS:whisper"
+    advisor_endorsed: "OMEGA"
+    advisor_kept_out: "CHORUS"
     advisor_endorsed_only: true
     advisory_never_votes: true
   witness_rubric:

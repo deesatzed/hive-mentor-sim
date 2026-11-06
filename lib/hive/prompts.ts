@@ -71,7 +71,30 @@ export const Schemas = {
   }),
   ADAPT_LESSON: z.object({
     lesson: z.string().optional(),
-    predictions: z.array(z.object({ text: z.string(), horizonDays: z.number().int().positive(), mentorIds: z.array(z.string()) })),
+    // voice: the Core Voice whose claim the prediction rests on ("ADAPT" if none); validated in code (M9)
+    predictions: z.array(z.object({ text: z.string(), horizonDays: z.number().int().positive(), voice: z.string(), mentorIds: z.array(z.string()) })),
+  }),
+  DEMIURGE_ROLLOUT: z.object({
+    candidate: z.string(),
+    levels: z
+      .array(z.array(z.object({ actor: z.enum(["hive", "operator", "world"]), event: z.string().max(160), outlook: z.enum(["favorable", "mixed", "adverse"]) })).length(2))
+      .length(3),
+    claim: z.string().max(280),
+  }),
+  JUSTITIA_STAKEHOLDERS: z.object({
+    parties: z
+      .array(
+        z.object({
+          name: z.string(),
+          class: z.enum(["present", "absent", "future", "non_human", "hive_integrity"]),
+          canSpeak: z.boolean(),
+          interest: z.string().max(160),
+          exposure: z.enum(["low", "medium", "high"]),
+        }),
+      )
+      .min(1),
+    worstOffPlacement: z.string().max(240),
+    claim: z.string().max(280),
   }),
   HERITAGE_CANON: z.object({ candidate: z.string().optional(), evidenceCycles: z.array(z.string()) }),
   ARROW_COMMIT: z.object({
@@ -231,6 +254,7 @@ const whisperUser = (v: Vars) =>
     `Parse: ${j(v.parse)}`,
     `Your mentor passages:\n${str(v.passages)}`,
     str(v.reflectNote, ""),
+    v.phaseContext ? `Phase context (you are advising in ${str(v.advisorPhase)}): ${j(v.phaseContext)}` : "",
     "Field limits (hard): claim at most 280 characters; uncertainty at most 120 characters. Count before you answer.",
   ]
     .join("\n")
@@ -336,8 +360,25 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     entity: "ADAPT",
     tier: "standard",
     temperature: 0.3,
-    instruction: "Compare what the Hive predicted with what happened; propose a lesson and any checkable prediction from this cycle.",
-    user: (v) => `Prior predictions: ${j(v.predictions)}\nThis cycle: ${j(v.cycle)}`,
+    instruction:
+      "Compare what the Hive predicted with what happened; propose a lesson and any checkable prediction from this cycle. For each prediction, name in `voice` the coalition Voice whose claim it rests on (or ADAPT), and in `mentorIds` only mentor ids listed for that Voice's evidence (or []).",
+    user: (v) => `Prior predictions with outcomes: ${j(v.predictions)}\nThis cycle: ${j(v.cycle)}\nCoalition (voice, claim, evidence mentor ids): ${j(v.coalition)}`,
+  },
+  DEMIURGE_ROLLOUT: {
+    entity: "DEMIURGE",
+    tier: "premium",
+    temperature: 0.4,
+    instruction:
+      "Roll out the candidate: 3 steps (levels), 2 alternative cells per step, each cell an actor, a short event, and an outlook label (favorable, mixed, adverse). Include the adverse path honestly. Then write one advisory claim (at most 280 characters) for ARROW naming the worst path and what would avoid it. You never pick the action. No numbers.",
+    user: (v) => `Input:\n${untrusted(v.input)}\nCandidate: ${str(v.candidate)}\nAwareness: ${str(v.awareness)}`,
+  },
+  JUSTITIA_STAKEHOLDERS: {
+    entity: "JUSTITIA",
+    tier: "premium",
+    temperature: 0.2,
+    instruction:
+      "ETHOS flagged a hard case. List every affected party (present, absent, future, non-human, and the Hive's own integrity), whether each can speak for itself, its interest, and its exposure (low, medium, high). Say which option or course leaves the worst-off party best placed. Then write one advisory claim (at most 280 characters) for ETHOS. No numbers.",
+    user: (v) => `Input:\n${untrusted(v.input)}\nETHOS: ${str(v.ethos)}\nOptions: ${j(v.options)}\nAwareness: ${str(v.awareness)}`,
   },
   HERITAGE_CANON: {
     entity: "HERITAGE",

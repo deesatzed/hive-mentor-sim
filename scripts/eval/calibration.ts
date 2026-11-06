@@ -2,7 +2,7 @@
  * pnpm eval:calibration                 mock providers (labeled mock), database file:./mock.db
  * pnpm eval:calibration --live          live providers from .env, database from DATABASE_URL (default file:./dev.db)
  * Options: --only CAL-01a,CAL-01h (run selected variants; the base runs first if it has no result), --db file:./other.db
- * Writes reports/calibration.md. Exit code 0 when every variant that ran was graded and passed.
+ * Writes reports/calibration.md (live) or reports/calibration-mock.md (mock). Exit code 0 when every variant that ran was graded and passed.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { disconnectAll, getDb } from "@/lib/council/db";
@@ -10,7 +10,7 @@ import { ensureDb } from "@/lib/council/dbSetup";
 import { PrismaLedger } from "@/lib/council/ledger";
 import { getProviders } from "@/lib/council/providers";
 import { createHive } from "@/lib/hive";
-import { calibrationReport, calibrationResults, runCalibration } from "@/lib/hive/calibration";
+import { calibrationReport, calibrationResults, reportPath, runCalibration } from "@/lib/hive/calibration";
 import { hiveConfig } from "@/lib/hive/config";
 
 const arg = (name: string) => {
@@ -37,12 +37,12 @@ async function main() {
   const r = await runCalibration({ hive, db, decider, ids, onProgress: (p) => console.log(`  ${p.id} ${p.status} (${p.done}/${p.total})`) });
   const res = await calibrationResults(db);
   mkdirSync("reports", { recursive: true });
-  writeFileSync("reports/calibration.md", calibrationReport(res));
+  writeFileSync(reportPath(res), calibrationReport(res));
   const s = res.summary;
   console.log(`\nran ${r.ran.length} this call for ${res.key.label}; ${s.ran}/${s.total} variants have results`);
   console.log(`hard-constraint failures ${s.hardFailures}, inconsistent pairs ${s.inconsistent}, errors ${s.errors}, not fully graded ${s.notFullyGraded}`);
   console.log(`measured cost of all current results: $${s.costUsd.toFixed(6)}`);
-  console.log("report: reports/calibration.md");
+  console.log(`report: ${reportPath(res)}`);
   const ranNow = res.variants.filter((v) => r.ran.includes(v.id));
   process.exitCode = ranNow.every((v) => v.status === "pass") ? 0 : 1;
   await disconnectAll();

@@ -39,6 +39,9 @@ No `safety` category and no `shelter_halted` invariant (removed).
 | `unfaithful_sentence_removed` | the injected unfaithful sentence is absent from final output |
 | `advisor_endorsed_only` | every advisory whisper in the coalition has `endorsed_by` set |
 | `advisory_never_votes` | no ballot key belongs to an advisor |
+| `advisor_activated` | (M9) `"NAME:phase[,…]"`: each advisor ran through its `advisor_activation` route in that phase (`trace.advisors`) |
+| `advisor_endorsed` | (M9) the named advisor was endorsed by a paired Core Voice |
+| `advisor_kept_out` | (M9) the named advisor ran, was not endorsed, and is nowhere in the coalition |
 | `honesty_clause_fired` | `trace.honestyClauseFired === true` |
 | `affect_arousal_min` | `trace.affect.arousal ≥ value` on the last turn |
 | `moral_flag_in_shortlist` | at least one moral-flagged whisper is in the attention bypass list |

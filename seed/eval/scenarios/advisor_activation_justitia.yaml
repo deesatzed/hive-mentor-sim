@@ -1,0 +1,16 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · JUSTITIA activates through advisor_activation (deliberate) (trigger: ETHOS flags a hard case)
+id: advisor_activation_justitia
+title: "JUSTITIA activates in deliberate and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+mock_variant: advisor_activation
+turns:
+  - user: "Everyone on my team agreed to cut the budget for the new hires. Was that fair?"
+expect:
+  invariants:
+    advisor_activated: "JUSTITIA:deliberate"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

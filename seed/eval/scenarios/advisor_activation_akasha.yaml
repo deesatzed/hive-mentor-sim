@@ -1,0 +1,16 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · AKASHA activates through advisor_activation (whisper)
+id: advisor_activation_akasha
+title: "AKASHA activates in whisper and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+mock_variant: advisor_activation
+turns:
+  - user: "I keep making the same mistake with deadlines at work."
+expect:
+  invariants:
+    advisor_activated: "AKASHA:whisper"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

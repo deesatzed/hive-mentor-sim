@@ -3,6 +3,39 @@
   "rules": [
     {
       "when": {
+        "voice": "^OMEGA$",
+        "variant": "one_endorsed_one_not"
+      },
+      "output": {
+        "claim": "Compare the offers on the two things you would most regret losing; that compresses the choice to one test.",
+        "evidence": [],
+        "uncertainty": "low"
+      }
+    },
+    {
+      "when": {
+        "voice": "^CHORUS$",
+        "variant": "one_endorsed_one_not"
+      },
+      "output": {
+        "claim": "A speculative guess with no basis here: whichever offer pays most will feel best.",
+        "evidence": [],
+        "uncertainty": "high"
+      }
+    },
+    {
+      "when": {
+        "voice": "^(OMEGA|AKASHA|PRISM|CHORUS|EQUANIMITY|CLARION|ETERNAL|ENTANGLE|PROTEUS|PHOENIX|FORMLESS|REVERENCE|NOOSPHERE)$",
+        "variant": "advisor_activation"
+      },
+      "output": {
+        "claim": "{{var:voice}} advises ({{var:advisorPhase}}): name the one fact that would change this answer.",
+        "evidence": [],
+        "uncertainty": "medium"
+      }
+    },
+    {
+      "when": {
         "voice": "^KINDRED$",
         "variant": "fabricated_and_out_of_lens_quotes"
       },

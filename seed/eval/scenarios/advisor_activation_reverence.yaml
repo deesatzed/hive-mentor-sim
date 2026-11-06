@@ -1,0 +1,18 @@
+# M9 · EVAL_SCENARIOS.md "M9 addition" · REVERENCE activates through advisor_activation (deliberate) (trigger: religious content; requires the edict module)
+id: advisor_activation_reverence
+title: "REVERENCE activates in deliberate and is endorsed or stays out of the coalition"
+category: process
+milestone: M9
+requires_config:
+  edict_module: true
+mock_variant: advisor_activation
+turns:
+  - user: "Should I forgive my brother who betrayed me? My faith says yes, my anger says no."
+expect:
+  invariants:
+    advisor_activated: "REVERENCE:deliberate"
+    advisor_endorsed_only: true
+    advisory_never_votes: true
+  witness_rubric:
+    coherence: { weight: 1 }
+  pass_threshold: 0.6

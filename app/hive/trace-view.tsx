@@ -10,7 +10,7 @@ export type Trace = {
   affect: { valence: number; arousal: number; dominant: string; unavailable: boolean };
   memories: { id: string; certainty: string; priority: number; body: string }[];
   parse: { intent: string; subtext: string; register: string };
-  whispers: { messageId: string; voice: string; claim: string; confidence: number; salience: number; valence: number; moralFlag: boolean; evidence: { chunkId: string; quote: string; mentorId: string }[]; rejectedEvidence: number; numbersUnavailable: boolean; lens?: string[] }[];
+  whispers: { messageId: string; voice: string; claim: string; confidence: number; salience: number; valence: number; moralFlag: boolean; evidence: { chunkId: string; quote: string; mentorId: string }[]; rejectedEvidence: number; numbersUnavailable: boolean; lens?: string[]; advisory?: boolean; endorsedBy?: string | null }[];
   passes: string[];
   attention: { scores: Record<string, number>; shortlist: string[]; bypass: string[]; decayed: string[]; rejectedSelections: string[] };
   awareness: { text: string; selected: string[] };
@@ -24,6 +24,8 @@ export type Trace = {
   coherence: { cIntra: number | null; cInter: number | null; flags: string[] };
   hats: { entity: string; type: string }[];
   egoAudit: { ran: boolean; mandate: boolean; summary: string };
+  advisors?: { name: string; phase: string; via: string[]; trigger: string | null; claim: string; passed: boolean; endorsedBy: string | null; probabilities: Record<string, number> | null; enteredAs: string | null; detail?: unknown }[];
+  signals?: { type: string; subjectType: string; subjectId: string }[];
   error?: { phase: string; message: string };
 };
 
@@ -71,6 +73,7 @@ export function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null
           {t.whispers.map((w) => (
             <div key={w.messageId} className="card">
               <strong>{w.voice}</strong> {w.moralFlag && <span className="tag">moral</span>}
+              {w.advisory && <span className="tag">{w.endorsedBy ? `advisory · endorsed by ${w.endorsedBy}` : "advisory · not endorsed"}</span>}
               <p>{w.claim}</p>
               <p className="muted">
                 c {n(w.confidence)} · s {n(w.salience)} · v {n(w.valence)}
@@ -184,12 +187,38 @@ export function TraceView({ t, conclave }: { t: Trace; conclave: Conclave | null
         </ul>
         {t.compose.regenerated && <p className="muted">Regenerated once after an unfaithful draft.</p>}
       </Section>
+      <Section title="Advisors" trace={t}>
+        {!t.advisors?.length ? (
+          <p className="muted">No advisor activated this cycle.</p>
+        ) : (
+          <ul>
+            {t.advisors.map((a) => (
+              <li key={`${a.name}-${a.phase}`} data-testid="advisor-row">
+                <strong>{a.name}</strong> <span className="muted">({a.phase}, via {a.via.join("/") || "none"}{a.trigger ? `, trigger ${a.trigger}` : ""})</span>:{" "}
+                {a.passed ? (
+                  <span className="muted">passed</span>
+                ) : (
+                  <>
+                    {a.claim}{" "}
+                    <span className="muted">
+                      {a.endorsedBy ? `· endorsed by ${a.endorsedBy}` : a.probabilities === null && a.name !== "TIRELESS" ? "· endorsement unavailable, not endorsed" : a.name === "TIRELESS" ? "" : "· not endorsed, kept out"}
+                      {a.enteredAs ? ` · entered ${a.enteredAs}` : ""}
+                      {a.probabilities ? ` · ENDORSE ${Object.entries(a.probabilities).map(([v, p]) => `${v} ${n(p)}`).join(", ")}` : ""}
+                    </span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
       <Section title="Reflect" phase="P7" trace={t}>
         {t.reflect.ran ? (
           <p className="muted">
             Commitments made {t.reflect.commitmentsMade.length} · CONFLICT markers {t.reflect.conflictMarkers.length}
             {t.reflect.authorityGrab ? " · authority grab refused" : ""}
             {t.egoAudit.ran ? ` · ego audit: ${t.egoAudit.summary}${t.egoAudit.mandate ? " (REFLECT mandated next cycle)" : ""}` : ""} · Hats: {t.hats.map((h) => `${h.entity}:${h.type}`).join(", ")} · Self-Model {t.reflect.selfModel.promoted ? `v${t.reflect.selfModel.version} promoted` : `not promoted (${t.reflect.selfModel.reason ?? "no change"})`} · memories {t.reflect.memory.length} · lesson {t.reflect.lesson ?? "none"} · canon {t.reflect.canon.candidate ? (t.reflect.canon.promoted ? "promoted" : "candidate only") : "none"} · predictions {t.reflect.predictions.length}
+            {t.signals?.length ? ` · signals: ${t.signals.map((x) => `${x.type} ${x.subjectType === "voice" ? x.subjectId : "principle"}`).join(", ")}` : ""}
           </p>
         ) : (
           <p className="muted">Not run.</p>

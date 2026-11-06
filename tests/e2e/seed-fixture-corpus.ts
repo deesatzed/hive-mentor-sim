@@ -35,6 +35,13 @@ async function main() {
       data: { mentorId: "seneca", questionKey: d.id, status: "answered", answer: "(e2e fixture answer)", choice: options[i % 2].id, evidence: JSON.stringify([{ chunkId: first.id, quote: sentences[0] }]), model: "fixture:e2e" },
     });
   }
+  // e2e FIXTURE prediction whose check-in date has already passed (a real cycle can only set future dates):
+  // one fixture session and cycle (cycle number 0, empty trace) and one KINDRED prediction due yesterday.
+  const session = await db.hiveSession.create({ data: { mode: "chat", title: "(e2e fixture) past prediction" } });
+  const cycle = await db.cycle.create({ data: { sessionId: session.id, cycleNo: 0, input: "(e2e fixture input)", output: "(e2e fixture output)", status: "done", formationVersion: 1 } });
+  await db.hivePrediction.create({
+    data: { cycleId: cycle.id, text: "(e2e fixture) The operator will follow up within a day.", proposedBy: "KINDRED", mentorRefs: JSON.stringify(["seneca"]), checkInAt: new Date(Date.now() - 86_400_000) },
+  });
   await disconnectAll();
 }
 main();
