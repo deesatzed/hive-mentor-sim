@@ -150,7 +150,9 @@ export const CONTRADICTION = (pairs: [number, number][]): Record<string, Questio
   Object.fromEntries(
     pairs.map(([i, j]) => [
       `x_${i}_${j}`,
-      noul("Do claims a and b recommend incompatible responses, so that following one means not following the other?", {
+      // the text names its pair: the decision model sees only the question text, so identical texts got identical
+      // answers for every pair (M10 RCA, ERROR_LOG.md 2026-11-06)
+      noul(`In pair x_${i}_${j}, do claims a and b recommend incompatible responses, so that following one means not following the other?`, {
         true: "They contradict in what they recommend.",
         false: "Compatible or complementary.",
       }),

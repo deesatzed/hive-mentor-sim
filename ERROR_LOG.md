@@ -64,3 +64,20 @@
 **Cause.** LEXICON_COMPOSE told the model to "say only what the approved claims and guidance support" without saying not to mention them; the model echoed the label.
 
 **Fix.** The instruction now says to speak about the matter itself and never refer to the inputs ("approved claims", "guidance", "coalition", "audit note", "awareness"). Verified by a second `smoke:live` (PROGRESS.md M10).
+
+## 2026-11-06 (M10 RCA): live chat cycles never held a Conclave
+
+**Symptom.** Live eval: `conclave_conflict` and `conclave_stable_options` failed with "no Conclave". In dev.db, 6 live chat cycles had 0 Conclaves, while 40 of 40 rulings and 9 of 9 calibration cycles had one.
+
+**Plausible causes.** (1) The manager skipped P4. (2) The live Voices did not disagree. (3) The contradiction check was broken.
+
+**Logging.** The live eval now saves every trace and every ledger row per scenario (`reports/eval/live-traces/`). In the saved runs, P4 ran (chosen by the manager), but all 21 contradiction probabilities in a cycle were identical: 0.24421668818912978 in one scenario and 0.3661958752665569 in the other. That ruled out (1) and confirmed (3).
+
+**Cause.** Every `CONTRADICTION` question had the same text and did not name its pair. The decision model answers by question text, so every pair got the same answer, and that answer stayed below 0.6. The mock decider answers by question name, so the offline tests could not see this.
+
+**Fix.** The question text names its pair: "In pair x_<i>_<j>, …". A new catalog test checks that no two questions in one request share a text; it failed on the old code and passes now. A live rerun gave 21 distinct probabilities (0.060–0.341 and 0.192–0.477). Neither scenario reached 0.6 even so: the remaining failure is cause (2), live judgment, not a bug. Details: `reports/eval/rca-live-2026-11-06.md`.
+
+## 2026-11-06 (M10 RCA): eval rationale misread its scale; subset runs overwrote the full report
+
+- `EVAL_RATIONALE` was not told that scores run 0–2. It called 0.89 "high". The prompt now states the scale. This affected the explanation text only, never a score.
+- `pnpm eval:live --only …` wrote to the same dated file as the full run and overwrote it, twice. The full report was restored from git each time. Subset runs now write `scenarios-live-<timestamp>-subset.json`.

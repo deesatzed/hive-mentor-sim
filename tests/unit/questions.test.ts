@@ -33,6 +33,15 @@ const sample: Record<keyof typeof Q.QUESTION_BUILDERS, Record<string, Question>>
 };
 
 describe("question catalog", () => {
+  it("no two questions in one request share a text (the decision model answers by text; M10 RCA: CONTRADICTION)", () => {
+    for (const [name, qs] of Object.entries(sample)) {
+      const texts = Object.values(qs).map((q) => q.instructions);
+      expect(new Set(texts).size, name).toBe(texts.length);
+    }
+    // every indexed question names the state key it is about
+    for (const [key, q] of Object.entries(Q.CONTRADICTION([[1, 2], [3, 4]]))) expect(q.instructions).toContain(key);
+  });
+
   it("covers every builder, each producing well-formed questions within one request", () => {
     expect(Object.keys(sample).sort()).toEqual(Object.keys(Q.QUESTION_BUILDERS).sort());
     for (const [name, qs] of Object.entries(sample)) {
@@ -51,7 +60,7 @@ describe("question catalog", () => {
 
   it("uses the exact catalog wording for spot-checked questions", () => {
     expect(sample.CONTRADICTION.x_1_2.instructions).toBe(
-      "Do claims a and b recommend incompatible responses, so that following one means not following the other?",
+      "In pair x_1_2, do claims a and b recommend incompatible responses, so that following one means not following the other?",
     );
     expect(sample.WHISPER_RATING.conf_3.instructions).toBe(
       "How well supported is claim w_3 by the input, the evidence it cites, and sound reasoning?",

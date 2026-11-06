@@ -23,7 +23,7 @@ if (live) {
 async function main() {
   const results = await runAll({ live, updateGoldens, only: onlyArg?.split(",") });
   const agreement = live ? graderAgreement(results) : undefined;
-  const file = writeReport(results, live, hiveConfig().eval.current_milestone, agreement);
+  const file = writeReport(results, live, hiveConfig().eval.current_milestone, agreement, !!onlyArg);
   const ok = printTable(results, live);
   if (agreement) {
     const pct = (x: number | null) => (x === null ? "-" : `${(x * 100).toFixed(1)}%`);

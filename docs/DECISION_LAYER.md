@@ -125,7 +125,7 @@ Each entry is the **exact** text for `lib/hive/questions.ts`. `{…}` marks inte
 
 **CONTRADICTION** (purpose `contradiction`). Batched over claim pairs among shortlisted + moral-flagged whispers with c > 0.3 (`x_<i>_<j>`, ≤ 12 per request).
 - state: `{ "input": "<text>", "pairs": { "x_1_2": { "a": "<claim>", "b": "<claim>" }, ... } }`
-- `x_<i>_<j>`: noul. "Do claims a and b recommend incompatible responses, so that following one means not following the other?" true: "They contradict in what they recommend." false: "Compatible or complementary."
+- `x_<i>_<j>`: noul. "In pair x_<i>_<j>, do claims a and b recommend incompatible responses, so that following one means not following the other?" (M10: the text names its pair. Without it every pair had the same text and the decision model gave every pair the same answer.) true: "They contradict in what they recommend." false: "Compatible or complementary."
 - contra = p ≥ `T.CONTRA`. Fallback: treat as compatible (no Conclave) and mark unavailable.
 
 **CONCLAVE_FRAME** (purpose `conclave_frame`)

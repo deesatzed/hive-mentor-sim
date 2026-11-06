@@ -39,3 +39,5 @@ live-check3.db
 /smoke.db
 /test-m10-backups/
 /.next-build/
+/reports/eval/live-traces/
+/reports/eval/scenarios-mock-subset.json

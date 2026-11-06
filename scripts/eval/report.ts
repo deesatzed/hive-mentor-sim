@@ -35,10 +35,13 @@ export function printTable(results: GradeResult[], live: boolean): boolean {
   return passed === ran.length;
 }
 
-export function writeReport(results: GradeResult[], live: boolean, milestone: string, graderAgreement?: unknown): string {
+export function writeReport(results: GradeResult[], live: boolean, milestone: string, graderAgreement?: unknown, subset = false): string {
   const dir = path.join(process.cwd(), "reports", "eval");
   mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, live ? `scenarios-live-${new Date().toISOString().slice(0, 10)}.json` : "scenarios-mock.json");
+  // a subset run (--only) gets its own timestamped file, so it never overwrites a full run's report
+  const now = new Date().toISOString();
+  const liveName = subset ? `scenarios-live-${now.slice(0, 19).replace(/:/g, "")}-subset.json` : `scenarios-live-${now.slice(0, 10)}.json`;
+  const file = path.join(dir, live ? liveName : subset ? "scenarios-mock-subset.json" : "scenarios-mock.json");
   const body = {
     mode: live ? "live" : "mock",
     note: live ? "live providers; measured" : "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",

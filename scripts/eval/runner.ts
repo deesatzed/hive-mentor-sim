@@ -113,6 +113,26 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
 
     const invariants = checkInvariants(s, turns, names);
     const costUsd = opts.live ? ((await db.cycle.aggregate({ _sum: { costUsd: true } }))._sum.costUsd ?? 0) : undefined;
+    if (opts.live) {
+      // live evidence for root-cause analysis: every turn's trace, bus transcript, Conclave, and full ledger rows
+      // (each scenario's database is overwritten by the next one, so this file is the only record)
+      const dir = path.join(process.cwd(), "reports", "eval", "live-traces");
+      mkdirSync(dir, { recursive: true });
+      const evidence = [];
+      for (const [i, t] of turns.entries()) {
+        const rows = await db.ledgerEvent.findMany({ where: { cycleId: t.cycleId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
+        evidence.push({
+          user: s.turns[i]?.user,
+          status: t.status,
+          output: t.output,
+          trace: t.trace,
+          conclave: t.conclave,
+          transcript: t.transcript,
+          ledger: rows.map((e) => ({ kind: e.kind, model: e.model, costUsd: e.costUsd, latencyMs: e.latencyMs, payload: JSON.parse(e.payload) })),
+        });
+      }
+      writeFileSync(path.join(dir, `${s.id}.json`), JSON.stringify({ id: s.id, date: new Date().toISOString(), expect: s.expect, invariants, costUsd, turns: evidence }, null, 2) + "\n");
+    }
     const rubric = opts.live ? await liveGrade(s, turns, env, cfg) : heuristicGrade(s, turns);
     const rs = rubricScore(s, rubric);
     const outputs = turns.map((t) => t.output);
