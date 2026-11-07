@@ -15,6 +15,7 @@
     "corpus": "tsx --conditions=react-server scripts/corpus/cli.ts",
     "eval": "tsx --conditions=react-server scripts/eval/cli.ts",
     "eval:live": "tsx --conditions=react-server scripts/eval/cli.ts --live",
+    "eval:regrade": "tsx --conditions=react-server scripts/eval/regrade.ts",
     "eval:calibration": "tsx --conditions=react-server scripts/eval/calibration.ts",
     "smoke:live": "tsx --conditions=react-server scripts/smoke/liveCycle.ts",
     "check:prompts": "tsx --conditions=react-server scripts/check-prompts.ts",
