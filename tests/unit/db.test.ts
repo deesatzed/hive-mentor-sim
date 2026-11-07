@@ -10,7 +10,7 @@ afterAll(() => disconnectAll());
 describe("seed (test.db)", () => {
   it("loads every seed file and is idempotent (independent of which test file seeded first)", async () => {
     const first = await seed(db);
-    expect(first).toMatchObject({ situations: 49, mentors: 18, voices: 33, formationMembers: 33 });
+    expect(first).toMatchObject({ situations: 49, mentors: 19, voices: 33, formationMembers: 33 });
     const second = await seed(db);
     expect(second.selfModelCreated).toBe(false);
     expect(second.formationCreated).toBe(false);

@@ -20,7 +20,7 @@ SCOPE:
 - Excluded: crisis and safety machinery of any kind (owner decision), NOOSPHERE, pgvector, docker, attack packs, deployment, login, external connectors, living or recent mentors, mentor first-person voice.
 
 CONSTRAINTS:
-- Proof of concept. Mentors are attribute sources, never personas. Before-1956 and US public-domain rules hold. Verified text matches are not proof that an interpretation is correct; say so where shown.
+- Proof of concept. Mentors are attribute sources, never personas. The US public-domain rule holds; there is no date-of-death cutoff (owner decision 2026-11-07). Verified text matches are not proof that an interpretation is correct; say so where shown.
 - Decision models judge; LLMs write. Attention, Conclave math, permissions, and promotion are deterministic code. Phase order: the central manager model chooses among the phases code allows (owner decision 2026-11-04; `orchestration.mode` in config/hive.yaml switches it to code order).
 - Do not weaken quote verification, permissions, invariants, or tests to pass checks. Where a source or model is unavailable, keep explicit no-evidence or unavailable states.
 - Label every mock-derived number as mock. Report measured numbers only; no cost or time estimates.

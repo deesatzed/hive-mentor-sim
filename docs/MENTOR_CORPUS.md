@@ -2,10 +2,10 @@
 
 ## Eligibility rules (hard)
 
-1. **Died before 1956** (at least 70 years ago). No living or recently deceased people, ever. A figure who meets this rule still contributes only works that are public domain in the US (rule 3).
+1. **No date-of-death cutoff** (owner decision 2026-11-07; the earlier "died before 1956" rule from the original handoff is removed, and mentors may be living). Every mentor still contributes only works that are public domain in the US (rule 3).
 2. **Primary writings by the person**, or a direct translation of them. Biographies, dictated accounts written by others, and "sayings of" collections assembled long after are not allowed. *Exception:* classical works traditionally attributed to the figure (the *Analects*, the *Tao Te Ching*) are allowed with an "attributed" tag shown in the UI.
 3. **Public domain in the US**, with the source's copyright flag confirming it. Project Gutenberg via the Gutendex API (`copyright: false`) or Wikisource.
-4. **Enough text:** ≥ 30,000 words of authorial text after filtering.
+4. **Enough text:** ≥ 10,000 words of authorial text after filtering (owner lowered this from 30,000 on 2026-11-06; `config/hive.yaml: corpus.activation.min_authorial_words`).
 5. **Activation threshold:** a mentor becomes `active=true` only after a complete build with:
    - ≥ 13 dilemmas answered with verified evidence (owner lowered this from 15 on 2026-11-04; `config/hive.yaml: corpus.activation`);
    - ≥ 8 mentor principles, each with ≥ 2 verified receipts;
@@ -13,7 +13,7 @@
 
 ## Roster
 
-The seed roster is `seed/mentor_roster.json`: 18 candidates chosen for breadth across eras, roles, regions, and gender, within the limits above. The written record is skewed toward a narrow slice of humanity, and the roster says so in the UI ("About this roster"). Candidates that fail availability or eligibility checks are marked inactive with a reason, never silently dropped. **Do not add figures that aren't in the roster.** An operator-requested mentor (future feature) must pass the same rules.
+The seed roster is `seed/mentor_roster.json`: 18 candidates chosen for breadth across eras, roles, regions, and gender, within the limits above. The written record is skewed toward a narrow slice of humanity, and the roster says so in the UI ("About this roster"). Candidates that fail availability or eligibility checks are marked inactive with a reason, never silently dropped. Only the owner adds figures to the roster (2026-11-06: Winston Churchill, replacing William Osler in SENTIA and HERITAGE). Every added mentor must pass the same rules.
 
 ## Pipeline (`pnpm corpus build --mentor <slug|all>`)
 

@@ -128,7 +128,7 @@ describe("pipeline and retrieval on the test database (mock providers)", () => {
     expect(r.embed).toBeUndefined(); // stopped after authorial
     const m = await db.mentor.findUniqueOrThrow({ where: { id: "laozi" } });
     expect(m.active).toBe(false);
-    expect(m.inactiveReason).toMatch(/insufficient authorial text: \d+ words < 30000/);
+    expect(m.inactiveReason).toMatch(/insufficient authorial text: \d+ words < 10000/);
     const work = await db.corpusWork.findFirstOrThrow({ where: { mentorId: "laozi" } });
     expect(work.license).toMatch(/Project Gutenberg #216/);
     expect(work.attributed).toBe(true);

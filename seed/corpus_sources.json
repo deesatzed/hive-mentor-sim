@@ -167,6 +167,33 @@
       "gutenbergId": 3420,
       "gutenbergTitle": "A Vindication of the Rights of Woman With Strictures on Political and Moral Subjects",
       "rights": "Public domain in the USA."
+    },
+    {
+      "mentorId": "winston-churchill",
+      "rosterTitle": "Liberalism and the Social Problem",
+      "source": "gutenberg",
+      "gutenbergId": 18419,
+      "gutenbergTitle": "Liberalism and the Social Problem",
+      "rights": "Public domain in the USA.",
+      "note": "owner decision 2026-11-06; rights read from the Gutenberg book page 2026-11-06"
+    },
+    {
+      "mentorId": "winston-churchill",
+      "rosterTitle": "The World Crisis, Volume 1",
+      "source": "gutenberg",
+      "gutenbergId": 59794,
+      "gutenbergTitle": "The World Crisis, Volume 1 (of 6)",
+      "rights": "Public domain in the USA.",
+      "note": "owner decision 2026-11-06; rights read from the Gutenberg book page 2026-11-06"
+    },
+    {
+      "mentorId": "winston-churchill",
+      "rosterTitle": "The River War",
+      "source": "gutenberg",
+      "gutenbergId": 4943,
+      "gutenbergTitle": "The River War: An Account of the Reconquest of the Sudan",
+      "rights": "Public domain in the USA.",
+      "note": "owner decision 2026-11-06; rights read from the Gutenberg book page 2026-11-06"
     }
   ],
   "unavailable": [
@@ -174,7 +201,8 @@
       "mentorId": "william-osler",
       "rosterTitle": "Aequanimitas, with other Addresses to Medical Students, Nurses and Practitioners of Medicine",
       "reason": "not on Project Gutenberg (catalog checked 2026-11-04)",
-      "ownerDecisionNeeded": "Other Osler works on Gutenberg, all marked public domain in the USA: #73116 A way of life (address), #36926 Man's Redemption of Man (lay sermon), #48994 The Old Humanities and the New Science. Not used unless the owner approves a substitution."
+      "ownerDecisionNeeded": "Other Osler works on Gutenberg, all marked public domain in the USA: #73116 A way of life (address), #36926 Man's Redemption of Man (lay sermon), #48994 The Old Humanities and the New Science. Not used unless the owner approves a substitution.",
+      "ownerDecision": "2026-11-06: not substituted; Winston Churchill replaces Osler in the Voice map. Osler stays in the roster, inactive."
     }
   ]
 }

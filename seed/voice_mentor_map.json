@@ -1,5 +1,5 @@
 {
-  "_note": "Starting proposal only; the operator approves or edits it at /formation. Rationale is the proposer's reading of each mentor's listed works, to be confirmed by the corpus build (inactive mentors drop out automatically). Every roster mentor appears at least once; each Voice has 1-3 mentors.",
+  "_note": "Starting proposal only; the operator approves or edits it at /formation. Rationale is the proposer's reading of each mentor's listed works, to be confirmed by the corpus build (inactive mentors drop out automatically). Every roster mentor appears at least once; each Voice has 1-3 mentors. William Osler is unmapped and inactive by owner decision (2026-11-06).",
   "assignments": [
     {
       "voice": "MIRROR",
@@ -46,9 +46,9 @@
       "voice": "SENTIA",
       "mentors": [
         "seneca",
-        "william-osler"
+        "winston-churchill"
       ],
-      "rationale": "Seneca's letters on anger and grief; Osler's 'Aequanimitas' on composure under strain."
+      "rationale": "Seneca's letters on anger and grief; Churchill's speeches and histories on composure and resolve under strain (owner replaced Osler, 2026-11-06)."
     },
     {
       "voice": "ALTER",
@@ -103,10 +103,10 @@
       "voice": "HERITAGE",
       "mentors": [
         "confucius",
-        "william-osler",
+        "winston-churchill",
         "booker-t-washington"
       ],
-      "rationale": "Teachers and institution builders concerned with passing knowledge on."
+      "rationale": "Teachers, institution builders and statesmen concerned with passing knowledge and duty on (owner replaced Osler with Churchill, 2026-11-06)."
     },
     {
       "voice": "ARROW",

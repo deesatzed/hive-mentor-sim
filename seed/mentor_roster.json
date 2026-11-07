@@ -1,5 +1,5 @@
 {
-  "_note": "Candidates only. Eligibility (died before 1956; works public domain in the US per source) and availability are verified at ingestion (docs/MENTOR_CORPUS.md). Titles are search hints, not guaranteed exact catalog titles.",
+  "_note": "Candidates only. Eligibility (works public domain in the US per source; no date-of-death cutoff, owner decision 2026-11-07) and availability are verified at ingestion (docs/MENTOR_CORPUS.md). Titles are search hints, not guaranteed exact catalog titles.",
   "mentors": [
     {
       "id": "marcus-aurelius",
@@ -383,6 +383,41 @@
         {
           "title": "A Vindication of the Rights of Woman",
           "author": "Mary Wollstonecraft",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        }
+      ]
+    },
+    {
+      "id": "winston-churchill",
+      "name": "Winston Churchill",
+      "years": "1874–1965",
+      "diedYear": 1965,
+      "roles": [
+        "statesman",
+        "soldier",
+        "writer"
+      ],
+      "bio": "British statesman and war correspondent whose speeches and histories weigh duty, courage, and public responsibility under pressure. Added by the owner on 2026-11-06.",
+      "works": [
+        {
+          "title": "Liberalism and the Social Problem",
+          "author": "Winston Churchill",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        },
+        {
+          "title": "The World Crisis, Volume 1",
+          "author": "Winston Churchill",
+          "translator": null,
+          "source": "gutenberg",
+          "attributed": false
+        },
+        {
+          "title": "The River War",
+          "author": "Winston Churchill",
           "translator": null,
           "source": "gutenberg",
           "attributed": false
