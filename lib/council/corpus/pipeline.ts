@@ -395,7 +395,13 @@ export class CorpusBuilder {
     const dilemmas = await this.db.situation.findMany({ where: { setKey: "dilemma" }, orderBy: { id: "asc" } });
     const qs: { key: string; text: string; options?: { id: string; text: string }[] }[] = dilemmas.map((d) => ({ key: d.id, text: d.text, options: JSON.parse(d.options) }));
     if (this.d.bank) {
-      const bank = readJson<{ questions: { id: string; text: string }[] }>("seed/question_bank_subset.json").questions;
+      // kept on this machine only (owner decision 2026-11-06) until the source publication is confirmed
+      let bank: { id: string; text: string }[];
+      try {
+        bank = readJson<{ questions: { id: string; text: string }[] }>("local/question_bank_subset.json").questions;
+      } catch {
+        throw new Error("question bank requested but local/question_bank_subset.json is missing (it is kept out of the public repo; see PROGRESS.md)");
+      }
       qs.push(...bank.map((b) => ({ key: b.id, text: b.text })));
     }
     const res = await mapLimit(qs, this.conc, (q) => this.answer(mentorId, q, { store: true }));

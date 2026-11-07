@@ -112,4 +112,4 @@ Sources are listed in `seed/corpus_sources.json`. Each one was confirmed public 
 
 - The Hive design follows `reference/sent2.md`. The mentor method follows the *A Better Me: Council* handoff.
 - Mentor texts come from Project Gutenberg and Wikisource, all public domain in the USA.
-- **Question bank:** `seed/question_bank_subset.json` is a subset of `Thousand_Questions.txt` from deesatzed/Genesis_Prime (`apps/option1_mono_agent/Prior_QA_Parts`). According to the project owner, the question list comes from an academic open-source publication. The formal citation is still an open owner item: the file's `citation` field reads `TODO(owner)`.
+- **Question bank:** not in this repository. Its source publication and licence are unconfirmed, so by owner decision (2026-11-06) the file is kept only on the owner's machine at `local/question_bank_subset.json` (git-ignored). The corpus build runs without it unless the bank step is requested.

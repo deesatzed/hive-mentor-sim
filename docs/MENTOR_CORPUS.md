@@ -57,7 +57,7 @@ The original plan, kept for reference:
 - With a fixed seed (`hash(slug)`), mark 10% of POSITION-tagged chunks, capped at 40, as `heldOut=true`. **Held-out chunks are never returned by `retrieval.search`.** They exist only for the fidelity eval.
 
 ### 7. fingerprint
-For each dilemma in `seed/dilemmas.json` and each question in `seed/question_bank_subset.json`:
+For each dilemma in `seed/dilemmas.json` and each question in `local/question_bank_subset.json` (owner machine only, not in the public repo):
 - Retrieve the top 8 non-held-out chunks for the mentor (query = question text + options).
 - LLM `MENTOR_ANSWER`, then validation: verify quotes → `EVIDENCE_SUPPORTS` → store `MentorAnswer`.
 - Then LLM `MENTOR_PRINCIPLES` → verified `MentorPrinciple` rows.

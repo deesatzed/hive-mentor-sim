@@ -41,3 +41,6 @@ live-check3.db
 /.next-build/
 /reports/eval/live-traces/
 /reports/eval/scenarios-mock-subset.json
+
+# owner decision 2026-11-06: question bank kept on this machine until its source is confirmed
+/local/
