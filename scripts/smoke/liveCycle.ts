@@ -1,5 +1,5 @@
 /**
- * pnpm smoke:live [--db file:./smoke.db] [--input "..."]
+ * pnpm smoke:live [--db file:./smoke.db] [--input "..."] [--mentor <id>]  (--mentor: the dominant mentor who makes the final call; none = vote only)
  * One full chat heartbeat with live providers (.env). Prints and records the measured cost and
  * latency per phase (reports/smoke-live.md, reports/smoke-live.json). Spend is limited by the
  * owner's per-key OpenRouter limit; nothing here estimates cost.
@@ -44,7 +44,7 @@ async function main() {
   const hive = createHive({ env, db, cfg });
   const input = arg("--input") ?? DEFAULT_INPUT;
   console.log(`smoke:live — LIVE providers, db ${url}`);
-  const sessionId = await hive.createSession("chat", "smoke:live");
+  const sessionId = await hive.createSession("chat", "smoke:live", arg("--mentor") ?? null);
   const t0 = Date.now();
   const r = await hive.runCycle({ sessionId, input });
   const wallMs = Date.now() - t0;
