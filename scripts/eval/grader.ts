@@ -155,6 +155,16 @@ export function checkInvariants(s: Scenario, turns: TurnRecord[], mentorNames: s
       case "moral_flag_in_shortlist":
         push(name, tr.attention.bypass.length > 0 && tr.whispers.some((w) => w.moralFlag && tr.attention.shortlist.includes(w.messageId)));
         break;
+      case "final_call_by": {
+        const fc = tr.finalCall;
+        push(name, !!fc && fc.mentorId === String(expected) && fc.choice !== null && t.conclave?.winner === fc.choice, fc ? `${fc.mentorName}: ${fc.choice ?? fc.skipped ?? "unavailable"}${fc.overruledVote ? " (overruled the vote)" : ""}` : "no final call");
+        break;
+      }
+      case "worst_drift_voice": {
+        const drift = Object.entries(tr.coherence?.perVoiceDrift ?? {}).sort((a, b) => b[1] - a[1]);
+        push(name, drift.length > 0 && drift[0][0] === String(expected), drift.length ? `worst drift ${drift[0][0]} D=${drift[0][1].toFixed(2)}` : "no per-Voice drift");
+        break;
+      }
       case "c_intra_below":
         push(name, tr.coherence !== undefined && tr.coherence.cIntra !== null && tr.coherence.cIntra < Number(expected), `C_intra ${tr.coherence?.cIntra ?? "null"}`);
         break;

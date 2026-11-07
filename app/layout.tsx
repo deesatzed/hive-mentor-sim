@@ -16,6 +16,7 @@ const NAV: [string, string][] = [
   ["/predictions", "Predictions"],
   ["/interoception", "Interoception"],
   ["/ledger", "Ledger"],
+  ["/grade", "Grade"],
   ["/settings", "Settings"],
 ];
 

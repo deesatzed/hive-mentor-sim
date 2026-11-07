@@ -33,6 +33,10 @@ export const InvariantsSchema = z
     rejected_evidence_min: z.number(),
     quote_rejected_ledgered: z.boolean(),
     no_mentor_first_person: z.boolean(),
+    /** the Voice with the largest self-drift (C_intra per Voice) is this one (live coherence check, decision 6) */
+    worst_drift_voice: z.string(),
+    /** the dominant mentor made the final call and the Conclave winner is its choice (decision 5) */
+    final_call_by: z.string(),
   })
   .partial()
   .strict();
@@ -53,8 +57,40 @@ export const ScenarioSchema = z
       witness_rubric: z.record(z.string(), z.object({ weight: z.number().default(1), guidance: z.string().default("") })).default({}),
       pass_threshold: z.number().default(0.7),
     }),
+    /**
+     * Live-mode overrides (owner decision 2026-11-06, decision 6). Fields given here replace the scenario's
+     * for `pnpm eval:live`: adversarial turns, live invariants, TEST FAULTS planted into the real cycle
+     * (lib/hive/faults.ts; labeled, on the removal list), and the dominant mentor for the session.
+     */
+    live: z
+      .object({
+        turns: z.array(z.object({ user: z.string() })).min(1).optional(),
+        invariants: InvariantsSchema.optional(),
+        pass_threshold: z.number().optional(),
+        faults: z
+          .object({
+            unfaithfulSentence: z.string().optional(),
+            whisperClaims: z.array(z.object({ voice: z.string(), when: z.string(), claim: z.string() })).optional(),
+          })
+          .strict()
+          .optional(),
+        dominant_mentor: z.string().optional(),
+        note: z.string().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
+
+/** The scenario as it runs in live mode: `live` fields replace the base ones. */
+export function liveView(s: Scenario): Scenario {
+  if (!s.live) return s;
+  return {
+    ...s,
+    turns: s.live.turns ?? s.turns,
+    expect: { ...s.expect, invariants: s.live.invariants ?? s.expect.invariants, pass_threshold: s.live.pass_threshold ?? s.expect.pass_threshold },
+  };
+}
 export type Scenario = z.infer<typeof ScenarioSchema>;
 
 export interface InvariantResult {

@@ -144,6 +144,8 @@ export const CycleTraceSchema = z.object({
     .default([]),
   /** M9: signals emitted in P7 (tension/serves per principle, dissent per Voice) */
   signals: z.array(z.object({ type: z.string(), subjectType: z.string(), subjectId: z.string() })).default([]),
+  /** TEST FAULTS planted by live eval (lib/hive/faults.ts); empty in every real cycle */
+  plantedFaults: z.array(z.string()).default([]),
   error: z.object({ phase: z.string(), name: z.string(), message: z.string() }).optional(),
 });
 export type CycleTrace = z.infer<typeof CycleTraceSchema>;
@@ -173,5 +175,6 @@ export function emptyTrace(mode: CycleTrace["mode"], mock: boolean, orchestratio
     honestyClauseFired: false,
     advisors: [],
     signals: [],
+    plantedFaults: [],
   };
 }

@@ -14,3 +14,12 @@ expect:
   witness_rubric:
     coherence: { weight: 1 }
   pass_threshold: 0.6
+live:
+  note: "Decision 5: a dominant mentor makes the final call. Seneca is a test choice for a forgiveness question (owner may pick another)."
+  dominant_mentor: seneca
+  invariants:
+    conclave_triggered: true
+    options_have_ids: true
+    ballots_reference_ids: true
+    anti_echo_checked: true
+    final_call_by: seneca

@@ -185,6 +185,7 @@ export const MOCK_RULES: Record<string, MockRule> = {
   no_tribal: (_t, q) => mockScore(q, 1),
   usable: (_t, q) => mockScore(q, 1),
   policy_vs_truth: (_t, q) => mockScore(q, 1),
+  states_context: (_t, q) => mockScore(q, 1),
   // PAIR_CONSISTENT (mock): a changed ruling is unexplained when the changed fact is only a label or wording
   justified: (_t, _q, _n, state) => {
     const s = obj(state);

@@ -106,3 +106,24 @@ th[scope="row"] { text-align: left; font-weight: 600; }
 .site-nav { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; margin-left: auto; }
 .trace-nav { font-size: 0.85rem; margin: 4px 0 8px; }
 #content:focus { outline: none; }
+
+/* /grade (decision 7) */
+.grade-progress { height: 10px; border-radius: 6px; background: color-mix(in srgb, var(--foreground) 12%, transparent); overflow: hidden; margin: 12px 0 6px; }
+.grade-progress > div { height: 100%; background: #3b82f6; transition: width 300ms ease; }
+.grade-score { margin: 0 0 16px; }
+.grade-card { border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent); border-radius: 10px; padding: 16px; }
+.grade-convo { margin: 12px 0; padding: 12px; border-radius: 8px; background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+.grade-q { border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent); border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+.grade-q.active { border-color: #3b82f6; }
+.grade-q legend { font-weight: 600; padding: 0 4px; }
+.grade-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.grade-buttons button { flex: 1 1 80px; min-height: 44px; font: inherit; font-size: 1.05rem; border-radius: 8px; cursor: pointer; border: 1px solid color-mix(in srgb, var(--foreground) 30%, transparent); background: transparent; color: inherit; }
+.grade-buttons button.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.grade-buttons button:disabled { cursor: default; }
+.grade-reveal { margin: 8px 0 0; font-weight: 600; }
+.grade-reveal.match { color: #16a34a; }
+.grade-reveal.close { color: #ca8a04; }
+.grade-reveal.miss { color: #dc2626; }
+.grade-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.grade-nav button:not(.link) { min-height: 44px; padding: 6px 18px; font: inherit; border-radius: 8px; cursor: pointer; }
+kbd { font-family: ui-monospace, monospace; font-size: 0.85em; padding: 1px 5px; border: 1px solid color-mix(in srgb, var(--foreground) 30%, transparent); border-radius: 4px; }

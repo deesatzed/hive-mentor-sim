@@ -109,7 +109,7 @@ describe("calibration runs (mock)", () => {
     for (const v of res.variants) {
       expect(v.options.map((o) => o.id)).toContain(v.ruling);
       expect(v.grade?.hard).toHaveLength(6);
-      expect(v.grade?.quality).toHaveLength(7);
+      expect(v.grade?.quality).toHaveLength(8);
       if (v.pairedWith) expect(v.pair?.baseCycleId).toBe(res.variants[0].cycleId);
       else expect(v.pair).toBeNull();
       expect(v.pairStale).toBe(false);

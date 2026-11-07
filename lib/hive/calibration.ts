@@ -92,8 +92,8 @@ export async function gradePair(
   const finding = consistent
     ? null
     : flipped
-      ? "Changed its choice, and the grader found the change not explained by the changed fact."
-      : "Kept its choice, and the grader found the sameness not consistent with the changed fact.";
+      ? "Changed its choice without naming the fact or context that made the difference (or contradicted its base reasoning)."
+      : "Kept its choice, but its reasoning contradicts the base's.";
   return { p, consistent, flipped, finding, costUsd: r.costUsd };
 }
 

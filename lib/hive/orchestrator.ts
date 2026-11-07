@@ -46,6 +46,7 @@ import {
 import { HiveState } from "./state";
 import { emitAndSurface, type EmittedSignal } from "./signalStore";
 import { sessionDominant } from "./dominant";
+import { assertFaultsAllowed, FAULT_LABEL, plantedClaim, plantSentence, type EvalFaults } from "./faults";
 import { emptyTrace, type CycleTrace, type TraceWhisper } from "./trace";
 import { activeAdvisors, buildRollout, coalitionEligible, decideEndorsement, stakeholderSummary, stripSelfEndorsement, type AdvisorPhase, type Party } from "./endorsement";
 import { coreVoices, type Voice } from "./voices";
@@ -87,6 +88,8 @@ export interface HiveDeps {
   voices: Voice[];
   policy: PolicyEngine;
   mentorNames: string[];
+  /** TEST FAULTS, live eval only (lib/hive/faults.ts) */
+  faults?: EvalFaults;
 }
 
 const HONESTY_NOTE =
@@ -109,6 +112,7 @@ export class Hive {
   private readonly byId: Map<string, Voice>;
 
   constructor(private readonly d: HiveDeps) {
+    assertFaultsAllowed(d.faults);
     this.bus = new SynapseBus({ policy: d.policy, knownEntities: d.voices.map((v) => v.id), db: d.db, ledger: d.ledger });
     for (const v of d.voices) this.creds.set(v.id, this.bus.register(v.id));
     this.state = new HiveState(d.db);
@@ -421,6 +425,13 @@ export class Hive {
       const work: (WhisperWork & { model: string })[] = [];
       const passes: string[] = [];
       for (const dr of drafts) {
+        const planted = plantedClaim(this.d.faults, dr.voice.name, req.input);
+        if (planted !== null) {
+          trace.plantedFaults.push(`${FAULT_LABEL}: ${dr.voice.name}'s whisper claim replaced with "${planted}"`);
+          await this.d.ledger.record({ kind: "eval.fault_planted", cycleId, subjectType: "voice", subjectId: dr.voice.name, payload: { fault: "whisper_claim", was: dr.claim.slice(0, 200), planted } });
+          dr.claim = planted;
+          if (dr.data) dr.data = { ...dr.data, claim: planted, evidence: [] };
+        }
         if (dr.claim.toUpperCase() === "PASS" || !dr.claim) {
           passes.push(dr.voice.name);
           continue;
@@ -863,7 +874,15 @@ export class Hive {
       const winner = conclave?.outcome.winner ? conclave.options.find((o) => o.option_id === conclave!.outcome.winner)?.claim : undefined;
       // ruling/calibration: the reply explains the Conclave's choice (ARCHITECTURE.md "Ruling mode"; M8 live finding:
       // without it the reply could refuse the choice the Conclave had made)
-      const ruling = mode !== "chat" && winner ? { choice: winner, decision: conclave!.outcome.decision, dissent: conclave!.outcome.dissent.map((d) => d.voice) } : undefined;
+      const ruling =
+        mode !== "chat" && winner
+          ? {
+              choice: winner,
+              decision: conclave!.outcome.decision,
+              dissent: conclave!.outcome.dissent.map((d) => d.voice),
+              ...(trace.finalCall?.choice ? { finalCallBy: trace.finalCall.mentorName, finalCallReason: trace.finalCall.reason } : {}),
+            }
+          : undefined;
       // compose-phase advisors (CLARION → LEXICON, ...): an endorsed advisory becomes an approved claim the reply may use
       const composeAdvice = (await runAdvisors("compose", { awareness: trace.awareness.text, coalition: coalition.map((w) => w.claim), ruling: ruling?.choice ?? null })).filter((a) => a.endorsedBy);
       for (const a of composeAdvice) trace.advisors[a.index].enteredAs = "compose";
@@ -890,8 +909,15 @@ export class Hive {
         honestyNote,
         shared,
       };
-      const gen = async (extra: Record<string, unknown>) =>
-        (await providers.llm.generate("LEXICON_COMPOSE", { ...baseVars, ...extra }, Schemas.LEXICON_COMPOSE, { ...promptSettings("LEXICON_COMPOSE"), purpose: "lexicon_compose", cycleId })).data;
+      const unfaithful = this.d.faults?.unfaithfulSentence;
+      const gen = async (extra: Record<string, unknown>) => {
+        const data = (await providers.llm.generate("LEXICON_COMPOSE", { ...baseVars, ...extra }, Schemas.LEXICON_COMPOSE, { ...promptSettings("LEXICON_COMPOSE"), purpose: "lexicon_compose", cycleId })).data;
+        if (!unfaithful) return data;
+        // TEST FAULT (live eval only): plant an unfaithful sentence in every draft, just before the faithfulness check
+        trace.plantedFaults.push(`${FAULT_LABEL}: inserted "${unfaithful}" into the composed draft`);
+        await this.d.ledger.record({ kind: "eval.fault_planted", cycleId, payload: { fault: "unfaithful_sentence", planted: unfaithful } });
+        return { ...data, text: plantSentence(data.text, unfaithful) };
+      };
       let draft = await gen({});
       trace.compose.draft = draft.text;
       let check = await checkFaithfulness(providers.decider, { cycleId, approved, guidance: arbiterGuidance, text: draft.text });

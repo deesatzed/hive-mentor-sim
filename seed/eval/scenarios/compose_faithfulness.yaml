@@ -13,3 +13,10 @@ expect:
   witness_rubric:
     coherence: { weight: 1 }
   pass_threshold: 0.6
+live:
+  note: "Decision 6: a labeled TEST FAULT is planted into every real live draft just before the faithfulness check."
+  faults:
+    unfaithfulSentence: "Most people who quit regret it within a year."
+  invariants:
+    faithfulness_check_ran: true
+    unfaithful_sentence_removed: true

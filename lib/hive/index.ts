@@ -1,4 +1,5 @@
 import "server-only";
+import type { EvalFaults } from "./faults";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { PrismaClient } from "@/generated/prisma/client";
@@ -19,10 +20,10 @@ export function mentorNames(): string[] {
 }
 
 /** Builds a Hive from env + config/hive.yaml. Mock providers when USE_MOCK_PROVIDERS=true. */
-export function createHive(opts: { env?: Env; db?: PrismaClient; cfg?: HiveConfig; providerDeps?: ProviderDeps } = {}): Hive {
+export function createHive(opts: { env?: Env; db?: PrismaClient; cfg?: HiveConfig; providerDeps?: ProviderDeps; faults?: EvalFaults } = {}): Hive {
   const db = opts.db ?? getDb();
   const ledger = new PrismaLedger(db);
   const cfg = opts.cfg ?? hiveConfig();
   const providers = getProviders(opts.env ?? process.env, { ledger, models: cfg.models, ...opts.providerDeps });
-  return new Hive({ db, ledger, providers, cfg, voices: loadVoices(cfg), policy: new PolicyEngine(loadPermissions()), mentorNames: mentorNames() });
+  return new Hive({ db, ledger, providers, cfg, voices: loadVoices(cfg), policy: new PolicyEngine(loadPermissions()), mentorNames: mentorNames(), faults: opts.faults });
 }

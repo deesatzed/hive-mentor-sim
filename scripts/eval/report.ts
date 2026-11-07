@@ -35,17 +35,19 @@ export function printTable(results: GradeResult[], live: boolean): boolean {
   return passed === ran.length;
 }
 
-export function writeReport(results: GradeResult[], live: boolean, milestone: string, graderAgreement?: unknown, subset = false): string {
+export function writeReport(results: GradeResult[], live: boolean, milestone: string, graderAgreement?: unknown, subset = false, extra: { tag?: string; models?: unknown } = {}): string {
   const dir = path.join(process.cwd(), "reports", "eval");
   mkdirSync(dir, { recursive: true });
   // a subset run (--only) gets its own timestamped file, so it never overwrites a full run's report
   const now = new Date().toISOString();
-  const liveName = subset ? `scenarios-live-${now.slice(0, 19).replace(/:/g, "")}-subset.json` : `scenarios-live-${now.slice(0, 10)}.json`;
+  const tag = extra.tag ? `-${extra.tag.replace(/[^\w.-]/g, "_")}` : "";
+  const liveName = subset ? `scenarios-live-${now.slice(0, 19).replace(/:/g, "")}${tag}-subset.json` : `scenarios-live-${now.slice(0, 10)}${tag}.json`;
   const file = path.join(dir, live ? liveName : subset ? "scenarios-mock-subset.json" : "scenarios-mock.json");
   const body = {
     mode: live ? "live" : "mock",
     note: live ? "live providers; measured" : "mock providers: scripted outputs; shows the pipeline and invariants work, not model behavior",
     milestone,
+    ...(extra.models ? { models: extra.models } : {}),
     summary: { run: results.filter((r) => !r.skipped).length, passed: results.filter((r) => r.passed).length, skipped: results.filter((r) => r.skipped).length },
     ...(graderAgreement ? { graderAgreement } : {}),
     results,

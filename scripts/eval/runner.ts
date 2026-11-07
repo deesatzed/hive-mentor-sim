@@ -4,7 +4,7 @@
  * scenario's mock_variant, heuristic grader, golden comparison. Live mode: real providers, rubric
  * scores from the decision layer, rationale from the grader model; goldens are not compared.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import YAML from "yaml";
 import { disconnectAll, getDb } from "@/lib/council/db";
@@ -14,8 +14,9 @@ import { createHive, mentorNames } from "@/lib/hive";
 import { hiveConfig, type HiveConfig } from "@/lib/hive/config";
 import { score } from "@/lib/hive/questions";
 import { Schemas } from "@/lib/hive/prompts";
+import { RESET_PHRASE, resetHiveState } from "@/lib/hive/admin";
 import { checkInvariants, heuristicGrade, rubricScore, type TurnRecord } from "./grader";
-import { ScenarioSchema, type GradeResult, type RubricResult, type Scenario } from "./types";
+import { liveView, ScenarioSchema, type GradeResult, type RubricResult, type Scenario } from "./types";
 
 const TEMPLATE = "file:./eval-template.db";
 const RUN = "file:./eval-run.db";
@@ -63,11 +64,14 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
   const env: Env = { ...(opts.env ?? process.env), USE_MOCK_PROVIDERS: opts.live ? "false" : "true" };
   const goldDir = path.join(process.cwd(), cfg.eval.goldens_dir);
   const names = mentorNames();
-  await ensureDb(TEMPLATE, { fresh: true });
+  if (opts.live) await liveTemplate(cfg);
+  else await ensureDb(TEMPLATE, { fresh: true });
   const results: GradeResult[] = [];
 
-  for (const s of loadScenarios(cfg)) {
-    if (opts.only && !opts.only.includes(s.id)) continue;
+  for (const raw of loadScenarios(cfg)) {
+    if (opts.only && !opts.only.includes(raw.id)) continue;
+    // live mode runs the scenario's live overrides (adversarial turns, live invariants, planted TEST FAULTS)
+    const s = opts.live ? liveView(raw) : raw;
     if (mNum(s.milestone) > mNum(cfg.eval.current_milestone)) continue; // later milestone: not part of this run
     const base = { id: s.id, category: s.category, milestone: s.milestone, invariants: [], rubric: null, rubricScore: null, goldenMatch: null, outputs: [], status: [] };
     const unmet = Object.entries(s.requires_config ?? {}).find(([k, v]) => (k === "honesty_clause" ? cfg.honesty_clause.enabled : cfg.edict_module.enabled) !== v);
@@ -83,8 +87,8 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
     await cloneDb(TEMPLATE, RUN);
     const db = getDb(RUN);
     if (s.fixture_formation) await FORMATION_FIXTURES[s.fixture_formation](db);
-    const hive = createHive({ env, db, cfg, providerDeps: { mockContext: { variant: s.mock_variant } } });
-    const sessionId = await hive.createSession("chat", `eval:${s.id}`);
+    const hive = createHive({ env, db, cfg, providerDeps: { mockContext: { variant: s.mock_variant } }, faults: opts.live ? s.live?.faults : undefined });
+    const sessionId = await hive.createSession("chat", `eval:${s.id}`, opts.live ? (s.live?.dominant_mentor ?? null) : null);
     const turns: TurnRecord[] = [];
     for (const turn of s.turns) {
       const r = await hive.runCycle({ sessionId, input: turn.user });
@@ -161,6 +165,25 @@ export async function runAll(opts: RunOpts): Promise<GradeResult[]> {
   return results;
 }
 
+/**
+ * Live template: a copy of the operator's database (real corpus, active mentors, approved formation and
+ * constitution) with the Hive's experience cleared, so every live scenario starts from the same real Hive
+ * without memories. The operator's database is only read (VACUUM INTO). Source: EVAL_LIVE_SOURCE, default dev.db.
+ */
+async function liveTemplate(cfg: HiveConfig) {
+  const source = process.env.EVAL_LIVE_SOURCE ?? "file:./dev.db";
+  const file = path.join(process.cwd(), "eval-template.db");
+  await disconnectAll();
+  for (const f of [file, `${file}-journal`]) if (existsSync(f)) rmSync(f);
+  await getDb(source).$executeRawUnsafe(`VACUUM INTO '${file.replace(/'/g, "''")}'`);
+  await disconnectAll();
+  await ensureDb(TEMPLATE); // migrations only; the copy is not re-seeded
+  const backupDir = path.join(process.cwd(), "reports", "eval", "live-traces", "template-backup");
+  await resetHiveState(getDb(TEMPLATE), { confirm: RESET_PHRASE, dbUrl: TEMPLATE, cfg, backupDir });
+  rmSync(backupDir, { recursive: true, force: true }); // the backup is of the throwaway copy, not of dev.db
+  await disconnectAll();
+}
+
 /** The heuristic grader applied to live outputs: the reference the live grader is calibrated against. */
 function heuristicOn(s: Scenario, turns: TurnRecord[]) {
   const h = heuristicGrade(s, turns);
@@ -182,7 +205,7 @@ export function graderAgreement(results: GradeResult[]) {
   for (const r of results) {
     if (r.skipped || !r.rubric || !r.heuristic) continue;
     scen++;
-    const s = loadScenarios().find((x) => x.id === r.id)!;
+    const s = liveView(loadScenarios().find((x) => x.id === r.id)!);
     if (((r.rubricScore ?? 0) >= s.expect.pass_threshold) === r.heuristic.pass) scenAgree++;
     for (const [d, live] of Object.entries(r.rubric.scores)) {
       const h = r.heuristic.scores[d];

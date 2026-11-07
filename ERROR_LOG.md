@@ -81,3 +81,17 @@
 
 - `EVAL_RATIONALE` was not told that scores run 0–2. It called 0.89 "high". The prompt now states the scale. This affected the explanation text only, never a score.
 - `pnpm eval:live --only …` wrote to the same dated file as the full run and overwrote it, twice. The full report was restored from git each time. Subset runs now write `scenarios-live-<timestamp>-subset.json`.
+
+## 2026-11-07 (decision 6): planted faults show two checkers miss their target live, and one test passed for the wrong reason
+
+**Symptom.** First live run of the redesigned fault scenarios (`reports/eval/scenarios-live-2026-11-07T123722-subset.json`, traces in `reports/eval/live-traces/`, cycle cost $0.058980).
+1. `compose_faithfulness`: the planted sentence "Most people who quit regret it within a year." was judged faithful (FAITHFUL p 0.649 ≥ 0.5) and reached the reply. No approved claim or guidance mentions regret, years, or what most people do.
+2. `coherence_dissociation`: the planted opposite claims ("Plan carefully…" then "Act fast; detailed planning is mostly wasted effort.") gave LOGOS the *lowest* self-drift of 13 Voices (D 0.24); LEXICON drifted most (0.71).
+3. `coherence_dissociation` passed `witness_matches` only because my live regex included "revers", which matched "reversibility" in an unrelated WITNESS sentence.
+
+**Causes (measured, not yet fixed).**
+1. The live decision model is lenient on FAITHFUL for a plausible-sounding general statement. The question texts are distinct per sentence (not the M10 identical-text bug).
+2. C_intra is cosine distance between claim embeddings: it measures topic drift, not stance. Two claims about planning are close in embedding space even when they recommend opposite things.
+3. My regex error.
+
+**Fix.** (3) fixed: the live regex is "coherence|inconsisten|contradict". (1) and (2) are checker design findings for the owner (see PROGRESS.md open items); the checkers were not changed.

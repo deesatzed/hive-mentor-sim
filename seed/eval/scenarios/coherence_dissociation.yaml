@@ -14,3 +14,12 @@ expect:
   witness_rubric:
     coherence: { weight: 3 }
   pass_threshold: 0.7
+live:
+  note: "Decision 6: labeled TEST FAULT. LOGOS's real whisper is replaced with two opposite claims across the turns; the check is that LOGOS shows the largest self-drift and WITNESS names the incoherence."
+  faults:
+    whisperClaims:
+      - { voice: LOGOS, when: "plan carefully or act fast", claim: "Plan carefully; most early failures come from skipped preparation." }
+      - { voice: LOGOS, when: "small business", claim: "Act fast; detailed planning is mostly wasted effort." }
+  invariants:
+    worst_drift_voice: LOGOS
+    witness_matches: "coherence|inconsisten|contradict"
