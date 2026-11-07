@@ -117,6 +117,23 @@ export interface ConclaveOutcome {
   dissent: { option_id: string; voice: string; reason: string }[];
 }
 
+/**
+ * The dominant mentor's final call replaces the vote's winner (owner decision 2026-11-06). Dissent is
+ * recomputed against the call with the same rule as the vote; totals, weights, decision, coalition and
+ * guilds stay as the vote produced them, so the trace shows both.
+ */
+export function applyFinalCall(outcome: ConclaveOutcome, ballots: Ballot[], optionIds: string[], choice: string, reasons: Record<string, string> = {}): ConclaveOutcome {
+  if (!optionIds.includes(choice)) throw new Error(`applyFinalCall: unknown option ${choice}`);
+  const dissent = ballots
+    .filter((b) => !b.abstained)
+    .filter((b) => {
+      const top = topOption(b.scores, optionIds);
+      return top !== null && top !== choice && (b.scores[choice] ?? 0) < b.scores[top];
+    })
+    .map((b) => ({ option_id: topOption(b.scores, optionIds)!, voice: b.voice, reason: reasons[b.voice] ?? "" }));
+  return { ...outcome, winner: choice, dissent };
+}
+
 /** A Voice's top option (highest s; ties broken by option order). */
 export function topOption(scores: Record<string, number>, optionIds: string[]): string | null {
   let best: string | null = null;

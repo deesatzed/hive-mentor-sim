@@ -54,6 +54,20 @@ export const CycleTraceSchema = z.object({
     unavailable: z.boolean(),
   }),
   conclaveId: z.string().optional(),
+  /** dominant mentor's final call (owner decision 2026-11-06); absent when no dominant mentor is set */
+  finalCall: z
+    .object({
+      mentorId: z.string(),
+      mentorName: z.string(),
+      choice: z.string().nullable(),
+      voteWinner: z.string().nullable(),
+      overruledVote: z.boolean(),
+      soundness: z.record(z.string(), z.number()),
+      reason: z.string(),
+      skipped: z.string().nullable(),
+      unavailable: z.boolean(),
+    })
+    .optional(),
   witness: z.object({
     ran: z.boolean(),
     flags: z.record(z.string(), z.number()),

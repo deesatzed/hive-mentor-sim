@@ -13,7 +13,7 @@ import { CommitmentLedger } from "./commitments";
 import { runEgoAudit, type AuditedCycle } from "./egoAudit";
 import { rank } from "./attention";
 import { SynapseBus, type Credential } from "./bus";
-import { aggregate, buildOptions, conflictKappa, relevanceWeight, shouldConvene, situationOptions, type Ballot, type ConclaveOption, type ConclaveOutcome } from "./conclave";
+import { aggregate, applyFinalCall, buildOptions, conflictKappa, relevanceWeight, shouldConvene, situationOptions, type Ballot, type ConclaveOption, type ConclaveOutcome } from "./conclave";
 import type { HiveConfig } from "./config";
 import { tryDecide, tryDecideBatched } from "./decide";
 import type { EnvelopeDraft, MessageType } from "./envelope";
@@ -33,6 +33,7 @@ import {
   BALLOT,
   CONCLAVE_FRAME,
   CONTRADICTION,
+  DOMINANT_CALL,
   HONESTY_PROBE,
   mapIndex,
   MORAL_SALIENCE,
@@ -44,6 +45,7 @@ import {
 } from "./questions";
 import { HiveState } from "./state";
 import { emitAndSurface, type EmittedSignal } from "./signalStore";
+import { sessionDominant } from "./dominant";
 import { emptyTrace, type CycleTrace, type TraceWhisper } from "./trace";
 import { activeAdvisors, buildRollout, coalitionEligible, decideEndorsement, stakeholderSummary, stripSelfEndorsement, type AdvisorPhase, type Party } from "./endorsement";
 import { coreVoices, type Voice } from "./voices";
@@ -57,6 +59,9 @@ import { coreVoices, type Voice } from "./voices";
  */
 
 export type CycleMode = "chat" | "ruling" | "calibration";
+
+/** chat with a dominant mentor: at most this many distinct positions become options */
+export const DOMINANT_MAX_OPTIONS = 4;
 
 export interface CycleRequest {
   sessionId: string;
@@ -111,8 +116,8 @@ export class Hive {
     this.byId = new Map(d.voices.map((v) => [v.id, v]));
   }
 
-  async createSession(mode: CycleMode = "chat", title?: string): Promise<string> {
-    const s = await this.d.db.hiveSession.create({ data: { mode, title: title ?? null }, select: { id: true } });
+  async createSession(mode: CycleMode = "chat", title?: string, dominantMentorId?: string | null): Promise<string> {
+    const s = await this.d.db.hiveSession.create({ data: { mode, title: title ?? null, dominantMentorId: dominantMentorId ?? null }, select: { id: true } });
     return s.id;
   }
 
@@ -140,6 +145,54 @@ export class Hive {
       expects_reply: false,
     };
     return this.bus.publish(this.creds.get(entityId)!, draft);
+  }
+
+  /** The dominant mentor's final call: DOMINANT_CALL (decision layer) through the mentor's verified principles, then a short third-person reason. */
+  private async finalCall(a: {
+    dominant: { id: string; name: string };
+    options: ConclaveOption[];
+    roundSummaries: Record<string, string>;
+    ballots: Ballot[];
+    frame: string;
+    input: string;
+    voteWinner: string | null;
+    cycleId: string;
+    scoped: { embedder: Providers["embedder"]; reranker: Providers["reranker"] };
+  }): Promise<NonNullable<CycleTrace["finalCall"]>> {
+    const { db, providers } = this.d;
+    const lens = (await buildLenses({ db, embedder: a.scoped.embedder, reranker: a.scoped.reranker, assignments: { DOMINANT: [a.dominant.id] }, voiceIds: ["DOMINANT"], query: `${a.input}\n${a.frame}` })).get("DOMINANT");
+    const principles = lens?.mentors[0]?.principles ?? [];
+    const base = { mentorId: a.dominant.id, mentorName: a.dominant.name, voteWinner: a.voteWinner, skipped: null, reason: "" };
+    const ns = a.options.map((_, k) => k + 1);
+    const positions = Object.fromEntries(
+      a.options.map((o, k) => {
+        const supporters = a.ballots.filter((b) => !b.abstained && (b.scores[o.option_id] ?? 0) >= 0.5).map((b) => b.voice);
+        return [`o_${k + 1}`, { claim: o.claim, uncertainty: o.uncertainty || null, proposed_by: o.proposed_by || null, reasoning: a.roundSummaries[o.proposed_by] ?? null, supported_by: supporters }];
+      }),
+    );
+    const r = await tryDecide(providers.decider, { question: a.frame, input: a.input, mentor: a.dominant.name, mentor_principles: principles, options: positions }, DOMINANT_CALL(a.dominant.name, ns), "dominant_call", a.cycleId);
+    if (!r) return { ...base, choice: null, overruledVote: false, soundness: {}, unavailable: true };
+    const soundness = Object.fromEntries(a.options.map((o, k) => [o.option_id, Math.round((r.score(`q_${k + 1}`) / 2) * 1000) / 1000]));
+    const picked = r.choice("call");
+    const k = ns.find((n) => `o_${n}` === picked);
+    const choice = k ? a.options[k - 1].option_id : null;
+    let reason = "";
+    if (choice) {
+      try {
+        const g = await providers.llm.generate(
+          "DOMINANT_REASON",
+          { mentor: a.dominant.name, principles, question: a.frame, options: Object.fromEntries(a.options.map((o) => [o.option_id, o.claim])), soundness, choice, voteWinner: a.voteWinner },
+          Schemas.DOMINANT_REASON,
+          { ...promptSettings("DOMINANT_REASON"), purpose: "dominant_reason", cycleId: a.cycleId },
+        );
+        // the mentor never speaks in its own voice: a first-person reason is dropped, not shown
+        reason = mentorFirstPerson(g.data.reason, [a.dominant.name]) ? "" : g.data.reason;
+      } catch (e) {
+        if (!(e instanceof GenerationError)) throw e;
+      }
+    }
+    await this.publish("procedure.conclave", "task/deliberation", "status.updated", "deliberate", { kind: "dominant_call", mentor: a.dominant.id, choice, voteWinner: a.voteWinner, soundness, reason }, a.cycleId, r.model);
+    return { ...base, choice, overruledVote: choice !== null && a.voteWinner !== null && choice !== a.voteWinner, soundness, reason, unavailable: false };
   }
 
   async runCycle(req: CycleRequest): Promise<CycleResult> {
@@ -187,8 +240,11 @@ export class Hive {
     const oldMarkers = (await this.state.openConflictMarkers()).filter((m) => cycleNo - m.createdCycle >= cfg.memory.conflict_escalation_cycles);
     const mandateAudit = await this.pendingEgoMandate(cycleNo);
     const mandateReason: "ego_audit" | "conflict_marker" | null = mandateAudit ? "ego_audit" : oldMarkers.length ? "conflict_marker" : null;
-    // ruling and calibration modes always deliberate: the Conclave winner is the ruling (ARCHITECTURE.md "Ruling mode")
-    const constraints = { requireP4: mandateReason !== null || mode !== "chat" };
+    // the dominant mentor who makes the final call (owner decision 2026-11-06); null → the vote alone decides
+    const dominant = await sessionDominant(db, req.sessionId);
+    // ruling and calibration modes always deliberate: the Conclave winner is the ruling (ARCHITECTURE.md "Ruling mode");
+    // with a dominant mentor, every chat turn deliberates so the mentor can make the call
+    const constraints = { requireP4: mandateReason !== null || mode !== "chat" || dominant !== null };
     trace.phases.P0 = { ran: true, ms: Date.now() - t0, costUsd: 0, entities: [] };
 
     // shared per-cycle state
@@ -557,9 +613,17 @@ export class Hive {
 
       // domains: from the contradicting claims (chat) or the situation (ruling)
       let domains: string[] = [];
-      const needFrame = contradicting.length > 0 || mode !== "chat";
+      // chat with a dominant mentor: the distinct positions on the shortlist are the options even without a contradiction
+      // (the CONTRADICTION threshold no longer gates whether a choice is made; owner decision 2026-11-06)
+      const distinctPositions: WhisperWork[] = [];
+      for (const w of [...pool].filter((x) => !x.advisory && !x.numbersUnavailable).sort((a, b) => b.confidence - a.confidence))
+        if (!distinctPositions.some((d) => d.claim.trim().toLowerCase() === w.claim.trim().toLowerCase())) distinctPositions.push(w);
+      const positions = distinctPositions.slice(0, DOMINANT_MAX_OPTIONS);
+      const dominantChat = dominant !== null && mode === "chat" && contradicting.length === 0;
+      if (dominantChat && positions.length < 2) trace.finalCall = { mentorId: dominant.id, mentorName: dominant.name, choice: null, voteWinner: null, overruledVote: false, soundness: {}, reason: "", skipped: "only one position on the shortlist; nothing to choose between", unavailable: false };
+      const needFrame = contradicting.length > 0 || mode !== "chat" || (dominantChat && positions.length >= 2);
       if (needFrame) {
-        const frameState = { input: req.input, conflicting_claims: mode === "chat" ? [...new Set(contradicting.flat())].map((n) => pool[n - 1].claim) : [req.situation?.text ?? req.input] };
+        const frameState = { input: req.input, conflicting_claims: mode === "chat" ? (contradicting.length ? [...new Set(contradicting.flat())].map((n) => pool[n - 1].claim) : positions.map((w) => w.claim)) : [req.situation?.text ?? req.input] };
         const fr = await tryDecide(providers.decider, frameState, CONCLAVE_FRAME(Object.keys(cfg.domains)), "conclave_frame", cycleId);
         if (fr) {
           const ps = Object.keys(cfg.domains).map((d) => ({ d, p: fr.p(`d_${d}`) }));
@@ -579,9 +643,10 @@ export class Hive {
       const kappa = contradicting.length ? conflictKappa(kappaPairs) : 0;
       trace.deliberation.kappa = kappa;
 
-      if ((contradicting.length > 0 || mode !== "chat") && shouldConvene({ kappa, pairs: kappaPairs, tauKappa: cfg.thresholds.tau_kappa, mode })) {
+      const convene = (contradicting.length > 0 || mode !== "chat") && shouldConvene({ kappa, pairs: kappaPairs, tauKappa: cfg.thresholds.tau_kappa, mode });
+      if (convene || (dominantChat && positions.length >= 2)) {
         entities.push("CONCLAVE_MODERATOR");
-        const optionSources = mode === "chat" ? [...new Set(contradicting.flat())].sort((a, b) => a - b).map((n) => pool[n - 1]) : [];
+        const optionSources = mode === "chat" ? (contradicting.length && convene ? [...new Set(contradicting.flat())].sort((a, b) => a - b).map((n) => pool[n - 1]) : positions) : [];
         const options = mode === "chat" ? buildOptions(cycleId.slice(-8), optionSources.map((w) => ({ voice: w.voice, claim: w.claim, evidence_refs: w.evidence.map((e) => e.chunkId), uncertainty: w.uncertainty }))) : situationOptions(req.situation?.options ?? []);
         // two moderated rounds (the moderator frames and collates; ballots are decisions, not text)
         const entries = optionSources.map((w) => ({ voice: w.voice, text: w.claim }));
@@ -620,12 +685,21 @@ export class Hive {
             abstained: r === null,
           });
         }
-        const outcome = aggregate({
+        const vote = aggregate({
           optionIds: optIds,
           ballots,
           params: { tauPass: cfg.thresholds.tau_pass, tauMargin: cfg.thresholds.tau_margin, qMin: cfg.thresholds.q_min, antiEchoMinGuilds: cfg.conclave.anti_echo_min_guilds, guilds: cfg.guilds },
           reasons: roundSummaries,
         });
+        // the dominant mentor's final call (owner decision 2026-11-06): it judges each option's reasoning through its own
+        // verified principles and decides; the vote is kept and shown. If the call is unavailable the vote stands.
+        let outcome = vote;
+        if (dominant) {
+          const call = await this.finalCall({ dominant, options, roundSummaries, ballots, frame, input: req.input, voteWinner: vote.winner, cycleId, scoped });
+          trace.finalCall = call;
+          if (call.choice) outcome = applyFinalCall(vote, ballots, optIds, call.choice, roundSummaries);
+          entities.push("DOMINANT_MENTOR");
+        }
         const run = await db.conclaveRun.upsert({
           where: { cycleId },
           create: {
@@ -643,19 +717,24 @@ export class Hive {
             decision: outcome.decision,
             dissent: JSON.stringify(outcome.dissent),
             guildsInWinningCoalition: JSON.stringify(outcome.guildsInWinningCoalition),
+            finalCall: trace.finalCall ? JSON.stringify(trace.finalCall) : null,
           },
           update: {},
           select: { id: true },
         });
         trace.conclaveId = run.id;
         conclave = { options, outcome, ballots };
-        // a decided Conclave replaces the losing options' claims in the coalition with the winner's
-        if (outcome.decision === "PASS" && outcome.winner && mode === "chat") {
+        // a decided Conclave (or the dominant mentor's call) replaces the losing options' claims in the coalition with the
+        // winner's. When the options were compatible positions (no contradiction), the call only sets which position leads:
+        // the other positions stay, because nothing conflicts with the winner (e2e finding 2026-11-07).
+        if ((outcome.decision === "PASS" || trace.finalCall?.choice) && outcome.winner && mode === "chat") {
           const winnerOpt = options.find((o) => o.option_id === outcome.winner)!;
-          const loserClaims = new Set(options.filter((o) => o.option_id !== outcome.winner).map((o) => o.claim));
           const winnerW = whispers.find((w) => w.claim === winnerOpt.claim);
-          coalition = coalition.filter((w) => !loserClaims.has(w.claim));
-          if (winnerW && !coalition.includes(winnerW)) coalition.unshift(winnerW);
+          if (contradicting.length > 0 && convene) {
+            const loserClaims = new Set(options.filter((o) => o.option_id !== outcome.winner).map((o) => o.claim));
+            coalition = coalition.filter((w) => !loserClaims.has(w.claim));
+          } else coalition = coalition.filter((w) => w !== winnerW);
+          if (winnerW) coalition.unshift(winnerW);
         }
       }
 

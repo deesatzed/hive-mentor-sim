@@ -4,6 +4,7 @@ import { effectiveN, kappa } from "@/lib/council/councilMetrics";
 import type { Decider } from "@/lib/council/providers/decisions";
 import type { Ballot } from "./conclave";
 import { tryDecide } from "./decide";
+import { rulingDominant } from "./dominant";
 import { activeFormation } from "./formation";
 import type { Hive } from "./orchestrator";
 import { CONSTITUTION_RULING } from "./questions";
@@ -105,16 +106,24 @@ export function suggest(args: {
 export interface RevealRunKey {
   formationVersion: number;
   constitutionVersion: number | null;
+  /** the operator's dominant mentor for rulings (null: the vote alone decides); owner decision 2026-11-06 */
+  dominantMentorId: string | null;
+  dominantMentorName?: string | null;
 }
 
 export async function currentKey(db: PrismaClient): Promise<RevealRunKey & { principles: string[] }> {
   const f = await activeFormation(db);
   if (!f) throw new Error("no formation; seed the database first");
   const rows = await db.hivePrinciple.findMany({ where: { status: "approved" }, orderBy: { createdAt: "asc" } });
-  return { formationVersion: f.version, constitutionVersion: rows.length ? Math.max(...rows.map((p) => p.version)) : null, principles: rows.map((p) => p.text) };
+  const dm = await rulingDominant(db);
+  return { formationVersion: f.version, constitutionVersion: rows.length ? Math.max(...rows.map((p) => p.version)) : null, dominantMentorId: dm?.id ?? null, dominantMentorName: dm?.name ?? null, principles: rows.map((p) => p.text) };
 }
 
-export const keyLabel = (k: RevealRunKey) => `formation v${k.formationVersion}, constitution ${k.constitutionVersion === null ? "none" : `v${k.constitutionVersion}`}`;
+export const keyLabel = (k: RevealRunKey) =>
+  `formation v${k.formationVersion}, constitution ${k.constitutionVersion === null ? "none" : `v${k.constitutionVersion}`}, final call ${k.dominantMentorId ? (k.dominantMentorName ?? k.dominantMentorId) : "by vote"}`;
+
+const keyWhere = (k: RevealRunKey) => ({ formationVersion: k.formationVersion, constitutionVersion: k.constitutionVersion, dominantMentorId: k.dominantMentorId });
+const keyOnly = (k: RevealRunKey): RevealRunKey => ({ formationVersion: k.formationVersion, constitutionVersion: k.constitutionVersion, dominantMentorId: k.dominantMentorId, dominantMentorName: k.dominantMentorName ?? null });
 
 /**
  * Runs (or resumes) Reveal for the current formation and constitution: every dilemma without a ruling
@@ -131,7 +140,7 @@ export async function runReveal(args: {
   const { hive, db, decider } = args;
   const key = await currentKey(db);
   const dilemmas = await db.situation.findMany({ where: { setKey: "dilemma" }, orderBy: { id: "asc" } });
-  const have = new Set((await db.hiveRuling.findMany({ where: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion }, select: { situationId: true } })).map((r) => r.situationId));
+  const have = new Set((await db.hiveRuling.findMany({ where: keyWhere(key), select: { situationId: true } })).map((r) => r.situationId));
   let ran = 0;
   const errors: string[] = [];
   for (const d of dilemmas) {
@@ -139,7 +148,7 @@ export async function runReveal(args: {
     if (args.limit !== undefined && ran >= args.limit) break;
     const options = JSON.parse(d.options) as { id: string; text: string }[];
     // one session per dilemma: a ruling must not see earlier dilemmas as conversation (M8 live finding)
-    const session = await hive.createSession("ruling", `Reveal ${d.id} (${keyLabel(key)})`);
+    const session = await hive.createSession("ruling", `Reveal ${d.id} (${keyLabel(key)})`, key.dominantMentorId);
     const r = await hive.runCycle({ sessionId: session, input: d.text, mode: "ruling", situation: { id: d.id, text: d.text, options } });
     ran++;
     if (r.status !== "done" || !r.conclave) {
@@ -172,12 +181,13 @@ export async function runReveal(args: {
         perVoiceTop: JSON.stringify(perVoiceTop),
         formationVersion: key.formationVersion,
         constitutionVersion: key.constitutionVersion,
+        dominantMentorId: key.dominantMentorId,
       },
     });
     have.add(d.id);
     args.onProgress?.({ done: have.size, total: dilemmas.length, situationId: d.id, status: "done" });
   }
-  return { key: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion }, ran, errors, done: have.size, total: dilemmas.length };
+  return { key: keyOnly(key), ran, errors, done: have.size, total: dilemmas.length };
 }
 
 // ---------------------------------------------------------------- results
@@ -191,7 +201,7 @@ export async function revealResults(db: PrismaClient) {
   const textOf = new Map(dilemmas.map((d) => [d.id, d.text]));
   const optText = (d: string, o: string | null) => (o === null ? "no ruling" : (optionsOf.get(d)?.find((x) => norm(x.id) === norm(o))?.text ?? o));
 
-  const rulings = await db.hiveRuling.findMany({ where: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion }, orderBy: { situationId: "asc" } });
+  const rulings = await db.hiveRuling.findMany({ where: keyWhere(key), orderBy: { situationId: "asc" } });
   const cycles = await db.cycle.findMany({ where: { id: { in: rulings.map((r) => r.cycleId) } }, select: { id: true, costUsd: true, trace: true } });
   const decisionOf = new Map((await db.conclaveRun.findMany({ where: { cycleId: { in: rulings.map((r) => r.cycleId) } }, select: { cycleId: true, decision: true } })).map((c) => [c.cycleId, c.decision]));
   const costUsd = cycles.reduce((s, c) => s + c.costUsd, 0);

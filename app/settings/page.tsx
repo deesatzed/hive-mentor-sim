@@ -5,6 +5,49 @@ import { useEffect, useState } from "react";
 /** /settings — read-only provider and config view, measured spend, database reset with typed confirmation (PRODUCT_SPEC.md §10). */
 
 type Model = { model: string; source: string };
+type Choice = { id: string; name: string; roles: string[] };
+
+/** The mentor who makes the final call in Reveal and calibration (owner decision 2026-11-06). Changes are ledgered. */
+function RulingMentor() {
+  const [choices, setChoices] = useState<Choice[]>([]);
+  const [current, setCurrent] = useState<string>("");
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    let live = true;
+    fetch("/api/dominant")
+      .then((r) => r.json())
+      .then((b) => {
+        if (!live) return;
+        setChoices(b.choices ?? []);
+        setCurrent(b.ruling?.id ?? "");
+      })
+      .catch(() => live && setMsg("Could not load the mentor list."));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const save = async (id: string) => {
+    setCurrent(id);
+    const r = await fetch("/api/dominant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mentorId: id || null }) });
+    const b = await r.json();
+    setMsg(r.ok ? (b.ruling ? `${b.ruling.name} now makes the final call in Reveal and calibration.` : "Reveal and calibration now decide by vote alone.") : b.error);
+  };
+  return (
+    <section aria-labelledby="ruling-mentor-h">
+      <h2 id="ruling-mentor-h">Final call for Reveal and calibration</h2>
+      <p className="muted">In chat, the user picks the dominant mentor. For the 40 dilemmas and calibration, pick it here. Results are kept separately for each choice.</p>
+      <select aria-labelledby="ruling-mentor-h" value={current} onChange={(e) => void save(e.target.value)} data-testid="ruling-mentor">
+        <option value="">No dominant mentor (decide by vote)</option>
+        {choices.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name} ({c.roles.join(", ")})
+          </option>
+        ))}
+      </select>
+      <p aria-live="polite" className="muted">{msg}</p>
+    </section>
+  );
+}
 type Data = {
   mock: boolean;
   providers: { mode: string; error?: string; tiers?: Record<string, Model>; manager?: Model; grader?: Model; decisionChain?: string[]; embeddingChain?: string[]; rerankChain?: string[]; baseUrl?: string; llmModel?: string; embedModel?: string };
@@ -46,7 +89,7 @@ export default function SettingsPage() {
   return (
     <main className="home wide">
       <h1>Settings</h1>
-      <p className="muted">Read-only. Model IDs come from .env and config/hive.yaml; change them there and restart. The API key is never shown.</p>
+      <p className="muted">Model IDs come from .env and config/hive.yaml; change them there and restart. The API key is never shown.</p>
       {d.mock && <p className="mock-banner" data-testid="mock-indicator">Mock providers are on (USE_MOCK_PROVIDERS=true): scripted outputs, not model behavior.</p>}
       <h2>Providers</h2>
       <table data-testid="settings-providers">
@@ -73,6 +116,7 @@ export default function SettingsPage() {
           <tr><th scope="row">Database</th><td>{d.database}</td></tr>
         </tbody>
       </table>
+      <RulingMentor />
       <h2>Spend</h2>
       <p data-testid="settings-spend">Measured spend to date: ${d.spend.costUsd.toFixed(6)} over {d.spend.events} ledger events.</p>
 

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { pickMentor } from "./helpers";
 
 // mock providers + e2e fixture corpus (Seneca Letter 1, real text). Runs serially: one shared database.
 test.describe.configure({ mode: "serial" });
@@ -24,6 +25,7 @@ test("approve formation → generate constitution → edit → approve → cycle
   await expect(page.getByTestId("principle-approved")).toHaveCount(1);
 
   await page.goto("/hive");
+  await pickMentor(page);
   await page.getByLabel("Message").fill("How should I use my time well?");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByTestId("hive-reply").first()).toHaveText(/\?$/, { timeout: 30_000 });

@@ -1,0 +1,6 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior. Remove with the other mocks before completion (owner decision 2026-11-06).",
+  "default": {
+    "reason": "Judged by {{var:mentor}}'s principles, the chosen option rests on the sounder reasoning: it weighs the harm honestly before acting, which the other options passed over."
+  }
+}

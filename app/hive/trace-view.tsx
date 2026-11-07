@@ -18,6 +18,7 @@ export type Trace = {
   awareness: { text: string; selected: string[] };
   deliberation: { kappa: number; contradictions: { a: string; b: string; p: number }[]; domains: string[] };
   conclaveId?: string;
+  finalCall?: { mentorId: string; mentorName: string; choice: string | null; voteWinner: string | null; overruledVote: boolean; soundness: Record<string, number>; reason: string; skipped: string | null; unavailable: boolean };
   witness: { ran: boolean; flags: Record<string, number>; recommendation: string; quality: string; notConsidering: string; reflectRan: boolean; reflectReason: string | null };
   arbiter: { decision: string; humility: boolean; principlesChecked: string[]; commitmentsChecked: string[]; guidance?: string; overrides: string[]; commitmentConflicts: string[]; commitmentsBroken: { id: string; reason: string }[] };
   compose: { draft: string; faithfulness: { sentence: string; p: number | null; kept: boolean }[]; regenerated: boolean; quotes?: { chunkId: string; quote: string; mentorId: string }[] };
@@ -175,13 +176,37 @@ export function TraceView({ t, conclave, id }: { t: Trace; conclave: Conclave | 
                 </tr>
               </tbody>
             </table>
-            <ol className="muted">{conclave.options.map((o) => <li key={o.option_id}>{o.claim}{o.option_id === conclave.winner ? " ← winner" : ""}</li>)}</ol>
+            <ol className="muted">
+              {conclave.options.map((o) => (
+                <li key={o.option_id}>
+                  {o.claim}
+                  {o.option_id === conclave.winner ? (t.finalCall?.choice ? " ← final call" : " ← winner") : ""}
+                  {t.finalCall?.voteWinner === o.option_id && t.finalCall.overruledVote ? " (vote winner, overruled)" : ""}
+                  {t.finalCall?.soundness[o.option_id] !== undefined ? ` · soundness ${n(t.finalCall.soundness[o.option_id])}` : ""}
+                </li>
+              ))}
+            </ol>
             <p>
-              Decision {conclave.decision} · margin {conclave.margin === null ? "-" : n(conclave.margin)} · dissent: {conclave.dissent.map((d) => d.voice).join(", ") || "none"}
+              Vote {conclave.decision} · margin {conclave.margin === null ? "-" : n(conclave.margin)} · dissent: {conclave.dissent.map((d) => d.voice).join(", ") || "none"}
             </p>
           </div>
         ) : (
           <p className="muted">No Conclave this cycle.</p>
+        )}
+        {t.finalCall && (
+          <div data-testid="final-call">
+            <h4>Final call: {t.finalCall.mentorName}</h4>
+            {t.finalCall.skipped ? (
+              <p className="muted">No call needed: {t.finalCall.skipped}.</p>
+            ) : t.finalCall.unavailable || !t.finalCall.choice ? (
+              <p className="muted">The call was unavailable this cycle, so the vote stands.</p>
+            ) : (
+              <p>
+                {t.finalCall.overruledVote ? "Overruled the vote. " : "Agreed with the vote. "}
+                {t.finalCall.reason || "(no reason recorded)"}
+              </p>
+            )}
+          </div>
         )}
       </Section>
       <Section title="WITNESS audit" phase="P4" trace={t}>

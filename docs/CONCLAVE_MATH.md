@@ -119,3 +119,13 @@ guilds:
 ```
 
 `integration` is added because sent2's guild list omitted LUMEN, ADAPT, and HERITAGE; without it those three could never count toward anti-echo. Record this in `PROGRESS.md` as a deliberate deviation.
+
+## 10. Dominant mentor's final call (owner decision 2026-11-06)
+
+The owner replaced "the vote decides" with "a dominant mentor decides". The vote still runs and is stored, so disagreement and dissent stay measured and visible.
+
+- **Who.** In chat, the user picks one active mentor by topic before the first message (`HiveSession.dominantMentorId`) and may change it at any time (ledger `session.dominant_mentor`). Reveal and calibration use the operator's choice in `/settings` (`OperatorSetting dominant_mentor.ruling`, ledger `settings.dominant_mentor`); it is part of the Reveal and calibration result key. With no dominant mentor, §4 is unchanged.
+- **When.** With a dominant mentor, every chat cycle runs P4. If CONTRADICTION finds conflicting pairs (§3) and κ clears τ_κ, the options are the conflicting claims, as before. Otherwise the options are the distinct shortlisted Core Voice positions, highest confidence first, at most `DOMINANT_MAX_OPTIONS` = 4. With one position there is nothing to choose; the trace says so. The CONTRADICTION threshold no longer gates whether a choice is made.
+- **How.** After the ballots and §4 aggregation, `DOMINANT_CALL` (decision layer) scores each option's soundness through the mentor's verified principles and chooses one. `applyFinalCall` sets the winner to that choice and recomputes dissent with the §4 rule; totals, weights, the vote's decision, coalition and guilds are kept as the vote produced them. The trace (`finalCall`) and `ConclaveRun.finalCall` record the mentor, choice, vote winner, whether the vote was overruled, soundness per option, and the reason.
+- **Coalition.** When the options came from contradicting claims, the losing claims leave the coalition (as for a passed vote). When they were compatible positions, the winner only leads the coalition; the others stay.
+- **Persona rule.** The mentor judges through its own principles; it never speaks to the user. Its reason is third person and is dropped if `mentorFirstPerson` matches.

@@ -131,6 +131,7 @@ export const Schemas = {
   MANAGER_NEXT_PHASE: z.object({ next: z.string(), reason: z.string().max(240) }),
   /** Live eval grader's written rationale; the scores themselves come from the decision layer. */
   EVAL_RATIONALE: z.object({ rationale: z.string().max(600), blindSpot: z.string().max(200) }),
+  DOMINANT_REASON: z.object({ reason: z.string().regex(/\S/).max(400) }),
 } as const;
 
 export type PromptId = keyof typeof Schemas;
@@ -276,6 +277,22 @@ export const PROMPTS: Record<PromptId, PromptDef> = {
     instruction:
       "Choose the coherent subset the Hive is aware of right now and write one line: 'Right now, the Hive is experiencing: ___'. Select only from the ids given.",
     user: (v) => `Shortlist: ${j(v.shortlist)}\nAffect: ${j(v.affect)}${v.honestyNote ? `\nHonesty note: ${str(v.honestyNote)}` : ""}`,
+  },
+  DOMINANT_REASON: {
+    entity: "CONCLAVE_MODERATOR",
+    tier: "standard",
+    temperature: 0.2,
+    instruction:
+      "A dominant mentor has made the final call between the options, judged by that mentor's listed principles (the choice and soundness scores came from a separate check; do not change them). In one to three plain sentences, say why the chosen option is the sounder reasoning by those principles, and what the other options got wrong or left out. Write in the third person about the mentor (\"Judged by Seneca's principles, ...\"); never write as the mentor, never use \"I\" for the mentor, and never quote: refer to principles by their content. Hard limit: reason at most 400 characters.",
+    user: (v) =>
+      [
+        `Mentor: ${str(v.mentor)}`,
+        `Mentor principles: ${j(v.principles)}`,
+        `Question: ${str(v.question)}`,
+        `Options: ${j(v.options)}`,
+        `Soundness (0 unsound to 1 sound): ${j(v.soundness)}`,
+        `Chosen: ${str(v.choice)}  Vote winner: ${str(v.voteWinner, "none")}`,
+      ].join("\n"),
   },
   CONCLAVE_ROUND: {
     entity: "CONCLAVE_MODERATOR",

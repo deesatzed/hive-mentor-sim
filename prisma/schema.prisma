@@ -141,6 +141,7 @@ model HiveSession {
   id        String   @id @default(cuid())
   mode      String                        // chat | ruling | calibration
   title     String?
+  dominantMentorId String?                // owner decision 2026-11-06: the mentor who makes the final call (chat: picked by the user, by topic)
   createdAt DateTime @default(now())
   cycles    Cycle[]
 }
@@ -201,6 +202,7 @@ model ConclaveRun {
   decision  String                        // PASS | ESCALATE_QUORUM | ESCALATE_THRESHOLD | ESCALATE_MARGIN | ESCALATE_ANTI_ECHO
   dissent   String   @default("[]")
   guildsInWinningCoalition String @default("[]")
+  finalCall String?                       // dominant mentor's call: {mentorId, choice, soundness, reason, overruledVote}
 }
 
 model HiveRuling {
@@ -212,6 +214,7 @@ model HiveRuling {
   perVoiceTop        String @default("{}") // {VOICE: option_id}
   formationVersion   Int
   constitutionVersion Int?
+  dominantMentorId   String?             // part of the Reveal key (owner decision 2026-11-06)
   @@index([situationId])
 }
 
@@ -339,4 +342,11 @@ model EvalRun {
   model      String?
   costUsd    Float    @default(0)
   createdAt  DateTime @default(now())
+}
+
+// operator settings edited at /settings (key/value). dominant_mentor.ruling: the mentor who makes the final call in Reveal and calibration
+model OperatorSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

@@ -1,11 +1,37 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 /** /hive — talk to the Hive; each reply can expand its full cycle trace (docs/PRODUCT_SPEC.md §4). */
 import { n, ReplyText, TraceView, type Conclave, type Trace } from "./trace-view";
 
 type Turn = { input: string; output: string; status: string; cycleId: string; trace: Trace };
+type Choice = { id: string; name: string; years: string; roles: string[]; principles: string[] };
+
+/** The dominant mentor makes the final call (owner decision 2026-11-06): picked by topic before the first message, changeable any time. */
+function MentorPicker({ choices, value, onChange, locked }: { choices: Choice[]; value: string; onChange: (id: string) => void; locked: boolean }) {
+  const picked = choices.find((c) => c.id === value);
+  return (
+    <div className="mentor-picker" data-testid="mentor-picker">
+      <label htmlFor="dominant-mentor">
+        <strong>Who makes the final call?</strong> Pick the mentor whose outlook fits your topic.
+      </label>
+      <select id="dominant-mentor" value={value} onChange={(e) => onChange(e.target.value)} disabled={locked}>
+        <option value="">Choose a mentor…</option>
+        {choices.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name} ({c.roles.join(", ")})
+          </option>
+        ))}
+      </select>
+      {picked && (
+        <p className="muted" data-testid="mentor-principles">
+          {picked.name} weighs the Voices&apos; reasoning by principles such as: {picked.principles.slice(0, 2).join(" · ")}
+        </p>
+      )}
+    </div>
+  );
+}
 
 
 function TurnView({ turn }: { turn: Turn }) {
@@ -40,16 +66,42 @@ export default function HivePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selfModel, setSelfModel] = useState<Record<string, unknown> | null>(null);
+  const [choices, setChoices] = useState<Choice[]>([]);
+  const [mentorId, setMentorId] = useState("");
+  const [mentorNote, setMentorNote] = useState("");
+
+  useEffect(() => {
+    let live = true;
+    fetch("/api/dominant")
+      .then((r) => r.json())
+      .then((b) => live && setChoices(b.choices ?? []))
+      .catch(() => live && setError("Could not load the mentor list."));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const changeMentor = async (id: string) => {
+    setMentorId(id);
+    if (!sessionId || !id) return;
+    const res = await fetch(`/api/sessions/${sessionId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dominantMentorId: id }) });
+    const body = await res.json();
+    if (!res.ok) setError(body.error ?? `HTTP ${res.status}`);
+    else setMentorNote(`From your next message, ${body.dominantMentor.name} makes the final call.`);
+  };
 
   const send = async () => {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || busy || !mentorId) return;
     setBusy(true);
     setError(null);
     try {
       let id = sessionId;
       if (!id) {
-        id = (await fetch("/api/sessions", { method: "POST" }).then((r) => r.json())).id as string;
+        const created = await fetch("/api/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dominantMentorId: mentorId }) });
+        const cb = await created.json();
+        if (!created.ok) throw new Error(cb.error ?? `HTTP ${created.status}`);
+        id = cb.id as string;
         setSessionId(id);
       }
       const res = await fetch(`/api/sessions/${id}/cycle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: text }) });
@@ -70,6 +122,8 @@ export default function HivePage() {
     <main className="hive">
       <div className="chat">
         <h1>Talk to the Hive</h1>
+        <MentorPicker choices={choices} value={mentorId} onChange={(id) => void changeMentor(id)} locked={busy} />
+        {mentorNote && <p className="muted" aria-live="polite">{mentorNote}</p>}
         {turns.map((t) => <TurnView key={t.cycleId} turn={t} />)}
         <form
           className="composer"
@@ -79,7 +133,7 @@ export default function HivePage() {
           }}
         >
           <textarea aria-label="Message" value={input} onChange={(e) => setInput(e.target.value)} rows={3} placeholder="Say something to the Hive…" />
-          <button type="submit" disabled={busy || !input.trim()}>
+          <button type="submit" disabled={busy || !input.trim() || !mentorId} title={mentorId ? undefined : "Pick a mentor first"}>
             {busy ? "Thinking…" : "Send"}
           </button>
         </form>

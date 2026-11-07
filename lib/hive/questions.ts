@@ -162,6 +162,23 @@ export const CONTRADICTION = (pairs: [number, number][]): Record<string, Questio
 export const CONCLAVE_FRAME = (domains: readonly string[]): Record<string, Question> =>
   Object.fromEntries(domains.map((d) => [`d_${d}`, noul(`Does the question at stake involve ${d}?`)]));
 
+/**
+ * Dominant mentor's final call (owner decision 2026-11-06). One soundness score per option (each text names
+ * its option, so the decision model cannot answer every option the same way; M10 RCA) and one choice.
+ */
+export const DOMINANT_CALL = (mentor: string, optionNs: number[]): Record<string, Question> => ({
+  ...Object.fromEntries(
+    optionNs.map((n) => [
+      `q_${n}`,
+      score(`Judged only by the principles of ${mentor} listed in mentor_principles, how sound is the reasoning behind option o_${n}, given the Voices' positions and uncertainty?`, ["unsound", "partly sound", "sound"]),
+    ]),
+  ),
+  call: choice(
+    `Judged only by the principles of ${mentor} listed in mentor_principles, which option should the Hive take? Weigh the soundness of each option's reasoning, not how many Voices favor it.`,
+    Object.fromEntries(optionNs.map((n) => [`o_${n}`, `Option o_${n}`])),
+  ),
+});
+
 export const BALLOT = (voice: string, faculty: string, optionNs: number[]): Record<string, Question> =>
   Object.fromEntries(
     optionNs.map((n) => [

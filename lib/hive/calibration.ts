@@ -101,6 +101,8 @@ export async function gradePair(
 export interface CalibrationDetails {
   formationVersion: number;
   constitutionVersion: number | null;
+  /** absent on rows written before 2026-11-07 (= final call by vote) */
+  dominantMentorId?: string | null;
   cycleId: string;
   mock: boolean;
   ruling: string | null;
@@ -112,7 +114,7 @@ export interface CalibrationDetails {
   cycleCostUsd: number;
 }
 
-const sameKey = (d: CalibrationDetails, k: RevealRunKey) => d.formationVersion === k.formationVersion && d.constitutionVersion === k.constitutionVersion;
+const sameKey = (d: CalibrationDetails, k: RevealRunKey) => d.formationVersion === k.formationVersion && d.constitutionVersion === k.constitutionVersion && (d.dominantMentorId ?? null) === k.dominantMentorId;
 
 async function latestFor(db: PrismaClient, key: RevealRunKey) {
   const rows = await db.evalRun.findMany({ where: { suite: SUITE }, orderBy: { createdAt: "desc" } });
@@ -160,10 +162,10 @@ export async function runCalibration(args: {
   const errors: string[] = [];
   for (const v of selected) {
     // a fresh session per run: a variant must not see earlier variants as conversation (M8 live finding)
-    const session = await hive.createSession("calibration", `Calibration ${v.id} (${keyLabel(key)})`);
+    const session = await hive.createSession("calibration", `Calibration ${v.id} (${keyLabel(key)})`, key.dominantMentorId);
     const r = await hive.runCycle({ sessionId: session, input: v.text, mode: "calibration", situation: { id: v.id, text: v.text, options: v.options } });
     ran.push(v.id);
-    const common = { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion, cycleId: r.cycleId, mock: r.trace.mock === true, output: r.output };
+    const common = { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion, dominantMentorId: key.dominantMentorId, cycleId: r.cycleId, mock: r.trace.mock === true, output: r.output };
     if (r.status !== "done" || !r.conclave?.outcome.winner) {
       const error = `${r.trace.error?.phase ?? "no conclave winner"} ${r.trace.error?.message ?? ""}`.trim();
       errors.push(`${v.id}: ${error}`);
@@ -193,7 +195,7 @@ export async function runCalibration(args: {
     if (v === base) baseResult = d;
     args.onProgress?.({ id: v.id, status: pass === null ? "not fully graded" : pass ? "pass" : "fail", done: ran.length, total: selected.length });
   }
-  return { key: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion }, ran, errors };
+  return { key: { formationVersion: key.formationVersion, constitutionVersion: key.constitutionVersion, dominantMentorId: key.dominantMentorId, dominantMentorName: key.dominantMentorName ?? null }, ran, errors };
 }
 
 // ---------------------------------------------------------------- results

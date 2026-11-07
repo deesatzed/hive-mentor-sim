@@ -160,7 +160,7 @@ export const RESET_TABLES = [
  * seed (Situation, Voice), the operator's approvals (Formation, HivePrinciple), and LedgerEvent
  * (append-only; the reset itself is recorded there).
  */
-export const RESET_KEPT = ["Mentor", "CorpusWork", "CorpusChunk", "MentorPrinciple", "MentorAnswer", "Situation", "Voice", "Formation", "FormationMember", "HivePrinciple", "LedgerEvent"];
+export const RESET_KEPT = ["Mentor", "CorpusWork", "CorpusChunk", "MentorPrinciple", "MentorAnswer", "Situation", "Voice", "Formation", "FormationMember", "HivePrinciple", "OperatorSetting", "LedgerEvent"];
 
 /**
  * Resets the Hive's experience to its seeded state (Self-Model v1). Takes a SQLite backup first

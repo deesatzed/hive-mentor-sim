@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
+import { pickMentor } from "./helpers";
 
 /**
  * The HANDOFF definition-of-done journey, end to end, on mock providers (scripted outputs, labeled):
@@ -36,6 +37,7 @@ test("full operator journey (mock providers)", async ({ page }) => {
 
   // 3. chat cycle with a full trace (the "e2e journey" mock rule makes ADAPT log one prediction)
   await page.goto("/hive");
+  await pickMentor(page);
   await page.getByLabel("Message").fill("For the e2e journey: I start a new job on Monday. How do I make the first week go well?");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByTestId("hive-reply").first()).not.toBeEmpty({ timeout: 30_000 });

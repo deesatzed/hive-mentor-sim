@@ -137,6 +137,12 @@ Each entry is the **exact** text for `lib/hive/questions.ts`. `{…}` marks inte
 - `o_<n>`: noul. "Speaking only for the faculty of {VOICE} ({faculty}) and the principles listed, how strongly does this faculty approve option o_<n>?" true: "Approves this option." false: "Does not approve."
 - s_i(o) = p. Fallback: that Voice abstains (excluded from Σα) and the abstention is recorded.
 
+**DOMINANT_CALL** (purpose `dominant_call`; owner decision 2026-11-06). One request per Conclave when a dominant mentor is set.
+- state: `{ "question": "<framed question>", "input": "...", "mentor": "<name>", "mentor_principles": ["<≤ 5 verified principle texts>"], "options": { "o_1": { "claim", "uncertainty", "proposed_by", "reasoning" (round-2 summary), "supported_by": [Voices with s ≥ 0.5] }, ... } }`
+- `q_<n>`: score (unsound / partly sound / sound). "Judged only by the principles of {mentor} listed in mentor_principles, how sound is the reasoning behind option o_<n>, given the Voices' positions and uncertainty?" Stored as soundness = expected level / 2.
+- `call`: choice over `o_1…o_n`. "Judged only by the principles of {mentor} listed in mentor_principles, which option should the Hive take? Weigh the soundness of each option's reasoning, not how many Voices favor it."
+- The choice becomes the Conclave winner (`applyFinalCall`); dissent is recomputed against it. A short third-person reason is written by `DOMINANT_REASON` (dropped if it speaks as the mentor). Fallback: the vote stands and the trace records `unavailable`.
+
 **WITNESS_FLAGS** (purpose `witness_flags`)
 - state: `{ "input": "...", "whispers": [compact], "awareness": "...", "excluded": [...], "decayed": [...], "conclave": {compact}, "open_conflict_markers": [...] }`
 - `circular`: noul. "Does the deliberation rely on circular reasoning?"
