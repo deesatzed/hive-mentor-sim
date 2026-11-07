@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
+  MockModeNotAllowedError,
   decisionChainFromEnv,
   getProviders,
   LiveModeNotConfiguredError,
@@ -20,8 +21,19 @@ const CLOUD_BASE = {
 };
 
 describe("resolveProviderConfig", () => {
-  it("USE_MOCK_PROVIDERS=true → mock, needs no keys", () => {
+  it("USE_MOCK_PROVIDERS=true → mock, needs no keys (inside the test runner)", () => {
     expect(resolveProviderConfig({ USE_MOCK_PROVIDERS: "true" })).toEqual({ mode: "mock" });
+  });
+
+  it("refuses mock mode outside the test runners", () => {
+    const saved = process.env.HIVE_TEST_RUNNER;
+    delete process.env.HIVE_TEST_RUNNER;
+    try {
+      expect(() => resolveProviderConfig({ USE_MOCK_PROVIDERS: "true" })).toThrow(MockModeNotAllowedError);
+      expect(resolveProviderConfig({ USE_MOCK_PROVIDERS: "true", HIVE_TEST_RUNNER: "1" })).toEqual({ mode: "mock" });
+    } finally {
+      process.env.HIVE_TEST_RUNNER = saved;
+    }
   });
 
   it("cloud: every tier set explicitly uses its own env var", () => {

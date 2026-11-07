@@ -1,6 +1,6 @@
 /**
- * pnpm eval:calibration                 mock providers (labeled mock), database file:./mock.db
- * pnpm eval:calibration --live          live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm eval:calibration                 live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm eval:calibration --mock          mock providers (offline test path only, labeled mock), database file:./mock.db
  * Options: --only CAL-01a,CAL-01h (run selected variants; the base runs first if it has no result), --db file:./other.db
  * Writes reports/calibration.md (live) or reports/calibration-mock.md (mock). Exit code 0 when every variant that ran was graded and passed.
  */
@@ -17,7 +17,9 @@ const arg = (name: string) => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
-const live = process.argv.includes("--live");
+// live by default (owner decision 2026-11-06); --mock is the offline test path only and is labeled as such
+const live = !process.argv.includes("--mock");
+if (!live) process.env.HIVE_TEST_RUNNER = "1";
 try {
   process.loadEnvFile(".env");
 } catch {

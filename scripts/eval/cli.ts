@@ -12,6 +12,8 @@ import { graderAgreement, runAll } from "./runner";
 const live = process.argv.includes("--live");
 const updateGoldens = process.argv.includes("--update-goldens");
 const onlyArg = process.argv.find((a) => a.startsWith("--only="))?.slice(7) ?? (process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : undefined);
+// offline `pnpm eval` is a test runner (mock providers); live runs are not
+if (!live) process.env.HIVE_TEST_RUNNER = "1";
 if (live) {
   try {
     process.loadEnvFile(".env");

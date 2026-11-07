@@ -13,6 +13,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3100",
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { USE_MOCK_PROVIDERS: "true", DATABASE_URL: "file:./e2e.db", NEXT_DIST_DIR: ".next-e2e" },
+    env: { USE_MOCK_PROVIDERS: "true", HIVE_TEST_RUNNER: "1", DATABASE_URL: "file:./e2e.db", NEXT_DIST_DIR: ".next-e2e" },
   },
 });

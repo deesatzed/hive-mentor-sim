@@ -1,6 +1,6 @@
 /**
- * pnpm reveal                 mock providers (labeled mock), database file:./mock.db
- * pnpm reveal --live          live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm reveal                 live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm reveal --mock          mock providers (offline test path only, labeled mock), database file:./mock.db
  * Options: --limit N (run at most N new dilemmas this call; resumable), --db file:./other.db
  */
 import { disconnectAll, getDb } from "@/lib/council/db";
@@ -15,7 +15,9 @@ const arg = (name: string) => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
-const live = process.argv.includes("--live");
+// live by default (owner decision 2026-11-06); --mock is the offline test path only and is labeled as such
+const live = !process.argv.includes("--mock");
+if (!live) process.env.HIVE_TEST_RUNNER = "1";
 try {
   process.loadEnvFile(".env");
 } catch {

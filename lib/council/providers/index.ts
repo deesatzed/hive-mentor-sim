@@ -8,13 +8,16 @@ import { LocalLLM, OpenRouterLLM, TIERS } from "./llm";
 import type { Embedder, Reranker } from "./embeddings";
 import { IdentityReranker, OllamaEmbeddings, OpenRouterEmbeddings, OpenRouterReranker, UnconfiguredEmbedder, UnconfiguredReranker } from "./embeddings";
 import { CostMeter } from "./costMeter";
-import { LiveModeNotConfiguredError } from "./errors";
+import { LiveModeNotConfiguredError, MockModeNotAllowedError } from "./errors";
 import { MockDecider, MockEmbedder, MockLLM, MockReranker, type LlmFixture, type MockContext, type MockRule } from "./mocks";
 import { renderPrompt } from "@/lib/hive/prompts";
 import { hiveConfig } from "@/lib/hive/config";
 import { MOCK_RULES } from "@/tests/helpers/mockRules";
 
-export { LiveModeNotConfiguredError };
+export { LiveModeNotConfiguredError, MockModeNotAllowedError };
+
+/** True only inside a test runner (vitest, Playwright's dev server, offline `pnpm eval`), which sets HIVE_TEST_RUNNER=1. */
+export const inTestRunner = (env: Env = process.env) => clean(env.HIVE_TEST_RUNNER) === "1" || clean(process.env.HIVE_TEST_RUNNER) === "1";
 
 /**
  * Provider resolution (docs/ARCHITECTURE.md `getProviders()` table).
@@ -87,7 +90,10 @@ export interface ModelOverrides {
 }
 
 export function resolveProviderConfig(env: Env = process.env, overrides: ModelOverrides = {}): ResolvedConfig {
-  if (clean(env.USE_MOCK_PROVIDERS)?.toLowerCase() === "true") return { mode: "mock" };
+  if (clean(env.USE_MOCK_PROVIDERS)?.toLowerCase() === "true") {
+    if (!inTestRunner(env)) throw new MockModeNotAllowedError();
+    return { mode: "mock" };
+  }
 
   const mode = clean(env.PROVIDER_MODE)?.toLowerCase() ?? "cloud";
   if (mode === "local") {

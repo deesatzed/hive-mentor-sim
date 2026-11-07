@@ -1,6 +1,6 @@
 /**
- * pnpm dev:repl            mock providers (labeled mock), database file:./mock.db
- * pnpm dev:repl --live     live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm dev:repl            live providers from .env, database from DATABASE_URL (default file:./dev.db)
+ * pnpm dev:repl --mock     mock providers (offline test path only, labeled mock), database file:./mock.db
  * Options: --trace (print the full trace JSON after each reply), --code (code ordering instead of the manager)
  * Piped input works: echo "I'm thinking of quitting my job." | pnpm dev:repl
  */
@@ -10,7 +10,9 @@ import { ensureDb } from "@/lib/council/dbSetup";
 import { createHive } from "@/lib/hive";
 import { hiveConfig } from "@/lib/hive/config";
 
-const live = process.argv.includes("--live");
+// live by default (owner decision 2026-11-06); --mock is the offline test path only and is labeled as such
+const live = !process.argv.includes("--mock");
+if (!live) process.env.HIVE_TEST_RUNNER = "1";
 const showTrace = process.argv.includes("--trace");
 const codeOrder = process.argv.includes("--code");
 try {

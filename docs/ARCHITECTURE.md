@@ -48,7 +48,7 @@ lib/hive/
   questions.ts     every decision question builder + thresholds (DECISION_LAYER.md)
   prompts.ts       every generation prompt id + zod schema (LLM_PROMPTS.md)
 scripts/
-  repl.ts                        pnpm dev:repl  (mock by default, --live)
+  repl.ts                        pnpm dev:repl  (live by default; --mock for the offline test path)
   corpus/{cli,fetch,chunk,authorial,embed,tag,holdout,fingerprint,fidelity,activate}.ts
   eval/{runner,grader,report,cli}.ts      pnpm eval | eval:live
   eval/calibration.ts                     pnpm eval:calibration

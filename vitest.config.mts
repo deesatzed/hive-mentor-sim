@@ -15,6 +15,6 @@ export default defineConfig({
     globalSetup: ["tests/helpers/global-setup.ts"],
     // One SQLite file is shared; run test files one at a time.
     fileParallelism: false,
-    env: { USE_MOCK_PROVIDERS: "true", DATABASE_URL: "file:./test.db" },
+    env: { USE_MOCK_PROVIDERS: "true", HIVE_TEST_RUNNER: "1", DATABASE_URL: "file:./test.db" },
   },
 });
