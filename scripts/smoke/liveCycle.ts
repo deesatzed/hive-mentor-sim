@@ -1,5 +1,5 @@
 /**
- * pnpm smoke:live [--db file:./smoke.db] [--input "..."] [--mentor <id>]  (--mentor: the dominant mentor who makes the final call; none = vote only)
+ * pnpm smoke:live [--db file:./smoke.db] [--input "..."] [--mentor <id>] [--central <model id>]  (--mentor: the dominant mentor who makes the final call; none = vote only)
  * One full chat heartbeat with live providers (.env). Prints and records the measured cost and
  * latency per phase (reports/smoke-live.md, reports/smoke-live.json). Spend is limited by the
  * owner's per-key OpenRouter limit; nothing here estimates cost.
@@ -40,7 +40,10 @@ async function main() {
   await ensureDb(url);
   const db = getDb(url);
   const env = { ...process.env, USE_MOCK_PROVIDERS: "false", DATABASE_URL: url };
-  const cfg = hiveConfig();
+  // --central <id>: test a candidate central model (manager + all text tiers) for this one cycle
+  const central = arg("--central");
+  const base = hiveConfig();
+  const cfg = central ? { ...base, models: { ...base.models, manager: central, fast: central, standard: central, premium: central } } : base;
   const hive = createHive({ env, db, cfg });
   const input = arg("--input") ?? DEFAULT_INPUT;
   console.log(`smoke:live — LIVE providers, db ${url}`);
