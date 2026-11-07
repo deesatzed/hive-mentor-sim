@@ -1,6 +1,6 @@
 # Progress
 
-Repo: `/Volumes/WS4TB/abetterme-council-handoff/hive-sim` → https://github.com/deesatzed/hive-mentor-sim (public), branch `main`.
+Repo: `/Volumes/WS4TB/hive-sim` (moved from `/Volumes/WS4TB/abetterme-council-handoff/hive-sim` on 2026-11-07 to keep it apart from the separate abetterme project) → https://github.com/deesatzed/hive-mentor-sim (public), branch `main`.
 Handoff package commit: `db528ca`. After a restart: read this file and `git log -10` first.
 
 ## Open items
@@ -253,7 +253,7 @@ Owner: "lets use openrouter models for ease of api key limits, and very fluid ne
 - `OpenRouterEmbeddings` (`/api/v1/embeddings`, chain `OPENROUTER_EMB_MODEL_1..N`) and `OpenRouterReranker` (`/api/v1/rerank`, chain `OPENROUTER_RETRIEVAL_MODEL_1..N`), with the same fallback rules as the decision client, cost from `usage.cost`, ledger events `embed.batch` / `rerank`. `MockReranker` (labeled mock) for offline tests; `IdentityReranker` in local mode. OpenAI embeddings removed.
 - `config/hive.yaml: models.embedding` / `models.rerank` overrides (tried first), next to the other model overrides.
 - Decision chain: a repeated model ID is tried once.
-- `hive-sim/.env` is now a symlink to the owner's `../.env` (one file to edit; still gitignored).
+- `hive-sim/.env` is now a symlink to the owner's `../.env` (one file to edit; still gitignored). 2026-11-07: after the move to `/Volumes/WS4TB/hive-sim`, `.env` is a real (gitignored) copy of that file; edit `/Volumes/WS4TB/hive-sim/.env`.
 
 **Live verification (2026-11-04, `pnpm verify:live`, `reports/live-verification-2026-11-04.json`), total $0.000177298**
 
