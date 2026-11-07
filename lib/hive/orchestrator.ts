@@ -998,8 +998,9 @@ export class Hive {
           }
       }
 
-      // signals (M9): tension / serves per relevant principle from the composed output; dissent per Voice that lost the Conclave
-      if (promote) {
+      // signals (M9): tension / serves per relevant principle from the composed output; dissent per Voice that lost the Conclave.
+      // Only the modes in signals.emit_in_modes emit (owner decision 2026-11-06: chat only).
+      if (promote && cfg.signals.emit_in_modes.includes(mode)) {
         const emitted: EmittedSignal[] = [];
         const relevant = principles.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => trace.arbiter.principlesChecked.includes(p.id));
         if (relevant.length && output) {

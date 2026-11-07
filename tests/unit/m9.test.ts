@@ -178,6 +178,13 @@ describe("signals from cycles (mock)", () => {
     expect(c.trace.signals).toEqual([]);
     expect(await db.signal.count({ where: { cycleId: c.cycleId } })).toBe(0);
 
+    // Reveal rulings emit none either (owner decision 2026-11-06: signals.emit_in_modes = [chat])
+    const dl = await db.situation.findFirstOrThrow({ where: { setKey: "dilemma" }, orderBy: { id: "asc" } });
+    const rr = await h.runCycle({ sessionId: await h.createSession("ruling"), input: dl.text, mode: "ruling", situation: { id: dl.id, text: dl.text, options: JSON.parse(dl.options) } });
+    expect(rr.conclave).not.toBeNull();
+    expect(rr.trace.signals).toEqual([]);
+    expect(await db.signal.count({ where: { cycleId: rr.cycleId } })).toBe(0);
+
     // two more identical cycles: the same Voice(s) dissent 3 times → density 3.0 → a dissent pattern surfaces
     for (let i = 0; i < 2; i++) await h.runCycle({ sessionId: await h.createSession(), input: "Should I forgive my brother who betrayed me?" });
     const cfg = loadHiveConfig();

@@ -40,6 +40,8 @@ export const HiveConfigSchema = z.object({
     resurface_increase: z.number().positive(),
     dismiss_days: z.number().positive(),
     pattern_window_cycles: z.number().int().positive(),
+    /** cycle modes that emit signals and pattern cards (owner decision 2026-11-06: real conversations only) */
+    emit_in_modes: z.array(z.enum(["chat", "ruling", "calibration"])).default(["chat"]),
   }),
   predictions: z.object({ min_n_for_mean: z.number().int().positive() }),
   edict_module: z.object({ enabled: z.boolean(), authority: z.string(), file: z.string() }),

@@ -329,6 +329,10 @@ signals:
   dismiss_days: 30
   # pattern card counts ("in tension 4 times in the last 20 cycles")
   pattern_window_cycles: 20
+  # Which cycles raise signals and pattern cards. Owner decision 2026-11-06: only real conversations (chat);
+  # the 40-dilemma Reveal (ruling) and calibration raise none.
+  emit_in_modes:
+    - chat
 predictions:
   min_n_for_mean: 10
 edict_module:
@@ -381,7 +385,7 @@ corpus:
     dilemmas_answered: 13
     principles: 8
     receipts_per_principle: 2
-    min_authorial_words: 30000
+    min_authorial_words: 10000 # owner lowered from 30,000 on 2026-11-06
 # ---------------------------------------------------------------------------------------------------
 # Who decides the order of the thinking cycle (owner decision 2026-11-04).
 #   manager: the central manager model picks the next phase from the phases code allows at that point.
