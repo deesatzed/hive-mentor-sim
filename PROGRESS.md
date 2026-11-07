@@ -5,20 +5,25 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 
 ## Open items
 
-- **Owner decision 2026-11-06 (decision 2):** `cloudflare/clairic` removed from `.env` (was slots 1 and 6); chain is now joey-1 > d1.1 > pplx-decider-v1.2 > morph/reflex (backup `../.env.bak-2026-11-06`). `tencent/hy4` is a candidate to replace `deepseek/deepseek-v4.1-flash-1017` as the central model. To do: a live head-to-head (same scenarios, deepseek kept as grader for both) via `config/hive.yaml: models`.
-- Owner actions for M6 done: formation v2 and constitution v2 (21 principles) approved by the owner in dev.db (2026-11-06).
-- **Signal tuning (owner decision):** after the 40-dilemma Reveal ran in one sitting, 13 of 15 Voices have a dissent pattern card and three principles a "served" card (dev.db, 2026-11-06). The thresholds (tension 3.0, serves 4.0, dissent 3.0, my deviation) and whether Reveal rulings should emit signals at all are yours to set in `config/hive.yaml: signals`. **Decided 2026-11-06 (decision 8):** Reveal rulings emit no signals or pattern cards (as calibration already promotes nothing); only real conversations do. To do: code + test; clear the Reveal-born signals/cards from dev.db only after a backup and the owner's go-ahead for that write.
-- **Owner decision 2026-11-06 (decision 5): a dominant mentor makes the final call.** It assesses each Voice's position and reasoning and decides, with a recorded reason; the CONTRADICTION threshold no longer gates whether a choice is made (disagreement and dissent are still measured, recorded and shown). The user picks the dominant mentor by topic from the active mentors: required before the first message of a conversation, changeable at any time, each change ledgered. Reveal and calibration use an operator-chosen mentor in `/settings`. The dominant mentor judges through its own corpus and never speaks to the user in its own voice. To do: design note (CONCLAVE_MATH.md, DECISION_LAYER.md), questions, UI picker, eval scenario updates.
-- **Live eval (owner decisions, see `reports/eval/rca-live-2026-11-06.md`).** (2) Decided 2026-11-06 (decision 6): `grounding_cite_or_silence` and `grounding_no_mentor_first_person` become live adversarial prompts (pass = fault avoided or caught); `compose_faithfulness` and `coherence_dissociation` get a labeled test-only fault planted into the real live draft just before the checker (owner-approved synthetic; on the removal list). (3) Decided 2026-11-06 (decision 7): the owner's own grades become the reference. To do: an easy, fun grading page (about 30 real live replies, one at a time, three big buttons per quality, keyboard shortcuts, progress bar; the AI's score shown only after the owner locks in each grade, as a "did you match?" reveal); grades stay local; the 80 % target applies to AI-vs-owner agreement.
-- **Owner decision 2026-11-06 (completion review, decision 1): mocks stay for automated tests only, and MUST be removed before the app is called complete.** To do: a guard so the app refuses to start in mock mode outside the test runners. Removal is a release blocker.
-- Mocks to remove when no longer needed: all of `tests/fixtures/llm/`, `tests/helpers/mockRules.ts`, the e2e fixture corpus/prediction, and the M10 `e2e journey` ADAPT rule (tests only).
-- **Owner decision 2026-11-06 (decision 3):** Churchill (Sir Winston Spencer, Gutenberg author 1601) replaces Osler in SENTIA and HERITAGE; Osler stays inactive. Sources: #18419 Liberalism and the Social Problem, #59794 The World Crisis vol. 1, #4943 The River War (each "Public domain in the USA." on its Gutenberg page, checked 2026-11-06). He must pass the same activation bar. To do: roster + source + map edit, corpus build, then a new formation draft and constitution draft for the owner to approve (operator-only).
-- **Owner decision 2026-11-06 (decision 9): morals are cultural and personal, so context matters.** No principle added to the constitution. The user's context (culture, beliefs, chosen dominant mentor) may change a ruling, and the Hive must state the context it reasons from. Calibration is re-judged on transparency and consistency: a changed answer passes when the Hive names the fact or context that made the difference and applies the same reasoning across variants; it fails on an unexplained flip or self-contradiction. Owner approved (2026-11-06) turning the `utility_only` hard check into a disclosure requirement: weighing a person by usefulness must be stated openly, and fails only when undisclosed. To do after decision 5 is built: grader/question changes, rerun calibration 3 times, report.
-- **Owner decision 2026-11-06 (decision 4):** `corpus.activation.min_authorial_words` lowered from 30,000 to 10,000 for every mentor (Confucius 27,596, Laozi 10,535 now clear it; the 13-dilemma bar still applies). To do: config change, rerun activation, record results.
-- **Decision-model context limits not recorded** (DECISION_LAYER.md asks for them at M1). These models are not in the public `/api/v1/models` list, so there is no source to read them from.
-- **Owner decision 2026-11-06 (decision 10):** the question bank's source is unconfirmed, so it left the public repo: moved to `local/question_bank_subset.json` (git-ignored); the corpus pipeline reads it from there and fails loudly if the bank step is requested without it. Open: the file is still in public git history (first commit `db528ca`); removing it from history needs a force-push, owner's call.
-- Owner decisions carried from `ADAPTATION_NOTES.md` §5: voice↔mentor map (done: formation v2), Honesty Clause (owner: leave as is, do not revisit). ("Central manager" was decided 2026-11-04; see M3.)
-- Mocks in use (approved by the original handoff, `docs/TEST_PLAN.md`): `MockDecider`, `MockLLM`, `MockEmbedder` in `lib/council/providers/mocks.ts`. Labeled `mock:*`, `calibrated: false`. They stay for offline tests; live checks are reported separately.
+Completion work, owner decisions 1-10 (2026-11-06) and steps 1-9 (2026-11-07). Details in "Completion work" at the end of this file.
+
+**Waiting on the owner**
+- **Approve formation draft v3** at `/formation` (Churchill in SENTIA and HERITAGE in place of Osler; Confucius in ETHOS and HERITAGE; Laozi in LUMEN and AXIOM). Then a constitution draft is generated from it for approval. Operator-only.
+- **Pick the dominant mentor for Reveal and calibration** at `/settings`. The three calibration reruns (decision 9) wait on it.
+- **Go-ahead to clear the 188 Reveal-born signals and 57 pattern-card rows from dev.db** (all signals in dev.db come from ruling cycles; backup first).
+- **Grade the live replies at `/grade`** (decision 7): 32 cards from `scenarios-live-2026-11-07-central-deepseek.json`.
+- **Checker findings from the planted faults** (ERROR_LOG.md 2026-11-07): FAITHFUL let an unsupported sentence through live (p 0.649 ≥ 0.5); C_intra measures topic drift, not stance, so a planted LOGOS reversal had the lowest drift of 13 Voices. Fixes change verifiers and need the owner's direction.
+- **Step 9 (mock removal) needs confirmation** before it starts: it deletes the offline test suite's providers (`lib/council/providers/mocks.ts`, `tests/fixtures/llm/`, `tests/helpers/mockRules.ts`, the e2e fixture corpus and prediction) and every test built on them.
+
+**Mocks and test-only data still present (release blockers, decision 1)**
+- `MockDecider`, `MockLLM`, `MockEmbedder` (`lib/council/providers/mocks.ts`), `tests/fixtures/llm/` (incl. `DOMINANT_REASON.json`), `tests/helpers/mockRules.ts`, the e2e fixture corpus and prediction, the M10 `e2e journey` ADAPT rule. Refused outside the test runners since step 1.
+- Live-eval TEST FAULTS (`lib/hive/faults.ts`, scenario `live.faults`), owner-approved, labeled in trace and ledger.
+- Unit-test fixtures: Seneca active with two hand-written principles (`tests/unit/dominant.test.ts`); a fake live report (`tests/unit/grading.test.ts`, deleted after the test).
+
+**Other open items**
+- The question bank is still in public git history (commit `db528ca`); the owner chose not to rewrite history (2026-11-07).
+- Decision-model context limits not recorded: these models are not in the public `/api/v1/models` list.
+- Honesty Clause: owner said leave as is; do not revisit.
 
 ## M0: Repository, tooling, provider skeleton (done 2026-11-03)
 
@@ -454,4 +459,28 @@ Owner decision 2026-11-06: the Honesty Clause stays as built in M8 (HONESTY_PROB
 ## Next
 
 All ten milestones are built. Remaining work is owner decisions (open items at the top) and any fixes the owner wants from the live eval and calibration findings.
+
+## Completion work (owner decisions 2026-11-06, built 2026-11-07)
+
+**Decisions** (asked one at a time): (1) mocks for tests only, removed before completion; (2) `cloudflare/clairic` removed, `tencent/hy4` tested against deepseek as central model; (3) Churchill replaces Osler; (4) authorial-word bar 30,000 → 10,000; (5) a dominant mentor, picked by the user by topic, makes the final call; (6) fault scenarios: provoke live where a user could, plant a labeled fault where not; (7) the owner's grades are the grader reference, via an easy, fun page; (8) only real conversations raise signals and pattern cards; (9) morals are cultural and personal: calibration judges transparency and consistency, `utility_only` becomes a disclosure check; (10) question bank kept off the public repo. 2026-11-07: no date-of-death cutoff for mentors (the "died before 1956" rule came from the original handoff's HANDOFF.md and GOAL.md; removed by the owner); history not rewritten.
+
+**Step 1 (`87b44c1`).** `MockModeNotAllowedError` unless `HIVE_TEST_RUNNER=1` (vitest, Playwright's server, offline `pnpm eval`). Reveal, calibration and the REPL run live by default; `--mock` is the labeled offline path.
+
+**Step 2 (`e4b254c`).** Churchill added (roster, sources, map); cutoff removed from HANDOFF.md, GOAL.md, MENTOR_CORPUS.md; `min_authorial_words: 10000`. Live corpus build on dev.db (backup `backups/dev-before-step2-2026-11-07.db`), measured $0.220870:
+
+| Mentor | Authorial words | Dilemmas answered | Principles | Fidelity (fingerprint / name-only) | Active |
+|---|---|---|---|---|---|
+| Winston Churchill | 404,630 | 15 | 15 | 26 of 27 / 36 of 39 | yes |
+| Confucius | 27,596 | 23 | 15 | 1 of 1 / 1 of 1 | yes |
+| Laozi | 10,535 | 29 | 15 | 5 of 5 / 4 of 5 | yes |
+
+16 of 19 mentors active. Formation draft v3 created for approval. Note: for Churchill the name-only baseline (36 of 39) beat the corpus fingerprint, so the model knows him well by name alone.
+
+**Step 3 (`4c4c1a5`).** `signals.emit_in_modes: [chat]`; a ruling cycle with a Conclave writes no signals (unit test).
+
+**Step 4 (`99c6c4b`).** Dominant mentor (CONCLAVE_MATH.md §10, DECISION_LAYER.md DOMINANT_CALL). Schema migration `dominant_mentor` (applied to dev.db after backup `backups/dev-before-dominant-migration-2026-11-07.db`). Chat picker, `/settings` picker, trace "Final call" block, Reveal/calibration keyed by the mentor. e2e finding fixed: with no conflict the call only sets which position leads; compatible positions stay. Live check (`smoke:live --mentor seneca`, copy of dev.db): Seneca overruled the vote (option 4 → option 1) with a third-person reason; cycle $0.028942, ledger matched; soundness scores close together (0.635–0.689).
+
+**Steps 5-7 (`959935e`).** Live eval runs on a cleared copy of dev.db. Six changed scenarios live ($0.058980): conclave_conflict, conclave_stable_options and grounding_no_mentor_first_person passed; compose_faithfulness and coherence_dissociation failed on the checker findings above; grounding_cite_or_silence passed its invariant but scored 0.545 < 0.6 on the rubric. Calibration questions changed per decision 9 (reruns pending the owner's mentor pick). `/grade` built.
+
+**Step 8 (2026-11-07).** One live cycle each on a dev.db copy (same input, Seneca as dominant mentor): `tencent/hy4` 127,383 ms, $0.032013, 27 invalid whisper outputs, 9 of 13 Voices passed, no Conclave; `deepseek/deepseek-v4.1-flash-1017` 66,488 ms, $0.028942. Owner: "if hy4 is slow switch to deepseek flash", so the 32-scenario hy4 run was stopped before it started and deepseek stays central. Full live eval with deepseek (`reports/eval/scenarios-live-2026-11-07-central-deepseek.json`): 24 of 32 passed, cycle cost $0.282459 (grading calls not included); live-vs-heuristic agreement 81.8 % of 44 per dimension, 93.8 % of 32 pass/fail. Failures: coherence_dissociation (planted LOGOS reversal not detected; worst drift ADAPT 0.66), commitment_consistency (wording regex), conclave_conflict (rubric 0.689 < 0.7, all invariants pass), ego_audit_process_over_principle (moral flag not shortlisted), empathy_career (AMEND, scenario expects PASS), flooding_regulation (arousal 0.489 < 0.7; wording regex), grounding_cite_or_silence (rubric 0.52 < 0.6), grounding_no_mentor_first_person (rubric 0.62 < 0.7). compose_faithfulness passed this run (the planted sentence was caught), unlike the subset run.
 
