@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { Question } from "@/lib/council/providers/decisions";
+import type { LLM } from "@/lib/council/providers/llm";
+import { Schemas } from "@/lib/hive/prompts";
 import { score } from "@/lib/hive/questions";
 import type { Scenario } from "./types";
 
@@ -88,4 +90,35 @@ export function ownerExamples(scenarios: Map<string, Scenario>, keep: (cardId: s
 export function splitHalf(ids: string[]): { examples: Set<string>; holdout: Set<string> } {
   const sorted = [...ids].sort((a, b) => createHash("sha256").update(a).digest("hex").localeCompare(createHash("sha256").update(b).digest("hex")));
   return { examples: new Set(sorted.filter((_, i) => i % 2 === 0)), holdout: new Set(sorted.filter((_, i) => i % 2 === 1)) };
+}
+
+/**
+ * Grader v3 (owner decision 2026-11-07, after v2 could not separate "partly" from "yes"): the reviewer model
+ * reads the conversation, writes a reason per quality, then grades it no / partly / yes, with the owner's
+ * graded examples in view. Returns levels 0–2 per quality; a quality the model leaves out is missing.
+ */
+export const TEXT_GRADER_VERSION = "v3 (reviewer model reads and grades, owner examples)";
+
+export async function textGrade(grader: LLM, s: Scenario, replies: string[], examples: GradeExample[], purpose = "eval_grade") {
+  const qualities = Object.fromEntries(Object.entries(s.expect.witness_rubric).map(([d, meta]) => [d, meta.guidance ?? ""]));
+  const st = gradeState(s, replies, examples);
+  const g = await grader.generate(
+    "EVAL_GRADE",
+    {
+      scenario: s.title,
+      qualities,
+      turns: st.turns,
+      examples: "grading_examples" in st && st.grading_examples ? st.grading_examples.map((e) => ({ quality: e.quality, operator: e.operator, replies: e.replies, ownerGrade: e.ownerGrade })) : undefined,
+    },
+    Schemas.EVAL_GRADE,
+    { tier: "standard", temperature: 0, purpose },
+  );
+  const levels: Record<string, number> = {};
+  const reasons: Record<string, string> = {};
+  for (const x of g.data.grades) {
+    if (!(x.quality in qualities)) continue;
+    levels[x.quality] = LEVEL_NAMES.indexOf(x.grade);
+    reasons[x.quality] = x.reason;
+  }
+  return { levels, reasons, costUsd: g.costUsd, model: g.model };
 }

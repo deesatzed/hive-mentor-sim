@@ -103,3 +103,16 @@
 **Cause.** The page's editor opened on the approved version (v2), not on the draft awaiting approval, and did not say which version it showed. Saving created v4 from those checkboxes; the "Approve version N" button picked the newest draft of the whole history (v4). After v3 was approved, the same button would have offered v1.
 
 **Fix.** `/api/formation` returns `pending` (newest draft newer than the approved version) and `selected` (`?version=N`, else `pending`). The page opens on that version, states its number and status and which version is in use, has "View" on each version in the history, and "Approve version N as shown" approves exactly the version on screen; it is disabled while the checkboxes differ from it. Unit test for `pendingFormation`. No data changed: approving v3 is the owner's click.
+
+## 2026-11-07: live grader does not match the owner's grades (two fixes failed)
+
+**Error.** The owner graded 32 live replies. The live eval grader matched 21 of 44 judgments (v1, decision-layer scores). On the 25 held-out judgments: v1 11/25, v2 (stricter level wording + 16 owner-graded examples, decision layer) 12/25 and too strict (11 lower), v3 (reviewer model reads, reasons, grades, same examples) 12/25 and too lenient (11 higher). Target 80 % (20/25).
+
+**Plausible causes.**
+1. The owner's line between "partly" and "yes" depends on something the written quality descriptions do not say (most disagreements are partly vs yes on coherence and uncertainty honesty). The examples carry the owner's level but no reason, so a grader cannot infer the rule. Most likely.
+2. The decision models give near-identical scores to every reply (held-out coherence: 1.39–1.56 for owner "partly", 1.34–1.54 for owner "yes"), so v1/v2 cannot separate them at any cut-off. Confirmed for v1/v2.
+3. Small sample: 25 held-out judgments, 4 points each; the owner graded once, so the owner's own repeatability is unknown.
+
+**Logging added.** `pnpm eval:regrade` stores every held-out judgment with the grader's written reason (`local/grades/regrade-*.json`), so each disagreement can be read against the owner's grade.
+
+**Fix.** None yet: needs the owner's words on what separates "partly" from "yes" (cause 1). Live eval still uses v1.

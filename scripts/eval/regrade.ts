@@ -1,5 +1,5 @@
 /**
- * pnpm eval:regrade [--report <scenarios-live-….json>]
+ * pnpm eval:regrade [--report <scenarios-live-….json>] [--grader text|decision]   (default text: grader v3)
  *
  * Re-grades the stored replies of a live eval report with the current live grader (scripts/eval/rubric.ts)
  * and measures agreement with the owner's grades (owner decision 2026-11-07, decision 1 A). Half of the
@@ -11,7 +11,7 @@ import path from "node:path";
 import YAML from "yaml";
 import { getProviders } from "@/lib/council/providers";
 import { hiveConfig } from "@/lib/hive/config";
-import { GRADER_VERSION, gradeQuestions, gradeState, LEVEL_NAMES, ownerExamples, splitHalf } from "./rubric";
+import { GRADER_VERSION, gradeQuestions, gradeState, LEVEL_NAMES, ownerExamples, splitHalf, TEXT_GRADER_VERSION, textGrade } from "./rubric";
 import { liveView, ScenarioSchema, type Scenario } from "./types";
 
 try {
@@ -46,6 +46,10 @@ async function main() {
   const { examples: exampleIds, holdout } = splitHalf(Object.keys(owner.cards));
   const examples = ownerExamples(scenarios, (id) => exampleIds.has(id));
   const p = getProviders(process.env, { models: cfg.models });
+  const mode = flag("--grader") ?? "text";
+  if (mode !== "text" && mode !== "decision") throw new Error("--grader text|decision");
+  const reasons: Record<string, Record<string, string>> = {};
+  let servedBy = "";
 
   let cost = 0;
   const judged: { card: string; quality: string; set: "holdout" | "example"; owner: number; v1: number; v2: number; v2Score: number }[] = [];
@@ -55,11 +59,25 @@ async function main() {
     if (!s || r.skipped || !r.rubric || !own) continue;
     // an example card is never graded with its own grade in view
     const shown = examples.filter((e) => e.scenario !== s.title);
-    const d = await p.decider.decide(gradeState(s, r.outputs, shown), gradeQuestions(s), { purpose: "eval_regrade" });
-    cost += d.costUsd;
+    let get: (q: string) => number | undefined;
+    if (mode === "decision") {
+      const d = await p.decider.decide(gradeState(s, r.outputs, shown), gradeQuestions(s), { purpose: "eval_regrade" });
+      cost += d.costUsd;
+      get = (q) => d.score(`r_${q}`);
+    } else {
+      const t = await textGrade(p.grader, s, r.outputs, shown, "eval_regrade");
+      cost += t.costUsd;
+      servedBy = t.model;
+      reasons[r.id] = t.reasons;
+      get = (q) => t.levels[q];
+    }
     for (const [q, o] of Object.entries(own)) {
       if (r.rubric.scores[q] === undefined) continue;
-      const v2Score = d.score(`r_${q}`);
+      const v2Score = get(q);
+      if (v2Score === undefined) {
+        console.log(`\n${r.id}: grader left out ${q}`);
+        continue;
+      }
       judged.push({ card: r.id, quality: q, set: holdout.has(r.id) ? "holdout" : "example", owner: o, v1: level(r.rubric.scores[q]), v2: level(v2Score), v2Score: Math.round(v2Score * 100) / 100 });
     }
     process.stdout.write(".");
@@ -84,11 +102,12 @@ async function main() {
       byQuality,
     };
   };
-  const out = { report, grader: GRADER_VERSION, model: cfg.models.grader, at: new Date().toISOString(), costUsd: cost, holdout: summarize("holdout"), examples: summarize("example"), judged, levels: LEVEL_NAMES };
+  const out = { report, grader: mode === "text" ? TEXT_GRADER_VERSION : GRADER_VERSION, model: mode === "text" ? servedBy : "decision chain", at: new Date().toISOString(), costUsd: cost, holdout: summarize("holdout"), examples: summarize("example"), judged, reasons, levels: LEVEL_NAMES };
   mkdirSync(gradesDir, { recursive: true });
   const file = path.join(gradesDir, `regrade-${report.replace(/\.json$/, "")}-${out.at.replace(/[:.]/g, "-")}.json`);
   writeFileSync(file, JSON.stringify(out, null, 2) + "\n");
   const pct = (a: number, n: number) => (n ? `${a}/${n} (${((a / n) * 100).toFixed(1)}%)` : "-");
+  console.log(`grader: ${out.grader} · ${out.model} ("v2" columns below = this grader)`);
   console.log(`held-out (grader never saw these graded): v1 ${pct(out.holdout.v1Match, out.holdout.judgments)} · v2 ${pct(out.holdout.v2Match, out.holdout.judgments)} · v2 higher ${out.holdout.v2Higher}, lower ${out.holdout.v2Lower}`);
   for (const [q, b] of Object.entries(out.holdout.byQuality)) console.log(`  ${q}: v1 ${b.v1}/${b.n} · v2 ${b.v2}/${b.n}`);
   console.log(`example half (shown to the grader, not a fair test): v1 ${pct(out.examples.v1Match, out.examples.judgments)} · v2 ${pct(out.examples.v2Match, out.examples.judgments)}`);

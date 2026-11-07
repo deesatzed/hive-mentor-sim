@@ -1,0 +1,6 @@
+{
+  "_note": "MOCK fixture (offline tests and mock eval only). Outputs are scripted; they test the pipeline, not model behavior. Remove with the other mocks before completion (owner decision 2026-11-06).",
+  "default": {
+    "grades": [{ "quality": "coherence", "reason": "mock reason", "grade": "partly" }]
+  }
+}
