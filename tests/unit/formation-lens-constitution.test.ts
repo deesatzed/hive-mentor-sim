@@ -14,7 +14,7 @@ import { clearRetrievalCache } from "@/lib/council/retrieval";
 import { createHive } from "@/lib/hive";
 import { loadHiveConfig } from "@/lib/hive/config";
 import { approveConstitution, ConstitutionError, draftConstitution, editPrinciple, verifyReceipts } from "@/lib/hive/constitution";
-import { activeFormation, approveFormation, FormationError, formationMetrics, saveFormation } from "@/lib/hive/formation";
+import { activeFormation, approveFormation, FormationError, formationMetrics, pendingFormation, saveFormation } from "@/lib/hive/formation";
 import { buildLenses } from "@/lib/hive/lens";
 import { MOCK_RULES } from "../helpers/mockRules";
 
@@ -73,6 +73,17 @@ describe("formation", () => {
     const f = await activeFormation(db);
     expect(f).toMatchObject({ version: v3.version, status: "approved" });
     expect(f!.assignments["core.logos"]).toEqual(["laozi", "seneca"]);
+  });
+
+  it("pending draft: only a draft newer than the approved version awaits approval (never an older one)", async () => {
+    const approved = (await activeFormation(db))!;
+    expect(approved.status).toBe("approved");
+    expect(await pendingFormation(db)).toBeNull(); // v1 is still a draft, but it is older than the approved version
+    const next = await saveFormation(db, { [SENTIA]: ["seneca", "laozi"], [AXIOM]: ["laozi"] }, "pending test");
+    const p = await pendingFormation(db);
+    expect(p).toMatchObject({ version: next.version, status: "draft", note: "pending test" });
+    expect(p!.assignments[SENTIA]).toEqual(["laozi", "seneca"]);
+    expect((await activeFormation(db))!.version).toBe(approved.version); // saving a draft does not change what cycles use
   });
 
   it("metrics: N_eff over active mentors and per-Voice κ", async () => {

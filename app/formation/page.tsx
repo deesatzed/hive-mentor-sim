@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 type Mentor = { id: string; name: string; years: string; roles: string[]; active: boolean; inactiveReason: string | null; works: { title: string; translator: string | null; attributed: boolean; license: string }[]; stats: { answered?: number; principles?: number } };
 type Data = {
   current: { version: number; status: string; assignments: Record<string, string[]> } | null;
+  pending: { version: number; status: string; note: string | null; assignments: Record<string, string[]> } | null;
+  selected: { version: number; status: string; note: string | null; assignments: Record<string, string[]> } | null;
   history: { version: number; status: string; note: string | null; createdAt: string; _count: { members: number } }[];
   voices: { id: string; name: string; attribute: string; tier: string; guilds: string[] }[];
   mentors: Mentor[];
@@ -20,11 +22,12 @@ export default function FormationPage() {
   const apply = (r: Data) => {
     setD(r);
     const active = new Set(r.mentors.filter((m) => m.active).map((m) => m.id));
-    // start from the current formation, keeping only active mentors (inactive ones cannot form a lens)
-    setDraft(Object.fromEntries(r.voices.map((v) => [v.id, (r.current?.assignments[v.id] ?? []).filter((m) => active.has(m))])));
+    // start from the chosen version (default: the draft awaiting approval), else the current formation; active mentors only
+    const base = r.selected ?? r.current;
+    setDraft(Object.fromEntries(r.voices.map((v) => [v.id, (base?.assignments[v.id] ?? []).filter((m) => active.has(m))])));
   };
-  const fetchData = (): Promise<Data> => fetch("/api/formation").then((x) => x.json());
-  const load = async () => apply(await fetchData());
+  const fetchData = (version?: number): Promise<Data> => fetch(version ? `/api/formation?version=${version}` : "/api/formation").then((x) => x.json());
+  const load = async (version?: number) => apply(await fetchData(version));
   useEffect(() => {
     fetchData().then(apply);
   }, []);
@@ -41,7 +44,7 @@ export default function FormationPage() {
     const r = await fetch("/api/formation", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignments: draft, note: "saved from /formation" }) });
     const b = await r.json();
     setMsg(r.ok ? `Saved formation version ${b.version} (draft).` : b.error);
-    await load();
+    await load(r.ok ? b.version : undefined);
   };
   const approve = async (version: number) => {
     const r = await fetch("/api/formation/approve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version }) });
@@ -49,13 +52,28 @@ export default function FormationPage() {
     setMsg(r.ok ? `Approved formation version ${version}.` : b.error);
     await load();
   };
-  const newestDraft = d.history.find((h) => h.status === "draft");
+  const shown = d.selected ?? d.current;
+  const approvable = !!shown && shown.status !== "approved";
+  const same = (a: string[] = [], b: string[] = []) => a.length === b.length && [...a].sort().every((x, i) => x === [...b].sort()[i]);
+  const edited = !!shown && d.voices.some((v) => !same(draft[v.id], shown.assignments[v.id]));
   return (
     <main className="home wide">
       <h1>Formation</h1>
       <p className="muted">
         Current: {d.current ? `version ${d.current.version} (${d.current.status})` : "none"}. {d.metrics.activeMentors} active mentors act like{" "}
         <strong data-testid="neff">{d.metrics.nEff.toFixed(1)}</strong> distinct perspectives (N_eff, from agreement on dilemma choices).
+      </p>
+      <p data-testid="formation-shown">
+        {shown ? (
+          <strong>
+            Showing version {shown.version} ({shown.status === "approved" ? "approved, in use" : shown.status === "draft" ? "draft, not approved" : `${shown.status}, not in use`})
+            {edited ? " — with your unsaved changes" : ""}.
+          </strong>
+        ) : (
+          "No formation saved yet."
+        )}
+        {d.selected?.note ? <span className="muted"> {d.selected.note}</span> : null}
+        {d.current && shown && d.current.version !== shown.version ? <span className="muted"> In use now: version {d.current.version}.</span> : null}
       </p>
       <table>
         <thead>
@@ -81,11 +99,19 @@ export default function FormationPage() {
       </table>
       <p>
         <button onClick={save}>Save as new version</button>{" "}
-        {newestDraft && <button onClick={() => approve(newestDraft.version)}>Approve version {newestDraft.version}</button>}
+        {approvable && (
+          <button onClick={() => approve(shown!.version)} disabled={edited} title={edited ? "Save your changes as a new version first" : undefined}>
+            Approve version {shown!.version} as shown
+          </button>
+        )}
+        {approvable && edited && <span className="muted"> You changed the checkboxes: save them as a new version, then approve that.</span>}
       </p>
       <p data-testid="formation-msg" aria-live="polite">{msg}</p>
       <h2>Versions</h2>
-      <ul>{d.history.map((h) => <li key={h.version}>v{h.version} · {h.status} · {h._count.members} assignments{h.note ? ` · ${h.note}` : ""}</li>)}</ul>
+      <ul>{d.history.map((h) => <li key={h.version}>
+            v{h.version} · {h.status} · {h._count.members} assignments{h.note ? ` · ${h.note}` : ""}{" "}
+            {shown?.version === h.version ? <strong>(showing)</strong> : <button onClick={() => { setMsg(null); load(h.version); }}>View</button>}
+          </li>)}</ul>
       <section>
         <h2>About these lenses</h2>
         <p>Built only from public-domain writings listed below. This is a reading of their texts, not the person. Writings reflect their era. The written record is skewed toward a narrow slice of humanity.</p>

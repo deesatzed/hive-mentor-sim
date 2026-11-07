@@ -1,15 +1,19 @@
 import { z } from "zod";
 import { getDb } from "@/lib/council/db";
-import { activeFormation, formationHistory, formationMetrics, FormationError, saveFormation } from "@/lib/hive/formation";
+import { activeFormation, formationHistory, formationByVersion, formationMetrics, FormationError, pendingFormation, saveFormation } from "@/lib/hive/formation";
 
-export async function GET() {
+export async function GET(req: Request) {
   const db = getDb();
+  const v = Number(new URL(req.url).searchParams.get("version"));
   const current = await activeFormation(db);
   const voices = await db.voice.findMany({ where: { class: "core" }, orderBy: { id: "asc" }, select: { id: true, name: true, attribute: true, tier: true, guilds: true } });
   const mentors = await db.mentor.findMany({ orderBy: { name: "asc" }, include: { works: { select: { title: true, translator: true, attributed: true, license: true } } } });
   const metrics = await formationMetrics(db, current?.assignments ?? {});
   return Response.json({
     current,
+    pending: await pendingFormation(db),
+    // the version the editor opens on: ?version=N if given, else the draft awaiting approval
+    selected: Number.isInteger(v) && v > 0 ? await formationByVersion(db, v) : await pendingFormation(db),
     history: await formationHistory(db),
     voices: voices.map((v) => ({ ...v, guilds: JSON.parse(v.guilds) })),
     mentors: mentors.map((m) => ({ id: m.id, name: m.name, years: m.years, roles: JSON.parse(m.roles), active: m.active, inactiveReason: m.inactiveReason, works: m.works, stats: JSON.parse(m.corpusStats || "{}") })),

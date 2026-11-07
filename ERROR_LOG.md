@@ -95,3 +95,11 @@
 3. My regex error.
 
 **Fix.** (3) fixed: the live regex is "coherence|inconsisten|contradict". (1) and (2) are checker design findings for the owner (see PROGRESS.md open items); the checkers were not changed.
+
+## 2026-11-07: /formation approved the wrong version
+
+**Error.** The owner meant to approve formation draft v3 (Churchill, Confucius, Laozi added). The app recorded v4 as approved, an exact copy of the older v2.
+
+**Cause.** The page's editor opened on the approved version (v2), not on the draft awaiting approval, and did not say which version it showed. Saving created v4 from those checkboxes; the "Approve version N" button picked the newest draft of the whole history (v4). After v3 was approved, the same button would have offered v1.
+
+**Fix.** `/api/formation` returns `pending` (newest draft newer than the approved version) and `selected` (`?version=N`, else `pending`). The page opens on that version, states its number and status and which version is in use, has "View" on each version in the history, and "Approve version N as shown" approves exactly the version on screen; it is disabled while the checkboxes differ from it. Unit test for `pendingFormation`. No data changed: approving v3 is the owner's click.

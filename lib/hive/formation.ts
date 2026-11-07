@@ -39,6 +39,13 @@ export async function activeFormation(db: PrismaClient): Promise<FormationView |
   return { id: f.id, version: f.version, status: f.status, note: f.note, createdAt: f.createdAt, assignments };
 }
 
+/** The draft awaiting approval: the newest draft saved after the approved version (null when none). */
+export async function pendingFormation(db: PrismaClient): Promise<FormationView | null> {
+  const approved = await db.formation.findFirst({ where: { status: "approved" }, orderBy: { version: "desc" }, select: { version: true } });
+  const f = await db.formation.findFirst({ where: { status: "draft", version: { gt: approved?.version ?? 0 } }, orderBy: { version: "desc" }, select: { version: true } });
+  return f ? activeFormationByVersion(db, f.version) : null;
+}
+
 export async function formationHistory(db: PrismaClient) {
   return db.formation.findMany({ orderBy: { version: "desc" }, select: { id: true, version: true, status: true, note: true, createdAt: true, _count: { select: { members: true } } } });
 }
@@ -60,6 +67,11 @@ export async function saveFormation(db: PrismaClient, assignments: Record<string
   const last = await db.formation.findFirst({ orderBy: { version: "desc" }, select: { version: true } });
   await db.formation.create({ data: { version: (last?.version ?? 0) + 1, status: "draft", note: note ?? null, members: { create: rows } } });
   return (await activeFormationByVersion(db, (last?.version ?? 0) + 1))!;
+}
+
+/** One formation version with its assignments (null when missing). */
+export async function formationByVersion(db: PrismaClient, version: number): Promise<FormationView | null> {
+  return activeFormationByVersion(db, version);
 }
 
 async function activeFormationByVersion(db: PrismaClient, version: number): Promise<FormationView | null> {

@@ -8,10 +8,10 @@ Handoff package commit: `db528ca`. After a restart: read this file and `git log 
 Completion work, owner decisions 1-10 (2026-11-06) and steps 1-9 (2026-11-07). Details in "Completion work" at the end of this file.
 
 **Waiting on the owner**
-- **Approve formation draft v3** at `/formation` (Churchill in SENTIA and HERITAGE in place of Osler; Confucius in ETHOS and HERITAGE; Laozi in LUMEN and AXIOM). Then a constitution draft is generated from it for approval. Operator-only.
+- **Approve formation version 3** at `/formation` (owner chose A on 2026-11-07; operator-only click: open v3 from the Versions list with "View", then "Approve version 3 as shown"). Version 4, approved 2026-11-07 15:32 UTC, is a copy of v2 without Churchill, Confucius and Laozi: the page opened on the approved v2, not on the v3 draft, and its approve button picked the newest draft of the whole history. Page fixed 2026-11-07 (see ERROR_LOG.md). Then a constitution draft is generated from it for approval.
 - **Pick the dominant mentor for Reveal and calibration** at `/settings`. The three calibration reruns (decision 9) wait on it.
 - **Go-ahead to clear the 188 Reveal-born signals and 57 pattern-card rows from dev.db** (all signals in dev.db come from ruling cycles; backup first).
-- **Grade the live replies at `/grade`** (decision 7): 32 cards from `scenarios-live-2026-11-07-central-deepseek.json`.
+- **AI grader stricter (owner chose A, 2026-11-07).** Owner graded all 32 cards: AI grader matched on 21 of 44 judgments (47.7%; target 80%), off by one on the other 23 (17 times higher than the owner, 6 lower). By quality: coherence 15/26, uncertainty honesty 1/8, empathy first 1/4, non-sycophancy 3/4, constitution alignment 1/2. Plan: spell out partly vs yes in the grader instructions with half of the owner's grades as examples, hold out the other half, re-grade the same 32 replies, re-measure. Not started.
 - **Checker findings from the planted faults** (ERROR_LOG.md 2026-11-07): FAITHFUL let an unsupported sentence through live (p 0.649 ≥ 0.5); C_intra measures topic drift, not stance, so a planted LOGOS reversal had the lowest drift of 13 Voices. Fixes change verifiers and need the owner's direction.
 - **Step 9 (mock removal) needs confirmation** before it starts: it deletes the offline test suite's providers (`lib/council/providers/mocks.ts`, `tests/fixtures/llm/`, `tests/helpers/mockRules.ts`, the e2e fixture corpus and prediction) and every test built on them.
 
